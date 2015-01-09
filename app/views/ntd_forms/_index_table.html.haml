@@ -1,0 +1,15 @@
+%table.table.table-hover#forms_datatable
+  %thead
+    %tr
+      %th.left Operator
+      %th.right Fiscal Year
+      %th.right Status
+
+  %tbody
+    - forms.each do |f|
+      %tr{:data => {:action_path => form_ntd_form_path(@form_type, f)}}
+        %td.left= f.organization
+        %td.right= format_as_fiscal_year(f.fy_year)
+        %td.right= f.state.humanize
+
+= render :partial => 'shared/datatable_javascript', :locals => {:id => 'forms_datatable'}

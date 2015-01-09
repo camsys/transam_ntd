@@ -1,0 +1,132 @@
+class NtdFormsController < FormAwareController
+
+  add_breadcrumb "Home", :root_path
+  add_breadcrumb "Forms", :forms_path
+
+  # Include the fiscal year mixin
+  include FiscalYear
+
+  before_filter :get_form,  :except =>  [:index, :create, :new]
+
+  INDEX_KEY_LIST_VAR          = "ntd_forms_key_list_cache_var"
+
+  def index
+
+    add_breadcrumb @form_type.name.pluralize(2), form_path(@form_type)
+    add_breadcrumb "All"
+
+    @fiscal_years = get_fiscal_years
+
+     # Start to set up the query
+    conditions  = []
+    values      = []
+
+    # Check to see if we got an organization to sub select on.
+    @org_filter = params[:org_id]
+    conditions << 'organization_id IN (?)'
+    if @org_filter.blank?
+      values << @organization_list
+    else
+      @org_filter = @org_filter.to_i
+      values << [@org_filter]
+    end
+
+    # See if we got search
+    @fiscal_year = params[:fiscal_year]
+    unless @fiscal_year.blank?
+      @fiscal_year = @fiscal_year.to_i
+      conditions << 'fy_year = ?'
+      values << @fiscal_year
+    end
+
+    @forms = NtdForm.where(conditions.join(' AND '), *values).order(:fy_year)
+
+    unless params[:format] == 'xls'
+      # cache the set of object keys in case we need them later
+      cache_list(@projects, INDEX_KEY_LIST_VAR)
+    end
+
+    respond_to do |format|
+      format.html # index.html.erb
+      format.json { render :json => @forms }
+      format.xls
+    end
+  end
+
+  def show
+
+    add_breadcrumb @form_type.name.pluralize(2), form_path(@form_type)
+    add_breadcrumb @form
+
+    # get the @prev_record_path and @next_record_path view vars
+    get_next_and_prev_object_keys(@project, INDEX_KEY_LIST_VAR)
+    @prev_record_path = @prev_record_key.nil? ? "#" : state_17a_form_path(@prev_record_key)
+    @next_record_path = @next_record_key.nil? ? "#" : state_17a_form_path(@next_record_key)
+
+    respond_to do |format|
+      format.html # show.html.erb
+      format.json { render :json => @form }
+    end
+  end
+
+
+  def new
+
+    add_breadcrumb "New"
+
+    @form = NtdForm.new
+    @fiscal_years = get_fiscal_years
+
+  end
+
+  def create
+    @form = NtdForm.new(form_params)
+    @form.organization = @organization
+    @form.form = @form_type
+
+    if @form.save
+      redirect_to form_ntd_form_steps_url @form_type, @form
+    else
+      render :new
+    end
+  end
+
+  def edit
+
+    redirect_to form_ntd_form_steps_url @form_type, @form
+
+  end
+
+  def destroy
+
+    @form.destroy
+    notify_user(:notice, "Form was successfully removed.")
+    respond_to do |format|
+      format.html { redirect_to form_ntd_forms_url(@form_type) }
+      format.json { head :no_content }
+    end
+  end
+
+  protected
+
+
+  private
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def form_params
+    params.require(:state17_a_form).permit(NtdForm.allowable_params)
+  end
+
+  def get_form
+    # See if it is our project
+    @form = NtdForm.find_by(:object_key => params[:id]) unless params[:id].nil?
+    # if not found or the object does not belong to the users
+    # send them back to index.html.erb
+    if @form.nil?
+      notify_user(:alert, 'Record not found!')
+      redirect_to(form_ntd_forms_url(@form_type))
+      return
+    end
+  end
+
+end

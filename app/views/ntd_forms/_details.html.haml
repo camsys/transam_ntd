@@ -1,0 +1,16 @@
+%ul.nav.nav-tabs
+  %li
+    %a{:href => "#rept", :data =>{:toggle => 'tab'}}
+      = "Report"
+  %li
+    %a{:href => "#hist", :data =>{:toggle => 'tab'}}
+      = "History"
+
+.tab-content
+  .tab-pane.fade#rept
+    .tab-content
+      = render 'report'
+
+  .tab-pane.fade#hist
+    .tab-content
+      = render 'history_table'

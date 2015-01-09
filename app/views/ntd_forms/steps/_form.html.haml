@@ -1,0 +1,17 @@
+.row
+  .col-md-6.col-md-offset-3
+    = simple_form_for(@form,
+      :id => 'ntd_form',
+      :url => wizard_path,
+      :html => {:class => 'form-vertical' },
+      :wrapper => :vertical_form,
+      :wrapper_mappings => {:check_boxes => :vertical_radio_and_checkboxes, :radio_buttons => :vertical_radio_and_checkboxes, :file => :vertical_file_input, :boolean => :vertical_boolean}) do |f|
+
+      = yield f
+
+      .actions
+        = f.submit "Continue", :class => "btn btn-success"
+        = link_to "skip this step", next_wizard_path, :class => "btn btn-info pull-right" if @has_next_step
+        = link_to "previous step", previous_wizard_path, :class => "btn btn-info pull-right" if @has_prev_step
+
+= render 'scripts'
