@@ -1,4 +1,5 @@
 module TransamNtd
+  
   class Engine < ::Rails::Engine
     # Add a load path for this specific Engine
     config.autoload_paths += %W(#{Rails.root}/app/calculators)

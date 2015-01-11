@@ -8,7 +8,12 @@ class NtdForms::StepsController < FormAwareController
   add_breadcrumb "Home", :root_path
   add_breadcrumb "Forms", :forms_path
 
-  steps :step1, :step2, :step3, :step4, :step5, :step6
+  steps :agency_information,
+        :admin_and_maint_facility_inventory,
+        :passenger_and_parking_facility_inventory,
+        :service_vehicle_inventory,
+        :revenue_vehicle_inventory,
+        :summary
 
   def show
 

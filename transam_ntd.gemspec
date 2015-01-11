@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.email       = ["jray@camsys.com"]
   s.homepage    = "http://www.camsys.com"
   s.summary     = "NTD Reporting Extensions for TransAM."
-  s.description = "National Transportation Database (NTD) Reporting Extensions for TransAM."
+  s.description = "FTA National Transportation Database (NTD) Reporting Extensions for TransAM."
   s.license     = "MIT"
 
   s.metadata = { "load_order" => "30" }
