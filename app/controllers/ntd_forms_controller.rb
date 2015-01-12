@@ -114,7 +114,7 @@ class NtdFormsController < FormAwareController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def form_params
-    params.require(:state17_a_form).permit(NtdForm.allowable_params)
+    params.require(:ntd_form).permit(NtdForm.allowable_params)
   end
 
   def get_form

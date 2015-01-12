@@ -1,13 +1,6 @@
 = render layout: 'form' do |f|
   %fieldset
-    %legend (A-00) Administrative and Maintenance Faciltiy Inventory
-    = f.input :state_match_to_admin
-    = f.input :state_match_to_pm
-    = f.input :state_match_to_acm
-    = f.input :state_match_to_ccoc
-    = f.input :cmaq
-    = f.input :stp
-    = f.input :miscellaneous
-    = f.input :wtw_job_access
-    = f.input :state_miscellaneous_1
-    = f.input :state_miscellaneous_2
+    %legend (A-10) Administrative and Maintenance Facility Inventory
+
+    = f.simple_fields_for :ntd_admin_and_maintenance_facilities do |builder|
+      = render 'admin_and_maintenance_facility', :f => builder

@@ -1,0 +1,19 @@
+%p= "Fleet #{f.options[:child_index] + 1}"
+%p
+  .row
+    .col-md-3
+      = f.input :name
+    .col-md-2
+      = f.input :vehicle_type
+    .col-md-1
+      = f.input :size
+    .col-md-2
+      = f.input :manufacture_year
+    .md-col-1
+      = f.input :pcnt_capital_responsibility
+    .md-col-2
+      = f.input :estimated_cost
+    .md-col-1
+      = f.input :year_estimated_cost
+
+  = f.input :notes

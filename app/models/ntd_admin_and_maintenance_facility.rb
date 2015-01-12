@@ -27,7 +27,7 @@ class NtdAdminAndMaintenanceFacility < ActiveRecord::Base
   validates :ntd_form,                  :presence => true
 
   validates :name,                      :presence => true
-  validates :part_of_larger_facility
+  validates_inclusion_of :part_of_larger_facility, :in => [true, false]
   validates :address1,                  :presence => true
   validates :city,                      :presence => true
   validates :state,                     :presence => true
@@ -44,7 +44,7 @@ class NtdAdminAndMaintenanceFacility < ActiveRecord::Base
 
   validates :pcnt_capital_responsibility,:presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 100}
   validates :estimated_cost,            :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  validates :year_estimated_cost,       :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 1900}
+  validates :estimated_cost_year,       :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 1900}
 
   #------------------------------------------------------------------------------
   # Scopes
@@ -56,6 +56,7 @@ class NtdAdminAndMaintenanceFacility < ActiveRecord::Base
 
   # List of hash parameters allowed by the controller
   FORM_PARAMS = [
+    :id,
     :ntd_form_id,
 
     :name,
@@ -72,7 +73,8 @@ class NtdAdminAndMaintenanceFacility < ActiveRecord::Base
     :size_sq_ft,
     :pcnt_capital_responsibility,
     :estimated_cost,
-    :year_estimated_cost
+    :estimated_cost_year,
+
     :notes
   ]
 

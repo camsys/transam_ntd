@@ -1,0 +1,30 @@
+%p= "Facility #{f.options[:child_index] + 1}"
+%p
+  = f.input :name
+  = f.input :address1
+  .row
+    .col-md-7
+      = f.input :city
+    .col-md-2
+      = f.input :state
+    .col-md-3
+      = f.input :zip
+  .row
+    .md-col-4
+      = f.input :part_of_larger_facility
+    .md-col-4
+      = f.association :primary_mode
+    .md-col-4
+      = f.input :year_built
+  .row
+    .md-col-4
+      = f.input :size
+    .md-col-4
+      = f.input :size_type, :collection => ["Sq Ft", "Spaces"]
+  .row
+    .md-col-4
+      = f.input :pcnt_capital_responsibility
+    .md-col-4
+      = f.input :estimated_cost
+    .md-col-4
+      = f.input :year_estimated_cost

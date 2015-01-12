@@ -36,36 +36,36 @@ class NtdForm < ActiveRecord::Base
   # Form Component Associations
 
   # Admin/Maint facilities
-  has_many    :ntd_admin_and_maintenance_facilities,  :dependent => :destroy
-  accepts_nested_attributes_for :ntd_admin_and_maintenance_facilities
+  has_many    :ntd_admin_and_maintenance_facilities, :dependent => :destroy
+  accepts_nested_attributes_for :ntd_admin_and_maintenance_facilities, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
 
   # Passenger and parking facilties
-  has_many    :ntd_passenger_and_parking_facilities,  :dependent => :destroy
-  accepts_nested_attributes_for :ntd_passenger_and_parking_facilities
+  has_many    :ntd_passenger_and_parking_facilities, :dependent => :destroy
+  accepts_nested_attributes_for :ntd_passenger_and_parking_facilities, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
 
   # Service vehicle fleets
-  has_many    :ntd_service_vehicle_fleets,  :dependent => :destroy
-  accepts_nested_attributes_for :ntd_service_vehicle_fleets
+  has_many    :ntd_service_vehicle_fleets, :dependent => :destroy
+  accepts_nested_attributes_for :ntd_service_vehicle_fleets, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
 
   # Revenue vehicle fleets
-  has_many    :ntd_revenue_vehicle_fleets,  :dependent => :destroy
-  accepts_nested_attributes_for :ntd_revenue_vehicle_fleets
+  has_many    :ntd_revenue_vehicle_fleets, :dependent => :destroy
+  accepts_nested_attributes_for :ntd_revenue_vehicle_fleets, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
 
   #------------------------------------------------------------------------------
   # Validations
   #------------------------------------------------------------------------------
-  validates :organization,  :presence => true
-  validates :form,          :presence => true
-  validates :fy_year,       :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 2012}
+  validates :organization,        :presence => true
+  validates :form,                :presence => true
+  validates :fy_year,             :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 2012}
 
   # Agency Information -- This is cached in case the organization's personel
   # changes and we retain the original reporting name
   #------------------------------------------------------------------------------
-  validates :reporter_name,              :presence => true
-  validates :reporter_title,              :presence => true
-  validates :reporter_department,              :presence => true
-  validates :reporter_email,              :presence => true
-  validates :reporter_phone,              :presence => true
+  validates :reporter_name,       :presence => true
+  validates :reporter_title,      :presence => true
+  validates :reporter_department, :presence => true
+  validates :reporter_email,      :presence => true
+  validates :reporter_phone,      :presence => true
   #validates :reporter_phone_ext,              :presence => true
 
   #------------------------------------------------------------------------------
@@ -87,10 +87,10 @@ class NtdForm < ActiveRecord::Base
     :reporter_email,
     :reporter_phone,
     :reporter_phone_ext,
-    :ntd_admin_and_maintenance_facilities_ids => [],
-    :ntd_passenger_and_parking_facilities => [],
-    :ntd_service_vehicle_fleets => [],
-    :ntd_revenue_vehicle_fleets => []
+    :ntd_admin_and_maintenance_facility_ids => [],
+    :ntd_passenger_and_parking_facility => [],
+    :ntd_service_vehicle_fleet_ids => [],
+    :ntd_revenue_vehicle_fleet_ids => []
   ]
 
   #------------------------------------------------------------------------------
