@@ -1,7 +1,7 @@
 %p= "Facility #{f.options[:child_index] + 1}"
 %p
   = f.input :name
-  = f.input :address1
+  = f.input :address
   .row
     .col-md-7
       = f.input :city
@@ -13,7 +13,7 @@
     .md-col-4
       = f.input :part_of_larger_facility
     .md-col-4
-      = f.association :primary_mode
+      = f.input :primary_mode
     .md-col-4
       = f.input :year_built
   .row
@@ -27,4 +27,4 @@
     .md-col-4
       = f.input :estimated_cost
     .md-col-4
-      = f.input :year_estimated_cost
+      = f.input :estimated_cost_year

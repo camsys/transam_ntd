@@ -5,7 +5,7 @@
 # Represents a Service Vehicle Fleet Row in an NTD Form
 #
 #------------------------------------------------------------------------------
-class NtdServiceVehicleFleet < ActiveRecord::Base
+class NtdRevenueVehicleFleet < ActiveRecord::Base
 
   # Include the object key mixin
   include TransamObjectKey
@@ -44,7 +44,7 @@ class NtdServiceVehicleFleet < ActiveRecord::Base
   validates :renewal_cost_year,         :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
 
   validates :replacement_cost,          :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  validates :replacement_cost_year      :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 1900}
+  validates :replacement_cost_year,     :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 1900}
   validates_inclusion_of :replacement_cost_parts,     :in => [true, false]
   validates_inclusion_of :replacement_cost_warranty,  :in => [true, false]
 

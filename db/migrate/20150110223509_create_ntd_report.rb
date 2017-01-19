@@ -98,7 +98,7 @@ class CreateNtdReport < ActiveRecord::Migration
     end
     add_index :ntd_service_vehicle_fleets, :ntd_form_id, :name => :ntd_service_vehicle_fleets_idx1
 
-    create_table :ntd_reveue_vehicle_fleets do |t|
+    create_table :ntd_revenue_vehicle_fleets do |t|
       t.integer   :ntd_form_id,                         :null => :false
 
       t.string    :rvi_id,                :limit => 4,  :null => :false

@@ -61,11 +61,11 @@ class NtdForm < ActiveRecord::Base
   # Agency Information -- This is cached in case the organization's personel
   # changes and we retain the original reporting name
   #------------------------------------------------------------------------------
-  validates :reporter_name,       :presence => true
-  validates :reporter_title,      :presence => true
-  validates :reporter_department, :presence => true
-  validates :reporter_email,      :presence => true
-  validates :reporter_phone,      :presence => true
+  #validates :reporter_name,       :presence => true
+  #validates :reporter_title,      :presence => true
+  #validates :reporter_department, :presence => true
+  #validates :reporter_email,      :presence => true
+  #validates :reporter_phone,      :presence => true
   #validates :reporter_phone_ext,              :presence => true
 
   #------------------------------------------------------------------------------
