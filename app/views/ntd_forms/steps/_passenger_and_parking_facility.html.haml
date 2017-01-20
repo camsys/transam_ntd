@@ -1,30 +1,73 @@
-%p= "Facility #{f.options[:child_index] + 1}"
-%p
-  = f.input :name
-  = f.input :address
-  .row
-    .col-md-7
-      = f.input :city
-    .col-md-2
-      = f.input :state
-    .col-md-3
-      = f.input :zip
-  .row
-    .md-col-4
-      = f.input :part_of_larger_facility
-    .md-col-4
-      = f.input :primary_mode
-    .md-col-4
-      = f.input :year_built
-  .row
-    .md-col-4
-      = f.input :size
-    .md-col-4
-      = f.input :size_type, :collection => ["Sq Ft", "Spaces"]
-  .row
-    .md-col-4
-      = f.input :pcnt_capital_responsibility
-    .md-col-4
-      = f.input :estimated_cost
-    .md-col-4
-      = f.input :estimated_cost_year
+- table_dom_id = SecureRandom.hex
+
+.table-responsive
+  %table.table.table-hover{:id => table_dom_id, :data => {:toggle => 'table',
+    :card_view => "false",
+    :pagination => 'true',
+    :show_pagination_switch => 'true',
+    :page_list => "[5, 10, 20, 50, 100, 200]",
+    :page_size => current_user.num_table_rows,
+    :search => 'false',
+    :export_types => "['csv', 'txt', 'excel']",
+    :show_export => 'true',
+    :show_columns => 'true',
+    :state_save => 'true',
+    :state_save_id_table => "admin_and_maint_facility_id",
+    :state_save_expire => "1y"}, :style => 'width:100%;'}
+
+    %thead
+      %tr
+        %th.center{:data => {:visible => 'false'}} Object Key
+        %th.center{:data => {:sortable => 'true'}} Facility Name
+
+        %th.center{:data => {:sortable => 'true'}} Section of Larger Facility
+        %th.center{:data => {:sortable => 'true'}} Address
+        %th.center{:data => {:sortable => 'true'}} City
+        %th.center{:data => {:sortable => 'true'}} State
+        %th.center{:data => {:sortable => 'true'}} Zip Code
+        %th.center{:data => {:sortable => 'true'}} Latitude
+        %th.center{:data => {:sortable => 'true'}} Longitude
+        %th.center{:data => {:sortable => 'true'}} Primary Mode Served at Facility
+        %th.center{:data => {:sortable => 'true'}} Passenger or Parking Facility Type
+        %th.center{:data => {:sortable => 'true'}} Year Built
+        %th.center{:data => {:sortable => 'true'}} Square Feet or Num. Parking Spaces
+        %th.center{:data => {:sortable => 'true'}} Unit
+        %th.center{:data => {:sortable => 'true'}} Pcnt Transit Agency Capital Responsibility
+        %th.center{:data => {:sortable => 'true'}} Condition Assessment
+        %th.center{:data => {:sortable => 'true'}} Estimated Date of Condition Assessment
+        %th.center{:data => {:sortable => 'true'}} Notes
+
+
+    %tbody
+      - @form.ntd_passenger_and_parking_facilities.each do |f|
+        %tr{:id => f.object_key, :class => 'action-path'}
+          %td.left= f.object_key
+
+
+:javascript
+
+  $('#' + '#{table_dom_id}').on('post-body.bs.table', function () {
+    $('.transam-popover').popover({
+      trigger: 'hover'
+    });
+
+    $('.transam-tooltip').tooltip();
+  });
+
+  function pcnt_formatter(value) {
+    if (value == "") {
+      return value;
+    } else {
+      return format("##0.000", value) + "%";
+    }
+  };
+
+  $('#' + '#{table_dom_id}').on('click', 'td', function () {
+    var path = "#{funding_template_path('xxx')}";
+    var row = $(this).parent('tr').attr('id');
+
+    if ($(this).attr('data-field') != 'action-cell') {
+      var url = path.replace("xxx", row);
+      document.location.href = url;
+    }
+  });

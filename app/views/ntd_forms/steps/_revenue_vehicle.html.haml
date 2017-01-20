@@ -1,42 +1,77 @@
-%fieldset
-  = f.input :replacement_cost
-  -#%legend (A-70) Revenue Vehicle Inventory
-  -#= f.input :operator_salary_and_wages
-  -#= f.input :vehicle_maintenance_salary_and_wages
-  -#= f.input :other_salary_and_wages
-  -#
-  -#%fieldset
-  -#  %legend Casualty & Liability
-  -#  = f.input :services
-  -#  = f.input :purchased_transportation
-  -#  = f.input :fuel_and_lubricants
-  -#  = f.input :parts_and_repairs
-  -#  = f.input :other_material_and_supplies
-  -#  = f.input :utilities
-  -#
-  -#%fieldset
-  -#  %legend Non-Personal Services
-  -#  = f.input :taxes
-  -#  = f.input :interest
-  -#  = f.input :lease_and_rentals
-  -#  = f.input :expense_transfers
-  -#  = f.input :depreciation_private_capital
-  -#  = f.input :miscellaneous
-  -#  = f.input :allowance_for_profit
-  -#
-  -#%fieldset
-  -#  %legend Revenues
-  -#  = f.input :passenger_revenue
-  -#  = f.input :special_reimbursement
-  -#  = f.input :charter_contract_revenue
-  -#  = f.input :non_user_revenue
-  -#  = f.input :non_stoa_revenue
-  -#
-  -#%fieldset
-  -#  %legend Local Match
-  -#  = f.input :donated_local_match
-  -#
-  -#%fieldset
-  -#  %legend Adjustments
-  -#  = f.input :audit_adjustment
-  -#  = f.input :cash_adjustment
+- table_dom_id = SecureRandom.hex
+
+.table-responsive
+  %table.table.table-hover{:id => table_dom_id, :data => {:toggle => 'table',
+    :card_view => "false",
+    :pagination => 'true',
+    :show_pagination_switch => 'true',
+    :page_list => "[5, 10, 20, 50, 100, 200]",
+    :page_size => current_user.num_table_rows,
+    :search => 'false',
+    :export_types => "['csv', 'txt', 'excel']",
+    :show_export => 'true',
+    :show_columns => 'true',
+    :state_save => 'true',
+    :state_save_id_table => "admin_and_maint_facility_id",
+    :state_save_expire => "1y"}, :style => 'width:100%;'}
+
+    %thead
+      %tr
+        %th.center{:data => {:visible => 'false'}} Object Key
+        %th.center{:data => {:sortable => 'true'}} Description
+
+        %th.center{:data => {:sortable => 'true'}} Num. All Vehicles
+        %th.center{:data => {:sortable => 'true'}} Num. Active Vehicles
+        %th.center{:data => {:sortable => 'true'}} Num. ADA Vehicles
+        %th.center{:data => {:sortable => 'true'}} Num. Emergency Contingency Vehicles
+        %th.center{:data => {:sortable => 'true'}} Vehicle Type Code
+        %th.center{:data => {:sortable => 'true'}} Funding Source
+        %th.center{:data => {:sortable => 'true'}} EUL
+        %th.center{:data => {:sortable => 'true'}} Manufacture Year
+        %th.center{:data => {:sortable => 'true'}} Manufacturer
+        %th.center{:data => {:sortable => 'true'}} Model
+        %th.center{:data => {:sortable => 'true'}} Year or Last Renewal
+        %th.center{:data => {:sortable => 'true'}} Type of Last Renewal
+        %th.center{:data => {:sortable => 'true'}} Fuel Type
+        %th.center{:data => {:sortable => 'true'}} Vehicle Length
+        %th.center{:data => {:sortable => 'true'}} Seating Capacity
+        %th.center{:data => {:sortable => 'true'}} Standing Capacity
+        %th.center{:data => {:sortable => 'true'}} Total Miles on Active Vehicles
+        %th.center{:data => {:sortable => 'true'}} Avg. Lifetime Miles/Active Vehicle
+        %th.center{:data => {:sortable => 'true'}} Supports Another Mode
+        %th.center{:data => {:sortable => 'true'}} Notes
+
+
+    %tbody
+      - @form.ntd_revenue_vehicle_fleets.each do |f|
+        %tr{:id => f.object_key, :class => 'action-path'}
+          %td.left= f.object_key
+
+
+:javascript
+
+  $('#' + '#{table_dom_id}').on('post-body.bs.table', function () {
+    $('.transam-popover').popover({
+      trigger: 'hover'
+    });
+
+    $('.transam-tooltip').tooltip();
+  });
+
+  function pcnt_formatter(value) {
+    if (value == "") {
+      return value;
+    } else {
+      return format("##0.000", value) + "%";
+    }
+  };
+
+  $('#' + '#{table_dom_id}').on('click', 'td', function () {
+    var path = "#{funding_template_path('xxx')}";
+    var row = $(this).parent('tr').attr('id');
+
+    if ($(this).attr('data-field') != 'action-cell') {
+      var url = path.replace("xxx", row);
+      document.location.href = url;
+    }
+  });

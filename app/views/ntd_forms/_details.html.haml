@@ -1,12 +1,52 @@
 %ul.nav.nav-tabs
   %li
+    %a{:href => "#maint", :data =>{:toggle => 'tab'}}
+      = "A-10"
+  %li
+    %a{:href => "#passenger", :data =>{:toggle => 'tab'}}
+      = "A-20"
+  %li
+    %a{:href => "#rail", :data =>{:toggle => 'tab'}}
+      = "A-50"
+  %li
+    %a{:href => "#track", :data =>{:toggle => 'tab'}}
+      = "A-55"
+  %li
+    %a{:href => "#service", :data =>{:toggle => 'tab'}}
+      = "A-60"
+  %li
+    %a{:href => "#revenue", :data =>{:toggle => 'tab'}}
+      = "A-70"
+
+  %li
     %a{:href => "#rept", :data =>{:toggle => 'tab'}}
-      = "Report"
+      = "A-80"
   %li
     %a{:href => "#hist", :data =>{:toggle => 'tab'}}
       = "History"
 
 .tab-content
+  .tab-pane.fade#maint
+    .tab-content
+      = render 'ntd_forms/steps/admin_and_maint_facility'
+  .tab-pane.fade#passenger
+    .tab-content
+      = render 'ntd_forms/steps/passenger_and_parking_facility'
+  .tab-pane.fade#rail
+    .tab-content
+      = render 'report'
+  .tab-pane.fade#track
+    .tab-content
+      = render 'report'
+  .tab-pane.fade#service
+    .tab-content
+      = render 'ntd_forms/steps/service_vehicle_fleet'
+  .tab-pane.fade#revenue
+    .tab-content
+      = render 'ntd_forms/steps/revenue_vehicle'
+
+
+
   .tab-pane.fade#rept
     .tab-content
       = render 'report'

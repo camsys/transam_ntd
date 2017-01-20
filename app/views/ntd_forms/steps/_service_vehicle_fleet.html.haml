@@ -1,19 +1,65 @@
-%p= "Fleet #{f.options[:child_index] + 1}"
-%p
-  .row
-    .col-md-3
-      = f.input :name
-    .col-md-2
-      = f.input :vehicle_type
-    .col-md-1
-      = f.input :size
-    .col-md-2
-      = f.input :manufacture_year
-    .md-col-1
-      = f.input :pcnt_capital_responsibility
-    .md-col-2
-      = f.input :estimated_cost
-    .md-col-1
-      = f.input :estimated_cost_year
+- table_dom_id = SecureRandom.hex
 
-  = f.input :notes
+.table-responsive
+  %table.table.table-hover{:id => table_dom_id, :data => {:toggle => 'table',
+    :card_view => "false",
+    :pagination => 'true',
+    :show_pagination_switch => 'true',
+    :page_list => "[5, 10, 20, 50, 100, 200]",
+    :page_size => current_user.num_table_rows,
+    :search => 'false',
+    :export_types => "['csv', 'txt', 'excel']",
+    :show_export => 'true',
+    :show_columns => 'true',
+    :state_save => 'true',
+    :state_save_id_table => "admin_and_maint_facility_id",
+    :state_save_expire => "1y"}, :style => 'width:100%;'}
+
+    %thead
+      %tr
+        %th.center{:data => {:visible => 'false'}} Object Key
+        %th.center{:data => {:sortable => 'true'}} Description
+
+        %th.center{:data => {:sortable => 'true'}} Type of Service Vehicle
+        %th.center{:data => {:sortable => 'true'}} Num. Vehicles
+        %th.center{:data => {:sortable => 'true'}} EUL
+        %th.center{:data => {:sortable => 'true'}} Manufacture Year
+        %th.center{:data => {:sortable => 'true'}} Pcnt Transit Agency Capital Responsibility
+        %th.center{:data => {:sortable => 'true'}} Estimated Cost
+        %th.center{:data => {:sortable => 'true'}} Yr. Dollars of Estimated Cost
+        %th.center{:data => {:sortable => 'true'}} Notes
+
+
+    %tbody
+      - @form.ntd_service_vehicle_fleets.each do |f|
+        %tr{:id => f.object_key, :class => 'action-path'}
+          %td.left= f.object_key
+
+
+:javascript
+
+  $('#' + '#{table_dom_id}').on('post-body.bs.table', function () {
+    $('.transam-popover').popover({
+      trigger: 'hover'
+    });
+
+    $('.transam-tooltip').tooltip();
+  });
+
+  function pcnt_formatter(value) {
+    if (value == "") {
+      return value;
+    } else {
+      return format("##0.000", value) + "%";
+    }
+  };
+
+  $('#' + '#{table_dom_id}').on('click', 'td', function () {
+    var path = "#{funding_template_path('xxx')}";
+    var row = $(this).parent('tr').attr('id');
+
+    if ($(this).attr('data-field') != 'action-cell') {
+      var url = path.replace("xxx", row);
+      document.location.href = url;
+    }
+  });
