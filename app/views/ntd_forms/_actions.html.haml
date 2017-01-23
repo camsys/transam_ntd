@@ -11,6 +11,11 @@
           = "#{evt} this form"
     %li.divider
     %li
+      = link_to generate_form_ntd_form_path(@form_type, @form) do
+        %i.fa.fa-download.fa-fw
+        = " Download A-80"
+    %li.divider
+    %li
       = link_to edit_form_ntd_form_path(@form_type, @form) do
         %i.fa.fa-edit.fa-fw
         = " Update this form"

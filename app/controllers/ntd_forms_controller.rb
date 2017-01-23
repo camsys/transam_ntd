@@ -6,7 +6,7 @@ class NtdFormsController < FormAwareController
   # Include the fiscal year mixin
   include FiscalYear
 
-  before_filter :get_form,  :except =>  [:index, :create, :new]
+  before_filter :get_form,  :except =>  [:index, :create, :new, :download_file]
 
   INDEX_KEY_LIST_VAR          = "ntd_forms_key_list_cache_var"
 
@@ -105,6 +105,42 @@ class NtdFormsController < FormAwareController
       format.html { redirect_to form_ntd_forms_url(@form_type) }
       format.json { head :no_content }
     end
+  end
+
+  def generate
+    # Find out which builder is used to construct the template and create an instance
+    builder = DirEntInvTemplateBuilder.new(:organization => @organization, :asset_types => [], :organization_list => @organization_list)
+
+    # Generate the spreadsheet. This returns a StringIO that has been rewound
+    stream = builder.build
+
+    # Save the template to a temporary file and render a success/download view
+    file = Tempfile.new ['template', '.tmp'], "#{Rails.root}/tmp"
+    ObjectSpace.undefine_finalizer(file)
+    #You can uncomment this line when debugging locally to prevent Tempfile from disappearing before download.
+    @filepath = file.path
+    @filename = "#{@organization.short_name}_DirEntInv_#{Date.today}.xlsx"
+    begin
+      file << stream.string
+    rescue => ex
+      Rails.logger.warn ex
+    ensure
+      file.close
+    end
+    # Ensure you're cleaning up appropriately...something wonky happened with
+    # Tempfiles not disappearing during testing
+    respond_to do |format|
+      format.js
+      format.html
+    end
+  end
+
+  def download_file
+    # Send it to the user
+    filename = params[:filename]
+    filepath = params[:filepath]
+    data = File.read(filepath)
+    send_data data, :filename => filename, :type => "application/vnd.ms-excel"
   end
 
   protected
