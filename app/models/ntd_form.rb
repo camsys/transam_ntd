@@ -48,8 +48,8 @@ class NtdForm < ActiveRecord::Base
   accepts_nested_attributes_for :ntd_service_vehicle_fleets, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
 
   # Revenue vehicle fleets
-  has_many    :ntd_revenue_vehicle_fleets, :dependent => :destroy
-  accepts_nested_attributes_for :ntd_revenue_vehicle_fleets, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
+  # has_many    :ntd_revenue_vehicle_fleets, :dependent => :destroy
+  # accepts_nested_attributes_for :ntd_revenue_vehicle_fleets, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
 
   #------------------------------------------------------------------------------
   # Validations
@@ -171,6 +171,10 @@ class NtdForm < ActiveRecord::Base
 
   def name
     fiscal_year(fy_year)
+  end
+
+  def ntd_revenue_vehicle_fleets(orgs)
+    NtdReportingService.new.revenue_vehicle_fleets(Organization.where(id: 6))
   end
 
   #------------------------------------------------------------------------------

@@ -43,9 +43,31 @@
 
 
     %tbody
-      - @form.ntd_revenue_vehicle_fleets.each do |f|
-        %tr{:id => f.object_key, :class => 'action-path'}
-          %td.left= f.object_key
+      - @form.ntd_revenue_vehicle_fleets(current_user.organizations).each do |f|
+        %tr
+          %td.left= "NO OBJECT KEY"
+          %td.left= "I DON'T KNOW"
+          %td.left= f.size
+          %td.left= 'Num. All Vehicles'
+          %td.left= 'Num. Active Vehicles'
+          %td.left= 'Num. ADA Vehicles'
+          %td.left= 'Num. Emergency Contingency Vehicles'
+          %td.left= 'Vehicle Type Code'
+          %td.left= 'Funding Source'
+          %td.left= 'EUL'
+          %td.left= 'Manufacture Year'
+          %td.left= 'Manufacturer'
+          %td.left= 'Model'
+          %td.left= 'Year or Last Renewal'
+          %td.left= 'Type of Last Renewal'
+          %td.left= 'Fuel Type'
+          %td.left= 'Vehicle Length'
+          %td.left= 'Seating Capacity'
+          %td.left= 'Standing Capacity'
+          %td.left= 'Total Miles on Active Vehicles'
+          %td.left= 'Avg. Lifetime Miles/Active Vehicle'
+          %td.left= 'Supports Another Mode'
+          %td.left= 'Notes'
 
 
 :javascript

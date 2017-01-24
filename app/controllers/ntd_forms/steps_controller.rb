@@ -34,7 +34,7 @@ class NtdForms::StepsController < FormAwareController
       when :service_vehicle_inventory
         # @form.ntd_service_vehicle_fleets.build(NtdReportingService.get_data(step))
       when :revenue_vehicle_inventory
-        # @form.ntd_revenue_vehicle_fleets.build(NtdReportingService.get_data(step))
+        @form.ntd_revenue_vehicle_fleets.build(NtdReportingService.revenue_vehicle_fleets(user.organizations))
       when :summary
         # if no other sub reports
         # generate those first
