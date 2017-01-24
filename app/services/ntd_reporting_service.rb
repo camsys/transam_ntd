@@ -24,7 +24,7 @@ class NtdReportingService
     # # We have to use a native SQL rather than going through the model as
     # # complete models are not returned and the initalizers cause method not found
     # # exceptions.
-    asset_type_id = AssetType.where(name: 'Revenue Vehicles').pluck(:id)
+    asset_type_id = AssetType.where(name: 'Support Vehicles').pluck(:id)
     organizations = []
 
     orgs.each { |o|
@@ -32,6 +32,25 @@ class NtdReportingService
     }
 
     revenue_fleet_report_builder(asset_type_id, organizations)
+  end
+
+  # Returns a collection of service vehicle fleets by grouping vehicle assets in
+  # the organizations on the NTD fleet groups and calculating the totals for
+  # the columns which need it the grouping in this case will be the same as revenue
+  # because the current document has no guidelines for groupind service vehicles.
+  def service_vehicle_fleets(orgs)
+
+    # # We have to use a native SQL rather than going through the model as
+    # # complete models are not returned and the initalizers cause method not found
+    # # exceptions.
+    asset_type_id = AssetType.where(name: 'Support Vehicles').pluck(:id)
+    organizations = []
+
+    orgs.each { |o|
+      organizations << o.id
+    }
+
+    service_fleet_report_builder(asset_type_id, organizations)
   end
 
   def revenue_fleet_report_builder(asset_type_id, organization_ids)
@@ -77,6 +96,51 @@ class NtdReportingService
     fleets
   end
 
+
+  def service_fleet_report_builder(asset_type_id, organization_ids)
+    results = fleet_query(asset_type_id, organization_ids)
+
+    # Convert the results set to an array of hashes
+    fleets = []
+    results.each do |row|
+      fleet = {
+          :size => row[1],
+          :num_active => row[2],
+          :num_ada_accessible => row[3],
+          :num_emergency_contingency => row[4],
+
+          :model_number => row[8],
+          :manufacture_year => row[9],
+          :renewal_year => row[10],
+          :renewal_cost => row[11],
+
+          :renewal_cost_year => row[13],
+          :replacement_cost => row[14],
+          :replacement_cost_parts => row[15],
+          :replacement_cost_warranty => row[16],
+
+          :vehicle_length => row[18],
+          :seating_capacity => row[19],
+          :standing_capacity => row[20],
+          :total_active_miles_in_period => row[21],
+          :avg_lifetime_active_miles => row[22],
+          :notes => row[23],
+          :pcnt_capital_responsibility => row[24],
+          :estimated_cost_year => row[25],
+
+          # These could all be populated via SQL if we wanted to go just get the name or code column for these.
+          :vehicle_type => FtaVehicleType.find_by(id: row[5]),
+          :funding_source => FundingSource.find_by(id: row[6]),
+          :manufacture_code => Manufacturer.find_by(id: row[7]),
+          :renewal_type => VehicleRebuildType.find_by(id: row[12]),
+          :fuel_type => FuelType.find_by(id: row[17])
+      }
+      # calculate the additional properties and merge them into the results
+      # hash
+      fleets << NtdServiceVehicleFleet.new(calc_service_fleet_items(fleet, organization_ids, asset_type_id))
+    end
+    fleets
+  end
   #------------------------------------------------------------------------------
   #
   # Protected Methods
@@ -89,9 +153,9 @@ class NtdReportingService
   def calc_revenue_fleet_items(fleet_group, organization_ids, asset_type_id)
 
     vehicles = Vehicle.where(organization_id: organization_ids, asset_type_id: asset_type_id, fta_vehicle_type_id: fleet_group[:vehicle_type],
-                             fta_funding_type_id: fleet_group[:funding_source], manufacturer_id: fleet_group[:manufacture_code], manufacturer_model: fleet_group[:model_number],
-                             manufacture_year: fleet_group[:manufacture_year], rebuild_year: fleet_group[:renewal_year], fuel_type_id: fleet_group[:fuel_type],
-                             vehicle_length: fleet_group[:vehicle_length], seating_capacity: fleet_group[:seating_capacity], standing_capacity: fleet_group[:standing_capacity])
+                       fta_funding_type_id: fleet_group[:funding_source], manufacturer_id: fleet_group[:manufacture_code], manufacturer_model: fleet_group[:model_number],
+                       manufacture_year: fleet_group[:manufacture_year], rebuild_year: fleet_group[:renewal_year], fuel_type_id: fleet_group[:fuel_type],
+                       vehicle_length: fleet_group[:vehicle_length], seating_capacity: fleet_group[:seating_capacity], standing_capacity: fleet_group[:standing_capacity])
 
     num_active = 0
     num_ada_accessible = 0
@@ -127,6 +191,28 @@ class NtdReportingService
     fleet_group
   end
 
+
+  def calc_service_fleet_items(fleet_group, organization_ids, asset_type_id)
+    vehicles = SupportVehicle.where(organization_id: organization_ids, asset_type_id: asset_type_id, fta_vehicle_type_id: fleet_group[:vehicle_type],
+                  manufacturer_id: fleet_group[:manufacture_code],  manufacturer_model: fleet_group[:model_number], manufacture_year: fleet_group[:manufacture_year],
+                  pcnt_capital_responsibility: fleet_group[:pcnt_capital_responsibility], estimated_replacement_year: fleet_group[:estimated_cost_year])
+    replacement_cost = 0
+
+    vehicles.each do |vehicle|
+      replacement_cost += vehicle.estimated_replacement_cost
+    end
+
+    service_fleet = {
+      :size => fleet_group[:size],
+      :vehicle_type => fleet_group[:vehicle_type],
+      :manufacture_year => fleet_group[:manufacture_year],
+      :avg_expected_years => vehicles.first.estimated_replacement_year - current_fiscal_year_year,
+      :pcnt_capital_responsibility => fleet_group[:pcnt_capital_responsibility],
+      :estimated_cost => replacement_cost,
+      :estimated_cost_year => fleet_group[:estimated_cost_year]
+    }
+
+  end
   #------------------------------------------------------------------------------
   #
   # Private Methods
@@ -158,7 +244,9 @@ class NtdReportingService
         a.standing_capacity AS standing_capacity,
         null AS total_active_miles_in_period,
         null AS avg_lifetime_active_miles,
-        null AS notes
+        null AS notes,
+        a.pcnt_capital_responsibility AS pcnt_capital_responsibility,
+        estimated_replacement_year AS estimated_cost_year
       FROM
         assets a
       WHERE
@@ -176,7 +264,8 @@ class NtdReportingService
         fuel_type,
         vehicle_length,
         seating_capacity,
-        standing_capacity"
+        standing_capacity,
+        pcnt_capital_responsibility"
 
     ActiveRecord::Base.connection.execute(sql)
   end

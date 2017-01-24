@@ -31,9 +31,18 @@
 
 
     %tbody
-      - @form.ntd_service_vehicle_fleets.each do |f|
-        %tr{:id => f.object_key, :class => 'action-path'}
-          %td.left= f.object_key
+      - @form.ntd_service_vehicle_fleets(current_user.organizations).each do |f|
+        %tr
+          %td.left= "NO OBJECT KEY"
+          %td.left= "NAME?"
+          %td.left= f.size
+          %td.left= f.vehicle_type
+          %td.left= f.manufacture_year
+          %td.left= f.avg_expected_years
+          %td.left= f.pcnt_capital_responsibility
+          %td.left= f.estimated_cost
+          %td.left= f.estimated_cost_year
+          %td.left
 
 
 :javascript

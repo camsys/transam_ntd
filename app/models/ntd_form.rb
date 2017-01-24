@@ -177,6 +177,10 @@ class NtdForm < ActiveRecord::Base
     NtdReportingService.new.revenue_vehicle_fleets(orgs)
   end
 
+  def ntd_service_vehicle_fleets orgs
+    NtdReportingService.new.service_vehicle_fleets(orgs)
+  end
+
   #------------------------------------------------------------------------------
   #
   # Protected Methods
