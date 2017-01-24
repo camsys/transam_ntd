@@ -174,7 +174,7 @@ class NtdForm < ActiveRecord::Base
   end
 
   def ntd_revenue_vehicle_fleets orgs
-    NtdReportingService.new.revenue_vehicle_fleets(Organization.where(id: 6))
+    NtdReportingService.new.revenue_vehicle_fleets(orgs)
   end
 
   #------------------------------------------------------------------------------

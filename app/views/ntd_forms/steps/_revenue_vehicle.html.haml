@@ -43,6 +43,7 @@
 
 
     %tbody
+      -#Get the organizations from the filter not the current user
       - @form.ntd_revenue_vehicle_fleets(current_user.organizations).each do |f|
         %tr
           %td.left= "NO OBJECT KEY"
