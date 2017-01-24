@@ -173,7 +173,7 @@ class NtdForm < ActiveRecord::Base
     fiscal_year(fy_year)
   end
 
-  def ntd_revenue_vehicle_fleets(orgs)
+  def ntd_revenue_vehicle_fleets orgs
     NtdReportingService.new.revenue_vehicle_fleets(Organization.where(id: 6))
   end
 
