@@ -19,16 +19,22 @@ class NtdReportingService
   # Returns a collection of revenue vehicle fleets by grouping vehicle assets in
   # for the organization on the NTD fleet groups and calculating the totals for
   # the columns which need it
-  def revenue_vehicle_fleets(org)
+  def revenue_vehicle_fleets(orgs)
 
     # # We have to use a native SQL rather than going through the model as
     # # complete models are not returned and the initalizers cause method not found
     # # exceptions.
     asset_type_id = AssetType.where(name: 'Revenue Vehicles').pluck(:id)
-    organizations = [org]
-    # organizations = org.id
+    organizations = []
 
+    orgs.each { |o|
+      organizations << o.id
+    }
 
+    fleet_report_builder(asset_type_id, organizations)
+  end
+
+  def fleet_report_builder(asset_type_id, organization_ids)
     sql = "SELECT
         null AS rvi_id,
         count(*) AS 'size',
@@ -59,7 +65,7 @@ class NtdReportingService
       WHERE
         a.asset_type_id IN (#{asset_type_id.join(',')})
       AND
-        a.organization_id IN (#{organizations.join(',')})
+        a.organization_id IN (#{organization_ids.join(',')})
       GROUP BY
         vehicle_type,
         funding_source,
@@ -79,7 +85,7 @@ class NtdReportingService
     results.each do |row|
       fleet = {
         :size => row[1],
-        :organization_id => org,
+        :organization_id => organization_ids,
         :asset_type_id => asset_type_id,
         :num_active => row[2],
         :num_ada_accessible => row[3],
@@ -106,7 +112,7 @@ class NtdReportingService
       }
       # calculate the additional properties and merge them into the results
       # hash
-      fleets << fleet.merge(calc_fleet_items(fleet))
+      fleets << fleet.merge(calc_fleet_items(fleet, organization_ids))
     end
     fleets
   end
@@ -120,9 +126,9 @@ class NtdReportingService
 
   # Selects the actual vehicles in the fleet and generates the additional data components
   # needed for the report.
-  def calc_fleet_items(fleet_group)
+  def calc_fleet_items(fleet_group, organization_ids)
 
-    vehicles = Vehicle.where(organization_id: fleet_group[:organization_id], asset_type_id: fleet_group[:asset_type_id], fta_vehicle_type_id: fleet_group[:fta_vehicle_type_id],
+    vehicles = Vehicle.where(organization_id: organization_ids, asset_type_id: fleet_group[:asset_type_id], fta_vehicle_type_id: fleet_group[:fta_vehicle_type_id],
                              fta_funding_type_id: fleet_group[:funding_source], manufacturer_id: fleet_group[:manufacture_code], manufacturer_model: fleet_group[:model_number],
                              manufacture_year: fleet_group[:manufacture_year], rebuild_year: fleet_group[:renewal_year], fuel_type_id: fleet_group[:fuel_type],
                              vehicle_length: fleet_group[:vehicle_length], seating_capacity: fleet_group[:seating_capacity], standing_capacity: fleet_group[:standing_capacity])
