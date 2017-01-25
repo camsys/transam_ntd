@@ -175,10 +175,22 @@ class NtdForm < ActiveRecord::Base
 
   def ntd_revenue_vehicle_fleets orgs
     NtdReportingService.new.revenue_vehicle_fleets(orgs)
+    # NtdReportingService.new.revenue_vehicle_fleets(Organization.where(id: 5))
   end
 
   def ntd_service_vehicle_fleets orgs
     NtdReportingService.new.service_vehicle_fleets(orgs)
+    # NtdReportingService.new.revenue_vehicle_fleets(Organization.where(id: 5))
+  end
+
+  def ntd_passenger_and_parking_facilities orgs
+    NtdReportingService.new.passenger_and_parking_facilities(orgs)
+    # NtdReportingService.new.revenue_vehicle_fleets(Organization.where(id: 36))
+  end
+
+  def ntd_admin_and_maintenance_facilities orgs
+    NtdReportingService.new.admin_and_maintenance_facilities(orgs)
+    # NtdReportingService.new.revenue_vehicle_fleets(Organization.where(id: 5))
   end
 
   #------------------------------------------------------------------------------

@@ -169,8 +169,8 @@ class NtdReportingService
           :city => r.city,
           :state => r.state,
           :zip => r.zip,
-          :latitude => r.geometry.y,
-          :longitude => r.geometry.x,
+          :latitude => r.geometry.nil? ? nil : r.geometry.y,
+          :longitude => r.geometry.nil? ? nil : r.geometry.x,
           :primary_mode => r.primary_fta_mode_type_id,
           :facility_type => r.fta_facility_type,
           :year_built => r.rebuild_year.nil? ? r.manufacture_year : r.rebuild_year ,
@@ -182,9 +182,9 @@ class NtdReportingService
           :reported_condition_rating => r.estimated_condition_type,
           :parking_measurement => r.num_parking_spaces_public,
           :parking_measurement_unit => 'Parking Spaces',
-          :facility_object_key => r.objct_key
+          :facility_object_key => r.object_key
       }
-      facilities << NtdAdminAndMaintenanceFacility.new(facility)
+      facilities << NtdPassengerAndParkingFacility.new(facility)
     }
 
     facilities
@@ -202,8 +202,8 @@ class NtdReportingService
           :city => r.city,
           :state => r.state,
           :zip => r.zip,
-          :latitude => r.geometry.y,
-          :longitude => r.geometry.x,
+          :latitude => r.geometry.nil? ? nil : r.geometry.y,
+          :longitude => r.geometry.nil? ? nil : r.geometry.x,
           :primary_mode => r.primary_fta_mode_type_id,
           :facility_type => r.fta_facility_type,
           :year_built => r.rebuild_year.nil? ? r.manufacture_year : r.rebuild_year ,
@@ -213,7 +213,7 @@ class NtdReportingService
           :estimated_cost => r.estimated_replacement_cost,
           :estimated_cost_year => r.estimated_replacement_year,
           :reported_condition_rating => r.estimated_condition_type,
-          :facility_object_key => r.objct_key
+          :facility_object_key => r.object_key
       }
 
       facilities << NtdAdminAndMaintenanceFacility.new(facility)
