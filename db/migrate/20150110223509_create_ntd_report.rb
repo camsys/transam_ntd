@@ -134,7 +134,7 @@ class CreateNtdReport < ActiveRecord::Migration
       t.timestamps
     end
 
-    add_index :ntd_reveue_vehicle_fleets, :ntd_form_id, :name => :ntd_reveue_vehicle_fleets_idx1
+    add_index :ntd_revenue_vehicle_fleets, :ntd_form_id, :name => :ntd_revenue_vehicle_fleets_idx1
 
   end
 end
