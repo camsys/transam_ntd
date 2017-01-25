@@ -185,7 +185,7 @@ class NtdForm < ActiveRecord::Base
 
   def ntd_passenger_and_parking_facilities orgs
     NtdReportingService.new.passenger_and_parking_facilities(orgs)
-    # NtdReportingService.new.revenue_vehicle_fleets(Organization.where(id: 36))
+    # NtdReportingService.new.passenger_and_parking_facilities(Organization.where(id: 36))
   end
 
   def ntd_admin_and_maintenance_facilities orgs
