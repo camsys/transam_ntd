@@ -24,7 +24,7 @@ class NtdReportingService
     # # We have to use a native SQL rather than going through the model as
     # # complete models are not returned and the initalizers cause method not found
     # # exceptions.
-    asset_type_id = AssetType.where(name: 'Support Vehicles').pluck(:id)
+    asset_type_id = AssetType.where(name: 'Revenue Vehicles').pluck(:id)
     organizations = []
 
     orgs.each { |o|
@@ -152,7 +152,7 @@ class NtdReportingService
   # needed for the report. I think this could all be done in SQL and would save us a lot of queries and time.
   def calc_revenue_fleet_items(fleet_group, organization_ids, asset_type_id)
 
-    vehicles = Vehicle.where(organization_id: organization_ids, asset_type_id: asset_type_id, fta_vehicle_type_id: fleet_group[:vehicle_type],
+     vehicles = Vehicle.where(organization_id: organization_ids, asset_type_id: asset_type_id, fta_vehicle_type_id: fleet_group[:vehicle_type],
                        fta_funding_type_id: fleet_group[:funding_source], manufacturer_id: fleet_group[:manufacture_code], manufacturer_model: fleet_group[:model_number],
                        manufacture_year: fleet_group[:manufacture_year], rebuild_year: fleet_group[:renewal_year], fuel_type_id: fleet_group[:fuel_type],
                        vehicle_length: fleet_group[:vehicle_length], seating_capacity: fleet_group[:seating_capacity], standing_capacity: fleet_group[:standing_capacity])
