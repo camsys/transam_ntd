@@ -20,10 +20,6 @@ class NtdReportingService
   # for the organization on the NTD fleet groups and calculating the totals for
   # the columns which need it
   def revenue_vehicle_fleets(orgs)
-
-    # # We have to use a native SQL rather than going through the model as
-    # # complete models are not returned and the initalizers cause method not found
-    # # exceptions.
     asset_type_id = AssetType.where(name: 'Revenue Vehicles').pluck(:id)
     organizations = []
 
@@ -39,10 +35,6 @@ class NtdReportingService
   # the columns which need it the grouping in this case will be the same as revenue
   # because the current document has no guidelines for groupind service vehicles.
   def service_vehicle_fleets(orgs)
-
-    # # We have to use a native SQL rather than going through the model as
-    # # complete models are not returned and the initalizers cause method not found
-    # # exceptions.
     asset_type_id = AssetType.where(name: 'Support Vehicles').pluck(:id)
     organizations = []
 
@@ -52,6 +44,29 @@ class NtdReportingService
 
     service_fleet_report_builder(asset_type_id, organizations)
   end
+
+  def passenger_and_parking_facilities(orgs)
+    asset_type_id = AssetType.where(name: 'Stations/Stops/Terminals').pluck(:id)
+    organizations = []
+
+    orgs.each { |o|
+      organizations << o.id
+    }
+
+    passenger_and_parking_facilities_report_builder(asset_type_id, organizations)
+  end
+
+  def admin_and_maintenance_facilities(orgs)
+    asset_type_id = AssetType.where(name: 'Support Facilities').pluck(:id)
+    organizations = []
+
+    orgs.each { |o|
+      organizations << o.id
+    }
+
+    admin_and_maintenance_facilities_report_builder(asset_type_id, organizations)
+  end
+
 
   def revenue_fleet_report_builder(asset_type_id, organization_ids)
     results = fleet_query(asset_type_id, organization_ids)
@@ -141,6 +156,71 @@ class NtdReportingService
     end
     fleets
   end
+
+  def passenger_and_parking_facilities_report_builder(asset_type_id, organizations)
+    result = transit_facilities_query(asset_type_id, organizations)
+
+    facilities = []
+    result.each { |r|
+      facility = {
+          :name => r.description,
+          :part_of_larger_facility => r.section_of_larger_facility,
+          :address => r.address1,
+          :city => r.city,
+          :state => r.state,
+          :zip => r.zip,
+          :latitude => r.geometry.y,
+          :longitude => r.geometry.x,
+          :primary_mode => r.primary_fta_mode_type_id,
+          :facility_type => r.fta_facility_type,
+          :year_built => r.rebuild_year.nil? ? r.manufacture_year : r.rebuild_year ,
+          :size => r.facility_size,
+          :size_type => 'Square Feet',
+          :pcnt_capital_responsibility => r.pcnt_capital_responsibility,
+          :estimated_cost => r.estimated_replacement_cost,
+          :estimated_cost_year => r.estimated_replacement_year,
+          :reported_condition_rating => r.estimated_condition_type,
+          :parking_measurement => r.num_parking_spaces_public,
+          :parking_measurement_unit => 'Parking Spaces',
+          :facility_object_key => r.objct_key
+      }
+      facilities << NtdAdminAndMaintenanceFacility.new(facility)
+    }
+
+    facilities
+  end
+
+  def admin_and_maintenance_facilities_report_builder(asset_type_id, organizations)
+    result = support_facilities_query(asset_type_id, organizations)
+
+    facilities = []
+    result.each { |r|
+      facility = {
+          :name => r.description,
+          :part_of_larger_facility => r.section_of_larger_facility,
+          :address => r.address1,
+          :city => r.city,
+          :state => r.state,
+          :zip => r.zip,
+          :latitude => r.geometry.y,
+          :longitude => r.geometry.x,
+          :primary_mode => r.primary_fta_mode_type_id,
+          :facility_type => r.fta_facility_type,
+          :year_built => r.rebuild_year.nil? ? r.manufacture_year : r.rebuild_year ,
+          :size => r.facility_size,
+          :size_type => 'Square Feet',
+          :pcnt_capital_responsibility => r.pcnt_capital_responsibility,
+          :estimated_cost => r.estimated_replacement_cost,
+          :estimated_cost_year => r.estimated_replacement_year,
+          :reported_condition_rating => r.estimated_condition_type,
+          :facility_object_key => r.objct_key
+      }
+
+      facilities << NtdAdminAndMaintenanceFacility.new(facility)
+    }
+
+    facilities
+  end
   #------------------------------------------------------------------------------
   #
   # Protected Methods
@@ -220,6 +300,9 @@ class NtdReportingService
   #------------------------------------------------------------------------------
   private
   def fleet_query(asset_type_id, organization_ids)
+    # We have to use a native SQL rather than going through the model as
+    # complete models are not returned and the initalizers cause method not found
+    # exceptions.
     sql = "SELECT
         null AS rvi_id,
         count(*) AS 'size',
@@ -269,4 +352,13 @@ class NtdReportingService
 
     ActiveRecord::Base.connection.execute(sql)
   end
+
+  def transit_facilities_query(asset_type_id, organization_ids)
+    facilities = TransitFacility.where(asset_type_id: asset_type_id, organization_id: organization_ids)
+  end
+
+  def support_facilities_query(asset_type_id, organization_ids)
+    facilities = SupportFacility.where(asset_type_id: asset_type_id, organization_id: organization_ids)
+  end
+
 end
