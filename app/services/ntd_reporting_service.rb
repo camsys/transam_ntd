@@ -162,6 +162,7 @@ class NtdReportingService
 
     facilities = []
     result.each { |r|
+      primary_fta_mode_type = FtaModeType.find_by(id: r.primary_fta_mode_type_id)
       facility = {
           :name => r.description,
           :part_of_larger_facility => r.section_of_larger_facility,
@@ -171,7 +172,7 @@ class NtdReportingService
           :zip => r.zip,
           :latitude => r.geometry.nil? ? nil : r.geometry.y,
           :longitude => r.geometry.nil? ? nil : r.geometry.x,
-          :primary_mode => r.primary_fta_mode_type_id,
+          :primary_mode => primary_fta_mode_type ? "#{primary_fta_mode_type.code} - #{primary_fta_mode_type.name}" : "",
           :facility_type => r.fta_facility_type,
           :year_built => r.rebuild_year.nil? ? r.manufacture_year : r.rebuild_year ,
           :size => r.facility_size,
@@ -179,11 +180,13 @@ class NtdReportingService
           :pcnt_capital_responsibility => r.pcnt_capital_responsibility,
           :estimated_cost => r.estimated_replacement_cost,
           :estimated_cost_year => r.estimated_replacement_year,
-          :reported_condition_rating => r.estimated_condition_type,
+          :reported_condition_rating => r.reported_condition_rating ? (r.reported_condition_rating+0.5).to_i : nil,
+          :reported_condition_date => r.reported_condition_date,
           :parking_measurement => r.num_parking_spaces_public,
           :parking_measurement_unit => 'Parking Spaces',
           :facility_object_key => r.object_key
       }
+
       facilities << NtdPassengerAndParkingFacility.new(facility)
     }
 
@@ -195,6 +198,7 @@ class NtdReportingService
 
     facilities = []
     result.each { |r|
+      primary_fta_mode_type = FtaModeType.find_by(id: r.primary_fta_mode_type_id)
       facility = {
           :name => r.description,
           :part_of_larger_facility => r.section_of_larger_facility,
@@ -204,7 +208,7 @@ class NtdReportingService
           :zip => r.zip,
           :latitude => r.geometry.nil? ? nil : r.geometry.y,
           :longitude => r.geometry.nil? ? nil : r.geometry.x,
-          :primary_mode => r.primary_fta_mode_type_id,
+          :primary_mode => primary_fta_mode_type ? "#{primary_fta_mode_type.code} - #{primary_fta_mode_type.name}" : "",
           :facility_type => r.fta_facility_type,
           :year_built => r.rebuild_year.nil? ? r.manufacture_year : r.rebuild_year ,
           :size => r.facility_size,
@@ -212,7 +216,8 @@ class NtdReportingService
           :pcnt_capital_responsibility => r.pcnt_capital_responsibility,
           :estimated_cost => r.estimated_replacement_cost,
           :estimated_cost_year => r.estimated_replacement_year,
-          :reported_condition_rating => r.estimated_condition_type,
+          :reported_condition_rating => r.reported_condition_rating ? (r.reported_condition_rating+0.5).to_i : nil,
+          :reported_condition_date => r.reported_condition_date,
           :facility_object_key => r.object_key
       }
 
@@ -257,8 +262,10 @@ class NtdReportingService
     end
 
     # It might be better to capture these at a higher level like in the query but the logic around these might be a little convoluted
-    fleet_group[:additional_fta_mode] = vehicles.first.fta_mode_types.size > 1 ? vehicles.first.fta_mode_types[1] : nil
-    fleet_group[:useful_life_remaining] = vehicles.first.policy_replacement_year - current_fiscal_year_year
+     if vehicles.first
+      fleet_group[:additional_fta_mode] = vehicles.first.fta_mode_types.size > 1 ? vehicles.first.fta_mode_types[1] : nil
+      fleet_group[:useful_life_remaining] = vehicles.first.policy_replacement_year - current_fiscal_year_year
+     end
 
     fleet_group[:total_active_miles_in_period] = total_active_miles_in_period
     fleet_group[:avg_lifetime_active_miles] =  num_active > 0 ? avg_lifetime_active_miles / num_active : 0
@@ -286,7 +293,7 @@ class NtdReportingService
       :size => fleet_group[:size],
       :vehicle_type => fleet_group[:vehicle_type],
       :manufacture_year => fleet_group[:manufacture_year],
-      :avg_expected_years => vehicles.first.estimated_replacement_year - current_fiscal_year_year,
+      :avg_expected_years => vehicles.first ? vehicles.first.estimated_replacement_year - current_fiscal_year_year : nil,
       :pcnt_capital_responsibility => fleet_group[:pcnt_capital_responsibility],
       :estimated_cost => replacement_cost,
       :estimated_cost_year => fleet_group[:estimated_cost_year]
@@ -354,11 +361,11 @@ class NtdReportingService
   end
 
   def transit_facilities_query(asset_type_id, organization_ids)
-    facilities = TransitFacility.where(asset_type_id: asset_type_id, organization_id: organization_ids)
+    TransitFacility.where(asset_type_id: asset_type_id, organization_id: organization_ids)
   end
 
   def support_facilities_query(asset_type_id, organization_ids)
-    facilities = SupportFacility.where(asset_type_id: asset_type_id, organization_id: organization_ids)
+    SupportFacility.where(asset_type_id: asset_type_id, organization_id: organization_ids)
   end
 
 end

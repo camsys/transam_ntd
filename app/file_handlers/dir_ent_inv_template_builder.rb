@@ -8,49 +8,138 @@
 #-------------------------------------------------------------------------------
 class DirEntInvTemplateBuilder < TemplateBuilder
 
+  attr_accessor :ntd_form
+
   SHEET_NAME = "A-80 DirEntInv"
 
   protected
 
   # Add a row for each of the asset for the org
   def add_rows(sheet)
-    # @asset_types.each do |asset_type|
-    #   if @assets.nil?
-    #     assets = @organization.assets.operational.where('asset_type_id = ?', asset_type).order(:asset_type_id, :asset_subtype_id, :asset_tag)
-    #   else
-    #     assets = @assets.operational.where('asset_type_id = ?', asset_type).order(:asset_type_id, :asset_subtype_id, :asset_tag)
-    #   end
-    #   assets.each do |a|
-    #     asset = Asset.get_typed_asset(a)
-    #     row_data  = []
-    #     row_data << asset.object_key
-    #     row_data << asset.asset_type.name
-    #     row_data << asset.asset_subtype.name
-    #     row_data << asset.asset_tag
-    #     row_data << asset.external_id
-    #     row_data << asset.description
-    #
-    #     row_data << asset.service_status_type # prev_service_status
-    #     row_data << asset.service_status_date # prev_service_status date
-    #     row_data << nil # current_service_status
-    #     row_data << nil # date
-    #
-    #     row_data << asset.reported_condition_rating # Previous Condition
-    #     row_data << asset.reported_condition_date # Previous Condition
-    #     row_data << nil # Current Condition
-    #     row_data << nil # Date
-    #
-    #     if include_mileage_columns?
-    #       row_data << asset.reported_mileage # Previous Condition
-    #       row_data << asset.reported_mileage_date # Previous Condition
-    #       row_data << nil # Current mileage
-    #       row_data << nil # Date
-    #     end
-    #
-    #     sheet.add_row row_data, :types => row_types
-    #   end
-    # end
-    # Do nothing
+
+    support_facilities = @ntd_form.ntd_admin_and_maintenance_facilities(Organization.where(id: @organization_list))
+    transit_facilities = @ntd_form.ntd_passenger_and_parking_facilities(Organization.where(id: @organization_list))
+    support_vehicles = @ntd_form.ntd_service_vehicle_fleets(Organization.where(id: @organization_list))
+    rev_vehicles = @ntd_form.ntd_revenue_vehicle_fleets(Organization.where(id: @organization_list))
+
+    row_count = [support_facilities.count, transit_facilities.count, support_vehicles.count, rev_vehicles.count].max
+
+    (0..row_count - 1).each do |idx|
+
+      line = idx+1
+      row_data = [line.to_s]
+
+      support_facility = support_facilities[idx]
+      if support_facility
+        puts support_facility.inspect
+        row_data << support_facility.name
+        row_data << support_facility.part_of_larger_facility
+        row_data << support_facility.address
+        row_data << support_facility.city
+        row_data << support_facility.state
+        row_data << support_facility.zip
+        row_data << support_facility.primary_mode
+        row_data << support_facility.facility_type
+        row_data << support_facility.year_built
+        row_data << support_facility.size
+        row_data << support_facility.pcnt_capital_responsibility
+        row_data << support_facility.reported_condition_rating
+        row_data << support_facility.reported_condition_date
+        row_data << ''
+      else
+          row_data << ['']*14
+      end
+      row_data << ''
+
+      transit_facility = transit_facilities[idx]
+      if transit_facility
+        row_data << transit_facility.name
+        row_data << transit_facility.part_of_larger_facility
+        row_data << transit_facility.address
+        row_data << transit_facility.city
+        row_data << transit_facility.state
+        row_data << transit_facility.zip
+        row_data << transit_facility.latitude
+        row_data << transit_facility.longitude
+        row_data << transit_facility.primary_mode
+        row_data << transit_facility.facility_type
+        row_data << transit_facility.year_built
+        row_data << transit_facility.parking_measurement
+        row_data << transit_facility.parking_measurement_unit
+        row_data << transit_facility.pcnt_capital_responsibility
+
+        row_data << transit_facility.reported_condition_rating
+        row_data << transit_facility.reported_condition_date
+        row_data << ''
+      else
+        row_data << ['']*17
+      end
+      row_data << ''
+
+      row_data << ['']*21
+      row_data << ''
+
+      row_data << ['']*7
+      row_data << ''
+
+      support_vehicle = support_vehicles[idx]
+      if support_vehicle
+        row_data << "NAME?"
+
+        row_data << support_vehicle.vehicle_type
+        row_data << support_vehicle.size
+
+        row_data << support_vehicle.avg_expected_years
+        row_data << support_vehicle.manufacture_year
+        row_data << support_vehicle.pcnt_capital_responsibility
+        row_data << support_vehicle.estimated_cost
+        row_data << support_vehicle.estimated_cost_year
+        row_data << ''
+      else
+        row_data << ['']*9
+      end
+      row_data << ''
+
+      rev_vehicle = rev_vehicles[idx]
+      if rev_vehicle
+        row_data << "#{rev_vehicle.manufacture_code}-#{rev_vehicle.model_number}-#{rev_vehicle.manufacture_year}"
+        row_data << rev_vehicle.size
+        row_data << rev_vehicle.num_active
+        row_data << rev_vehicle.num_ada_accessible
+        row_data << rev_vehicle.num_emergency_contingency
+        row_data << ''
+        row_data << rev_vehicle.vehicle_type.code
+        row_data << rev_vehicle.funding_source.to_s
+        row_data << rev_vehicle.useful_life_remaining
+        row_data << rev_vehicle.manufacture_year
+        row_data << rev_vehicle.manufacture_code.code
+        row_data << rev_vehicle.model_number
+        row_data << rev_vehicle.renewal_year
+        row_data << rev_vehicle.renewal_type
+        row_data << '???'
+        row_data << '???'
+        row_data << '???'
+        row_data << '???'
+        row_data << '???'
+        row_data << '???'
+        row_data << rev_vehicle.fuel_type.code
+        row_data << rev_vehicle.vehicle_length
+        row_data << rev_vehicle.seating_capacity
+        row_data << rev_vehicle.standing_capacity
+        row_data << rev_vehicle.total_active_miles_in_period
+        row_data << rev_vehicle.avg_lifetime_active_miles
+        row_data << rev_vehicle.additional_fta_mode
+        row_data << ''
+      else
+        row_data << ['']*27
+      end
+      row_data << ''
+
+
+      sheet.add_row row_data.flatten.map{|x| x.to_s}
+    end
+
+
   end
 
   # Configure any other implementation specific options for the workbook

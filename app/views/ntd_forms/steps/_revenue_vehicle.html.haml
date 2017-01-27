@@ -12,12 +12,11 @@
     :show_export => 'true',
     :show_columns => 'true',
     :state_save => 'true',
-    :state_save_id_table => "admin_and_maint_facility_id",
+    :state_save_id_table => "rev_vehicles_id",
     :state_save_expire => "1y"}, :style => 'width:100%;'}
 
     %thead
       %tr
-        %th.center{:data => {:visible => 'false'}} Object Key
         %th.center{:data => {:sortable => 'true'}} Description
 
         %th.center{:data => {:sortable => 'true'}} Num. All Vehicles
@@ -44,9 +43,8 @@
 
     %tbody
       -#Get the organizations from the filter not the current user
-      - @form.ntd_revenue_vehicle_fleets(current_user.organizations).each do |f|
+      - @form.ntd_revenue_vehicle_fleets(Organization.where(id: @organization_list)).each do |f|
         %tr
-          %td.left= "NO OBJECT KEY"
           %td.left= "#{f.manufacture_code}-#{f.model_number}-#{f.manufacture_year}"
           %td.left= f.size
           %td.left= f.num_active
@@ -67,7 +65,6 @@
           %td.left= f.total_active_miles_in_period
           %td.left= f.avg_lifetime_active_miles
           %td.left= f.additional_fta_mode
-          -#This should probably be blank and the user would add them when they export the table otherwise we woudl need to aggregate it from a query or upon investigating the vehicles
           %td.left
 
 :javascript
@@ -87,13 +84,3 @@
       return format("##0.000", value) + "%";
     }
   };
-
-  $('#' + '#{table_dom_id}').on('click', 'td', function () {
-    var path = "#{funding_template_path('xxx')}";
-    var row = $(this).parent('tr').attr('id');
-
-    if ($(this).attr('data-field') != 'action-cell') {
-      var url = path.replace("xxx", row);
-      document.location.href = url;
-    }
-  });

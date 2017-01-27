@@ -109,7 +109,7 @@ class NtdFormsController < FormAwareController
 
   def generate
     # Find out which builder is used to construct the template and create an instance
-    builder = DirEntInvTemplateBuilder.new(:organization => @organization, :asset_types => [], :organization_list => @organization_list)
+    builder = DirEntInvTemplateBuilder.new(:ntd_form => @form, :organization_list => @organization_list)
 
     # Generate the spreadsheet. This returns a StringIO that has been rewound
     stream = builder.build

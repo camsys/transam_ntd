@@ -1,26 +1,22 @@
 %ul.nav.nav-tabs
   %li
     %a{:href => "#maint", :data =>{:toggle => 'tab'}}
-      = "A-10"
+      = "A-10 Manit and Admin"
   %li
     %a{:href => "#passenger", :data =>{:toggle => 'tab'}}
-      = "A-20"
+      = "A-20 Passenger and Parking"
   %li
     %a{:href => "#rail", :data =>{:toggle => 'tab'}}
-      = "A-50"
+      = "A-50 Rail Fixed Guideway"
   %li
     %a{:href => "#track", :data =>{:toggle => 'tab'}}
-      = "A-55"
+      = "A-55 Track"
   %li
     %a{:href => "#service", :data =>{:toggle => 'tab'}}
-      = "A-60"
+      = "A-60 Service Vehicle"
   %li
     %a{:href => "#revenue", :data =>{:toggle => 'tab'}}
-      = "A-70"
-
-  %li
-    %a{:href => "#rept", :data =>{:toggle => 'tab'}}
-      = "A-80"
+      = "A-70 Rev Vehicle"
   %li
     %a{:href => "#hist", :data =>{:toggle => 'tab'}}
       = "History"
@@ -44,12 +40,6 @@
   .tab-pane.fade#revenue
     .tab-content
       = render 'ntd_forms/steps/revenue_vehicle'
-
-
-
-  .tab-pane.fade#rept
-    .tab-content
-      = render 'report'
 
   .tab-pane.fade#hist
     .tab-content

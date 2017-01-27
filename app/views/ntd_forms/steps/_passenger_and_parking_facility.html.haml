@@ -12,7 +12,7 @@
     :show_export => 'true',
     :show_columns => 'true',
     :state_save => 'true',
-    :state_save_id_table => "admin_and_maint_facility_id",
+    :state_save_id_table => "pass_and_parking_id",
     :state_save_expire => "1y"}, :style => 'width:100%;'}
 
     %thead
@@ -34,12 +34,13 @@
         %th.center{:data => {:sortable => 'true'}} Unit
         %th.center{:data => {:sortable => 'true'}} Pcnt Transit Agency Capital Responsibility
         %th.center{:data => {:sortable => 'true'}} Condition Assessment
-        %th.center{:data => {:sortable => 'true'}} Estimated Date of Condition Assessment
+        %th.center{:data => {:sortable => 'true'}} Estimated Cost
+        %th.center{:data => {:sortable => 'true'}} Estimated Cost Year
         %th.center{:data => {:sortable => 'true'}} Notes
 
 
     %tbody
-      - @form.ntd_passenger_and_parking_facilities(current_user.organizations).each do |f|
+      - @form.ntd_passenger_and_parking_facilities(Organization.where(id: @organization_list)).each do |f|
         %tr{:id => f.facility_object_key, :class => 'action-path'}
           %td.left= f.facility_object_key
           %td.left= f.name
@@ -56,7 +57,7 @@
           %td.left= f.parking_measurement
           %td.left= f.parking_measurement_unit
           %td.left= f.pcnt_capital_responsibility
-          %td.left= f.reported_condition_rating
+          %td.left= f.estimated_cost
           %td.left= f.estimated_cost_year
           %td.left
 
@@ -79,7 +80,7 @@
   };
 
   $('#' + '#{table_dom_id}').on('click', 'td', function () {
-    var path = "#{funding_template_path('xxx')}";
+    var path = "#{inventory_path('xxx')}";
     var row = $(this).parent('tr').attr('id');
 
     if ($(this).attr('data-field') != 'action-cell') {
