@@ -183,8 +183,8 @@ class NtdReportingService
           :size => r.facility_size,
           :size_type => 'Square Feet',
           :pcnt_capital_responsibility => r.pcnt_capital_responsibility,
-          :estimated_cost => r.estimated_replacement_cost,
-          :estimated_cost_year => r.estimated_replacement_year,
+          :estimated_cost => r.scheduled_replacement_cost,
+          :estimated_cost_year => r.scheduled_replacement_year,
           :reported_condition_rating => condition_update ? (condition_update.assessed_rating+0.5).to_i : nil,
           :reported_condition_date => condition_update.event_date,
           :parking_measurement => r.num_parking_spaces_public,
@@ -220,8 +220,8 @@ class NtdReportingService
           :size => r.facility_size,
           :size_type => 'Square Feet',
           :pcnt_capital_responsibility => r.pcnt_capital_responsibility,
-          :estimated_cost => r.estimated_replacement_cost,
-          :estimated_cost_year => r.estimated_replacement_year,
+          :estimated_cost => r.scheduled_replacement_cost,
+          :estimated_cost_year => r.scheduled_replacement_year,
           :reported_condition_rating => condition_update ? (condition_update.assessed_rating+0.5).to_i : nil,
           :reported_condition_date => condition_update.event_date,
           :facility_object_key => r.object_key
@@ -243,7 +243,7 @@ class NtdReportingService
   # needed for the report. I think this could all be done in SQL and would save us a lot of queries and time.
   def calc_revenue_fleet_items(fleet_group, organization_ids, asset_type_id)
 
-     vehicles = Vehicle.where(organization_id: organization_ids, asset_type_id: asset_type_id, fta_vehicle_type_id: fleet_group[:vehicle_type],
+     vehicles = Vehicle.where('(assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key) OR (assets.disposition_date >= ? AND assets.disposition_date <= ?)', @form.start_date, @form.end_date).where(organization_id: organization_ids, asset_type_id: asset_type_id, fta_vehicle_type_id: fleet_group[:vehicle_type],
                        fta_funding_type_id: fleet_group[:funding_source], manufacturer_id: fleet_group[:manufacture_code], manufacturer_model: fleet_group[:model_number],
                        manufacture_year: fleet_group[:manufacture_year], rebuild_year: fleet_group[:renewal_year], fuel_type_id: fleet_group[:fuel_type],
                        vehicle_length: fleet_group[:vehicle_length], seating_capacity: fleet_group[:seating_capacity], standing_capacity: fleet_group[:standing_capacity])
@@ -257,14 +257,14 @@ class NtdReportingService
     replacement_cost_year = current_fiscal_year_year
 
     vehicles.each do |vehicle|
-
-      # TODO rework num_active to make sure it is doing what it should.
-      num_active += 1 if vehicle.in_service?
+      num_active += 1 unless vehicle.disposed?
       num_ada_accessible += 1 if vehicle.ada_accessible?
       num_emergency_contingency += 1 if vehicle.fta_emergency_contingency_fleet
-      avg_lifetime_active_miles += vehicle.current_mileage if vehicle.in_service?
-      total_active_miles_in_period += vehicle.current_mileage if vehicle.in_service?
-      replacement_cost += vehicle.estimated_replacement_cost unless vehicle.estimated_replacement_cost.blank?
+
+      mileage_update = vehicle.mileage_updates.where('event_date >= ? AND event_date <= ?', @form.start_date, @form.end_date).last
+      total_active_miles_in_period += mileage_update.current_mileage if !vehicle.disposed? && mileage_update
+
+      replacement_cost += vehicle.scheduled_replacement_cost
     end
 
     # It might be better to capture these at a higher level like in the query but the logic around these might be a little convoluted
@@ -274,7 +274,7 @@ class NtdReportingService
      end
 
     fleet_group[:total_active_miles_in_period] = total_active_miles_in_period
-    fleet_group[:avg_lifetime_active_miles] =  num_active > 0 ? avg_lifetime_active_miles / num_active : 0
+    fleet_group[:avg_lifetime_active_miles] =  num_active > 0 ? (total_active_miles_in_period / num_active) : 0
     fleet_group[:num_active] = num_active
     fleet_group[:num_ada_accessible] = num_ada_accessible
     fleet_group[:num_emergency_contingency] = num_emergency_contingency
@@ -286,13 +286,13 @@ class NtdReportingService
 
 
   def calc_service_fleet_items(fleet_group, organization_ids, asset_type_id)
-    vehicles = SupportVehicle.where(organization_id: organization_ids, asset_type_id: asset_type_id, fta_vehicle_type_id: fleet_group[:vehicle_type],
+    vehicles = SupportVehicle.where('(assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key) OR (assets.disposition_date >= ? AND assets.disposition_date <= ?)', @form.start_date, @form.end_date).where(organization_id: organization_ids, asset_type_id: asset_type_id, fta_vehicle_type_id: fleet_group[:vehicle_type],
                   manufacturer_id: fleet_group[:manufacture_code],  manufacturer_model: fleet_group[:model_number], manufacture_year: fleet_group[:manufacture_year],
                   pcnt_capital_responsibility: fleet_group[:pcnt_capital_responsibility], estimated_replacement_year: fleet_group[:estimated_cost_year])
     replacement_cost = 0
 
     vehicles.each do |vehicle|
-      replacement_cost += vehicle.estimated_replacement_cost
+      replacement_cost += vehicle.scheduled_replacement_cost
     end
 
     service_fleet = {
@@ -304,6 +304,8 @@ class NtdReportingService
       :estimated_cost => replacement_cost,
       :estimated_cost_year => fleet_group[:estimated_cost_year]
     }
+
+    service_fleet
 
   end
   #------------------------------------------------------------------------------
@@ -342,7 +344,7 @@ class NtdReportingService
         null AS avg_lifetime_active_miles,
         null AS notes,
         a.pcnt_capital_responsibility AS pcnt_capital_responsibility,
-        estimated_replacement_year AS estimated_cost_year
+        scheduled_replacement_year AS estimated_cost_year
       FROM
         assets a
       WHERE
