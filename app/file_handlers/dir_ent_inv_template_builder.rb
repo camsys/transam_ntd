@@ -33,7 +33,7 @@ class DirEntInvTemplateBuilder < TemplateBuilder
       if support_facility
         puts support_facility.inspect
         row_data << support_facility.name
-        row_data << support_facility.part_of_larger_facility
+        row_data << support_facility.part_of_larger_facility ? 'X' : ''
         row_data << support_facility.address
         row_data << support_facility.city
         row_data << support_facility.state
@@ -54,7 +54,7 @@ class DirEntInvTemplateBuilder < TemplateBuilder
       transit_facility = transit_facilities[idx]
       if transit_facility
         row_data << transit_facility.name
-        row_data << transit_facility.part_of_larger_facility
+        row_data << transit_facility.part_of_larger_facility ? 'X' : ''
         row_data << transit_facility.address
         row_data << transit_facility.city
         row_data << transit_facility.state
@@ -108,7 +108,7 @@ class DirEntInvTemplateBuilder < TemplateBuilder
         row_data << rev_vehicle.num_ada_accessible
         row_data << rev_vehicle.num_emergency_contingency
         row_data << ''
-        row_data << rev_vehicle.vehicle_type.code
+        row_data << rev_vehicle.vehicle_type
         row_data << rev_vehicle.funding_source.to_s
         row_data << rev_vehicle.useful_life_remaining
         row_data << rev_vehicle.manufacture_year

@@ -43,22 +43,22 @@
 
     %tbody
       -#Get the organizations from the filter not the current user
-      - @form.ntd_revenue_vehicle_fleets(Organization.where(id: @form.organization_id)).each do |f|
+      - @form.ntd_revenue_vehicle_fleets.each do |f|
         %tr
           %td.left= "#{f.manufacture_code}-#{f.model_number}-#{f.manufacture_year}"
           %td.left= f.size
           %td.left= f.num_active
           %td.left= f.num_ada_accessible
           %td.left= f.num_emergency_contingency
-          %td.left= f.vehicle_type.code
+          %td.left= f.vehicle_type
           %td.left= f.funding_source
           %td.left= f.useful_life_remaining
           %td.left= f.manufacture_year
-          %td.left= f.manufacture_code.code
+          %td.left= f.manufacture_code
           %td.left= f.model_number
           %td.left= f.renewal_year
           %td.left= f.renewal_type
-          %td.left= f.fuel_type.code
+          %td.left= f.fuel_type
           %td.left= f.vehicle_length
           %td.left= f.seating_capacity
           %td.left= f.standing_capacity

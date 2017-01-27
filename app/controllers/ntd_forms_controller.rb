@@ -75,6 +75,7 @@ class NtdFormsController < FormAwareController
     add_breadcrumb "New"
 
     @form = NtdForm.new
+
     @fiscal_years = get_fiscal_years
 
   end

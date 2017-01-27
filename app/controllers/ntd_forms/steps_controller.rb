@@ -25,7 +25,13 @@ class NtdForms::StepsController < FormAwareController
     # where NtdService.get_data runs its queries and returns an array of hashes
     case step
       when :agency_information
-        # do nothing
+        @form.reporter_name = current_user.name
+        @form.reporter_title = current_user.title
+        @form.reporter_department = nil
+        @form.reporter_email = current_user.email
+        @form.reporter_phone = current_user.phone
+        @form.reporter_phone_ext = current_user.phone_ext
+
       when :admin_and_maint_facility_inventory
         # @form.ntd_admin_and_maintenance_facilities.build(NtdReportingService.get_data(step))
       when :passenger_and_parking_facility_inventory
@@ -50,7 +56,14 @@ class NtdForms::StepsController < FormAwareController
 
     case step
       when :agency_information
+
+        @form.ntd_revenue_vehicle_fleets = NtdReportingService.new(form: @form).revenue_vehicle_fleets(Organization.where(id: @form.organization_id))
+        @form.ntd_service_vehicle_fleets = NtdReportingService.new(form: @form).service_vehicle_fleets(Organization.where(id: @form.organization_id))
+        @form.ntd_passenger_and_parking_facilities = NtdReportingService.new(form: @form).passenger_and_parking_facilities(Organization.where(id: @form.organization_id))
+        @form.ntd_admin_and_maintenance_facilities = NtdReportingService.new(form: @form).admin_and_maintenance_facilities(Organization.where(id: @form.organization_id))
+
         @form.update_attributes(form_params)
+
       when :admin_and_maint_facility_inventory
         # @form.ntd_admin_and_maintenance_facilities.create(NtdReportingService.get_data(step))
       when :passenger_and_parking_facility_inventory

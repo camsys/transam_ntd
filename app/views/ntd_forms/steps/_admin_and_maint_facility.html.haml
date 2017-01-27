@@ -36,11 +36,11 @@
         %th.center{:data => {:sortable => 'true'}} Notes
 
     %tbody
-      - @form.ntd_admin_and_maintenance_facilities(Organization.where(id: @form.organization_id)).each do |f|
+      - @form.ntd_admin_and_maintenance_facilities.each do |f|
         %tr{:id => f.facility_object_key, :class => 'action-path'}
           %td.left= f.facility_object_key
           %td.left= f.name
-          %td.left= f.part_of_larger_facility
+          %td.left= f.part_of_larger_facility ? 'X' : ''
           %td.left= f.address
           %td.left= f.city
           %td.left= f.state
@@ -50,9 +50,9 @@
           %td.left= f.year_built
           %td.left= f.size
           %td.left= f.size_type
-          %td.left= f.pcnt_capital_responsibility
+          %td.left= format_as_percentage(f.pcnt_capital_responsibility)
           %td.left= f.reported_condition_rating
-          %td.left= f.reported_condition_date
+          %td.left= format_as_date(f.reported_condition_date)
           %td.left
 
 

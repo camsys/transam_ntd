@@ -4,7 +4,17 @@
   :wrapper_mappings => {:check_boxes => :vertical_radio_and_checkboxes, :radio_buttons => :vertical_radio_and_checkboxes, :file => :vertical_file_input, :boolean => :vertical_boolean}) do |f|
 
   = f.association :organization, :collection => Organization.where(id: @organization_list), :label_method => :coded_name
-  = f.input :fy_year, :collection => @fiscal_years
+  .row
+    .col-sm-3
+      = f.input :start_date, :label => 'Start Date', :wrapper => :vertical_append do
+        = f.input_field :start_date, :class => "form-control", :as => :string, :data => {'behavior' => 'datepicker'}, :value => format_as_date(start_of_fiscal_year(current_fiscal_year_year-1))
+        %span.input-group-addon
+          %i.fa.fa-calendar
+    .col-sm-3
+      = f.input :end_date, :label => 'End Date', :wrapper => :vertical_append do
+        = f.input_field :end_date, :class => "form-control", :as => :string, :data => {'behavior' => 'datepicker'}, :value => format_as_date(start_of_fiscal_year(current_fiscal_year_year)-1.day)
+        %span.input-group-addon
+          %i.fa.fa-calendar
 
   = f.button :submit, :class => "btn btn-primary"
 

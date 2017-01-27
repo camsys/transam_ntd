@@ -48,15 +48,15 @@ class NtdForm < ActiveRecord::Base
   accepts_nested_attributes_for :ntd_service_vehicle_fleets, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
 
   # Revenue vehicle fleets
-  # has_many    :ntd_revenue_vehicle_fleets, :dependent => :destroy
-  # accepts_nested_attributes_for :ntd_revenue_vehicle_fleets, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
+  has_many    :ntd_revenue_vehicle_fleets, :dependent => :destroy
+  accepts_nested_attributes_for :ntd_revenue_vehicle_fleets, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
 
   #------------------------------------------------------------------------------
   # Validations
   #------------------------------------------------------------------------------
   validates :organization,        :presence => true
   validates :form,                :presence => true
-  validates :fy_year,             :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 2012}
+  #validates :fy_year,             :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 2012}
 
   # Agency Information -- This is cached in case the organization's personel
   # changes and we retain the original reporting name
@@ -171,22 +171,6 @@ class NtdForm < ActiveRecord::Base
 
   def name
     fiscal_year(fy_year)
-  end
-
-  def ntd_revenue_vehicle_fleets orgs
-    NtdReportingService.new.revenue_vehicle_fleets(orgs)
-  end
-
-  def ntd_service_vehicle_fleets orgs
-    NtdReportingService.new.service_vehicle_fleets(orgs)
-  end
-
-  def ntd_passenger_and_parking_facilities orgs
-    NtdReportingService.new.passenger_and_parking_facilities(orgs)
-  end
-
-  def ntd_admin_and_maintenance_facilities orgs
-    NtdReportingService.new.admin_and_maintenance_facilities(orgs)
   end
 
   #------------------------------------------------------------------------------

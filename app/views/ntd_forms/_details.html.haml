@@ -21,6 +21,12 @@
     %a{:href => "#hist", :data =>{:toggle => 'tab'}}
       = "History"
 
+  %li
+    %a{:href => "#comments", :data =>{:toggle => 'tab'}}
+      %span{:style => 'white-space: nowrap !important;'}
+        = "Comments"
+        %span.badge= @form.comments.count
+
 .tab-content
   .tab-pane.fade#maint
     .tab-content
@@ -44,3 +50,7 @@
   .tab-pane.fade#hist
     .tab-content
       = render 'history_table'
+
+  .tab-pane.fade#comments
+    .tab-content
+      = render 'comments'

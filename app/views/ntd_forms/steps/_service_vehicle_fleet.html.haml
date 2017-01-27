@@ -30,7 +30,7 @@
 
 
     %tbody
-      - @form.ntd_service_vehicle_fleets(Organization.where(id: @form.organization_id)).each do |f|
+      - @form.ntd_service_vehicle_fleets.each do |f|
         %tr
           %td.left= "NAME?"
 
@@ -39,8 +39,8 @@
 
           %td.left= f.avg_expected_years
           %td.left= f.manufacture_year
-          %td.left= f.pcnt_capital_responsibility
-          %td.left= f.estimated_cost
+          %td.left= format_as_percentage(f.pcnt_capital_responsibility)
+          %td.left= format_as_currency(f.estimated_cost)
           %td.left= f.estimated_cost_year
           %td.left
 

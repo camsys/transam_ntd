@@ -7,9 +7,6 @@
 #------------------------------------------------------------------------------
 class NtdServiceVehicleFleet < ActiveRecord::Base
 
-  # Include the object key mixin
-  include TransamObjectKey
-
   #------------------------------------------------------------------------------
   # Callbacks
   #------------------------------------------------------------------------------
@@ -26,14 +23,14 @@ class NtdServiceVehicleFleet < ActiveRecord::Base
   #------------------------------------------------------------------------------
   validates :ntd_form,                  :presence => true
 
-  validates :name,                      :presence => true
-  validates :vehicle_type,              :presence => true
-  validates :size,                      :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  validates :avg_expected_years,        :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  validates :manufacture_year,          :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 1900}
-  validates :pcnt_capital_responsibility,:presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 100}
-  validates :estimated_cost,            :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  validates :estimated_cost_year,       :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 1900}
+  # validates :name,                      :presence => true
+  # validates :vehicle_type,              :presence => true
+  # validates :size,                      :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
+  # validates :avg_expected_years,        :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
+  # validates :manufacture_year,          :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 1900}
+  # validates :pcnt_capital_responsibility,:presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0, :less_than_or_equal_to => 100}
+  # validates :estimated_cost,            :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
+  # validates :estimated_cost_year,       :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 1900}
 
   #------------------------------------------------------------------------------
   # Scopes

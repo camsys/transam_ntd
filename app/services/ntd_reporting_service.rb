@@ -10,6 +10,10 @@ class NtdReportingService
 
   include FiscalYear
 
+  def initialize(params)
+    @form = params[:form]
+  end
+
   #------------------------------------------------------------------------------
   #
   # Instance Methods
@@ -98,11 +102,11 @@ class NtdReportingService
         :notes => row[23],
 
         # These could all be populated via SQL if we wanted to go just get the name or code column for these.
-        :vehicle_type => FtaVehicleType.find_by(id: row[5]),
-        :funding_source => FundingSource.find_by(id: row[6]),
-        :manufacture_code => Manufacturer.find_by(id: row[7]),
-        :renewal_type => VehicleRebuildType.find_by(id: row[12]),
-        :fuel_type => FuelType.find_by(id: row[17])
+        :vehicle_type => FtaVehicleType.find_by(id: row[5]).code,
+        :funding_source => FundingSource.find_by(id: row[6]).to_s,
+        :manufacture_code => Manufacturer.find_by(id: row[7]).code,
+        :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
+        :fuel_type => FuelType.find_by(id: row[17]).to_s
       }
       # calculate the additional properties and merge them into the results
       # hash
@@ -144,11 +148,11 @@ class NtdReportingService
           :estimated_cost_year => row[25],
 
           # These could all be populated via SQL if we wanted to go just get the name or code column for these.
-          :vehicle_type => FtaVehicleType.find_by(id: row[5]),
-          :funding_source => FundingSource.find_by(id: row[6]),
-          :manufacture_code => Manufacturer.find_by(id: row[7]),
-          :renewal_type => VehicleRebuildType.find_by(id: row[12]),
-          :fuel_type => FuelType.find_by(id: row[17])
+          :vehicle_type => FtaVehicleType.find_by(id: row[5]).code,
+          :funding_source => FundingSource.find_by(id: row[6]).to_s,
+          :manufacture_code => Manufacturer.find_by(id: row[7]).code,
+          :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
+          :fuel_type => FuelType.find_by(id: row[17]).to_s
       }
       # calculate the additional properties and merge them into the results
       # hash
@@ -163,6 +167,7 @@ class NtdReportingService
     facilities = []
     result.each { |r|
       primary_fta_mode_type = FtaModeType.find_by(id: r.primary_fta_mode_type_id)
+      condition_update = r.condition_updates.where('event_date >= ? AND event_date <= ?', @form.start_date, @form.end_date).last
       facility = {
           :name => r.description,
           :part_of_larger_facility => r.section_of_larger_facility,
@@ -173,15 +178,15 @@ class NtdReportingService
           :latitude => r.geometry.nil? ? nil : r.geometry.y,
           :longitude => r.geometry.nil? ? nil : r.geometry.x,
           :primary_mode => primary_fta_mode_type ? "#{primary_fta_mode_type.code} - #{primary_fta_mode_type.name}" : "",
-          :facility_type => r.fta_facility_type,
+          :facility_type => r.fta_facility_type.to_s,
           :year_built => r.rebuild_year.nil? ? r.manufacture_year : r.rebuild_year ,
           :size => r.facility_size,
           :size_type => 'Square Feet',
           :pcnt_capital_responsibility => r.pcnt_capital_responsibility,
           :estimated_cost => r.estimated_replacement_cost,
           :estimated_cost_year => r.estimated_replacement_year,
-          :reported_condition_rating => r.reported_condition_rating ? (r.reported_condition_rating+0.5).to_i : nil,
-          :reported_condition_date => r.reported_condition_date,
+          :reported_condition_rating => condition_update ? (condition_update.assessed_rating+0.5).to_i : nil,
+          :reported_condition_date => condition_update.event_date,
           :parking_measurement => r.num_parking_spaces_public,
           :parking_measurement_unit => 'Parking Spaces',
           :facility_object_key => r.object_key
@@ -199,6 +204,7 @@ class NtdReportingService
     facilities = []
     result.each { |r|
       primary_fta_mode_type = FtaModeType.find_by(id: r.primary_fta_mode_type_id)
+      condition_update = r.condition_updates.where('event_date >= ? AND event_date <= ?', @form.start_date, @form.end_date).last
       facility = {
           :name => r.description,
           :part_of_larger_facility => r.section_of_larger_facility,
@@ -209,15 +215,15 @@ class NtdReportingService
           :latitude => r.geometry.nil? ? nil : r.geometry.y,
           :longitude => r.geometry.nil? ? nil : r.geometry.x,
           :primary_mode => primary_fta_mode_type ? "#{primary_fta_mode_type.code} - #{primary_fta_mode_type.name}" : "",
-          :facility_type => r.fta_facility_type,
+          :facility_type => r.fta_facility_type.to_s,
           :year_built => r.rebuild_year.nil? ? r.manufacture_year : r.rebuild_year ,
           :size => r.facility_size,
           :size_type => 'Square Feet',
           :pcnt_capital_responsibility => r.pcnt_capital_responsibility,
           :estimated_cost => r.estimated_replacement_cost,
           :estimated_cost_year => r.estimated_replacement_year,
-          :reported_condition_rating => r.reported_condition_rating ? (r.reported_condition_rating+0.5).to_i : nil,
-          :reported_condition_date => r.reported_condition_date,
+          :reported_condition_rating => condition_update ? (condition_update.assessed_rating+0.5).to_i : nil,
+          :reported_condition_date => condition_update.event_date,
           :facility_object_key => r.object_key
       }
 
@@ -341,6 +347,10 @@ class NtdReportingService
         assets a
       WHERE
         a.asset_type_id IN (#{asset_type_id.join(',')})
+      AND (
+        (assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key)
+        OR (assets.disposition_date >= #{@form.start_date} AND assets.disposition_date <= #{@form.end_date})
+      )
       AND
         a.organization_id IN (#{organization_ids.join(',')})
       GROUP BY
@@ -361,11 +371,14 @@ class NtdReportingService
   end
 
   def transit_facilities_query(asset_type_id, organization_ids)
-    TransitFacility.where(asset_type_id: asset_type_id, organization_id: organization_ids)
+    TransitFacility.where('(assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key) OR (assets.disposition_date >= ? AND assets.disposition_date <= ?)', @form.start_date, @form.end_date).where(asset_type_id: asset_type_id, organization_id: organization_ids)
   end
 
   def support_facilities_query(asset_type_id, organization_ids)
-    SupportFacility.where(asset_type_id: asset_type_id, organization_id: organization_ids)
+    SupportFacility.where('(assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key) OR (assets.disposition_date >= ? AND assets.disposition_date <= ?)', @form.start_date, @form.end_date).where('assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key').where(asset_type_id: asset_type_id, organization_id: organization_ids)
   end
+
+
+
 
 end
