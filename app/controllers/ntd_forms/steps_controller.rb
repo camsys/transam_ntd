@@ -8,12 +8,11 @@ class NtdForms::StepsController < FormAwareController
   add_breadcrumb "Home", :root_path
   add_breadcrumb "Forms", :forms_path
 
-  steps :agency_information,
-        :admin_and_maint_facility_inventory,
-        :passenger_and_parking_facility_inventory,
-        :service_vehicle_inventory,
-        :revenue_vehicle_inventory,
-        :summary
+  steps :agency_information
+        #:admin_and_maint_facility_inventory,
+        #:passenger_and_parking_facility_inventory,
+        #:service_vehicle_inventory,
+        #:revenue_vehicle_inventory,
 
   def show
 
@@ -34,12 +33,7 @@ class NtdForms::StepsController < FormAwareController
       when :service_vehicle_inventory
         # @form.ntd_service_vehicle_fleets.build(NtdReportingService.get_data(step))
       when :revenue_vehicle_inventory
-        @form.ntd_revenue_vehicle_fleets.build(NtdReportingService.revenue_vehicle_fleets(user.organizations))
-      when :summary
-        # if no other sub reports
-        # generate those first
-        # else
-        # generate A-80
+        #@form.ntd_revenue_vehicle_fleets.build(NtdReportingService.revenue_vehicle_fleets(user.organizations))
     end
 
     @has_prev_step = previous_step
@@ -65,11 +59,6 @@ class NtdForms::StepsController < FormAwareController
         # @form.ntd_service_vehicle_fleets.create(NtdReportingService.get_data(step))
       when :revenue_vehicle_inventory
         # @form.ntd_revenue_vehicle_fleets.create(NtdReportingService.get_data(step))
-      when :summary
-        # if no other sub reports
-        # generate those first
-        # else
-        # generate A-80
     end
 
     render_wizard @form
@@ -85,9 +74,9 @@ class NtdForms::StepsController < FormAwareController
     params.require(:ntd_form).permit(NtdForm.allowable_params)
   end
 
-  def redirect_to_finish_wizard
+  def finish_wizard_path
     get_form
-    redirect_to form_ntd_form_url(@form_type, @form)
+    return form_ntd_form_url(@form_type, @form)
   end
 
 end

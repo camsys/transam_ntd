@@ -11,7 +11,6 @@
 
       .actions
         = f.submit "Continue", :class => "btn btn-success"
-        = link_to "Skip to Final A-80", wizard_path(:summary), :class => "btn btn-info pull-right"
-        = link_to "Back", previous_wizard_path, :class => "btn btn-info pull-right" if @has_prev_step
+        = link_to "Back", previous_wizard_path, :class => "btn btn-info pull-right" if @has_prev_step != step
 
 = render 'scripts'

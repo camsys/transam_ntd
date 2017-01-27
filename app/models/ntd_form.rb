@@ -166,7 +166,7 @@ class NtdForm < ActiveRecord::Base
   #------------------------------------------------------------------------------
 
   def to_s
-    name
+    "#{organization} #{name}"
   end
 
   def name

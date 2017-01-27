@@ -43,7 +43,7 @@ class NtdFormsController < FormAwareController
 
     unless params[:format] == 'xls'
       # cache the set of object keys in case we need them later
-      cache_list(@projects, INDEX_KEY_LIST_VAR)
+      cache_list(@forms, INDEX_KEY_LIST_VAR)
     end
 
     respond_to do |format|
@@ -59,9 +59,9 @@ class NtdFormsController < FormAwareController
     add_breadcrumb @form
 
     # get the @prev_record_path and @next_record_path view vars
-    get_next_and_prev_object_keys(@project, INDEX_KEY_LIST_VAR)
-    @prev_record_path = @prev_record_key.nil? ? "#" : state_17a_form_path(@prev_record_key)
-    @next_record_path = @next_record_key.nil? ? "#" : state_17a_form_path(@next_record_key)
+    get_next_and_prev_object_keys(@form, INDEX_KEY_LIST_VAR)
+    @prev_record_path = @prev_record_key.nil? ? "#" :  form_ntd_form_path(@form_type, @prev_record_key)
+    @next_record_path = @next_record_key.nil? ? "#" : form_ntd_form_path(@form_type, @next_record_key)
 
     respond_to do |format|
       format.html # show.html.erb
@@ -107,6 +107,11 @@ class NtdFormsController < FormAwareController
   end
 
   def generate
+
+    add_breadcrumb @form_type.name.pluralize(2), form_path(@form_type)
+    add_breadcrumb @form
+    add_breadcrumb 'Generate', generate_form_ntd_form_path(@form_type, @form)
+
     # Find out which builder is used to construct the template and create an instance
     builder = DirEntInvTemplateBuilder.new(:ntd_form => @form, :organization_list => [@form.organization_id])
 
