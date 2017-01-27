@@ -30,7 +30,7 @@
 
 
     %tbody
-      - @form.ntd_service_vehicle_fleets(Organization.where(id: @organization_list)).each do |f|
+      - @form.ntd_service_vehicle_fleets(Organization.where(id: @form.organization_id)).each do |f|
         %tr
           %td.left= "NAME?"
 

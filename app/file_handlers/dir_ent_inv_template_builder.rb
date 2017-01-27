@@ -17,10 +17,10 @@ class DirEntInvTemplateBuilder < TemplateBuilder
   # Add a row for each of the asset for the org
   def add_rows(sheet)
 
-    support_facilities = @ntd_form.ntd_admin_and_maintenance_facilities(Organization.where(id: @organization_list))
-    transit_facilities = @ntd_form.ntd_passenger_and_parking_facilities(Organization.where(id: @organization_list))
-    support_vehicles = @ntd_form.ntd_service_vehicle_fleets(Organization.where(id: @organization_list))
-    rev_vehicles = @ntd_form.ntd_revenue_vehicle_fleets(Organization.where(id: @organization_list))
+    support_facilities = @ntd_form.ntd_admin_and_maintenance_facilities(Organization.where(id: @ntd_form.organization_id))
+    transit_facilities = @ntd_form.ntd_passenger_and_parking_facilities(Organization.where(id: @ntd_form.organization_id))
+    support_vehicles = @ntd_form.ntd_service_vehicle_fleets(Organization.where(id: @ntd_form.organization_id))
+    rev_vehicles = @ntd_form.ntd_revenue_vehicle_fleets(Organization.where(id: @ntd_form.organization_id))
 
     row_count = [support_facilities.count, transit_facilities.count, support_vehicles.count, rev_vehicles.count].max
 

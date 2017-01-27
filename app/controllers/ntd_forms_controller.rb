@@ -81,7 +81,6 @@ class NtdFormsController < FormAwareController
 
   def create
     @form = NtdForm.new(form_params)
-    @form.organization = @organization
     @form.form = @form_type
 
     if @form.save
@@ -109,7 +108,7 @@ class NtdFormsController < FormAwareController
 
   def generate
     # Find out which builder is used to construct the template and create an instance
-    builder = DirEntInvTemplateBuilder.new(:ntd_form => @form, :organization_list => @organization_list)
+    builder = DirEntInvTemplateBuilder.new(:ntd_form => @form, :organization_list => [@form.organization_id])
 
     # Generate the spreadsheet. This returns a StringIO that has been rewound
     stream = builder.build
@@ -119,7 +118,7 @@ class NtdFormsController < FormAwareController
     ObjectSpace.undefine_finalizer(file)
     #You can uncomment this line when debugging locally to prevent Tempfile from disappearing before download.
     @filepath = file.path
-    @filename = "#{@organization.short_name}_DirEntInv_#{Date.today}.xlsx"
+    @filename = "#{@form.organization.short_name}_DirEntInv_#{Date.today}.xlsx"
     begin
       file << stream.string
     rescue => ex

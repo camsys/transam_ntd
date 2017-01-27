@@ -36,7 +36,7 @@
         %th.center{:data => {:sortable => 'true'}} Notes
 
     %tbody
-      - @form.ntd_admin_and_maintenance_facilities(Organization.where(id: @organization_list)).each do |f|
+      - @form.ntd_admin_and_maintenance_facilities(Organization.where(id: @form.organization_id)).each do |f|
         %tr{:id => f.facility_object_key, :class => 'action-path'}
           %td.left= f.facility_object_key
           %td.left= f.name

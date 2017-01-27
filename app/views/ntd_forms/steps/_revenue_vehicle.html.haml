@@ -43,7 +43,7 @@
 
     %tbody
       -#Get the organizations from the filter not the current user
-      - @form.ntd_revenue_vehicle_fleets(Organization.where(id: @organization_list)).each do |f|
+      - @form.ntd_revenue_vehicle_fleets(Organization.where(id: @form.organization_id)).each do |f|
         %tr
           %td.left= "#{f.manufacture_code}-#{f.model_number}-#{f.manufacture_year}"
           %td.left= f.size
