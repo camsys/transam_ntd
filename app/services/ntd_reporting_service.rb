@@ -186,7 +186,7 @@ class NtdReportingService
           :estimated_cost => r.scheduled_replacement_cost,
           :estimated_cost_year => r.scheduled_replacement_year,
           :reported_condition_rating => condition_update ? (condition_update.assessed_rating+0.5).to_i : nil,
-          :reported_condition_date => condition_update.event_date,
+          :reported_condition_date => condition_update ? condition_update.event_date : nil,
           :parking_measurement => r.num_parking_spaces_public,
           :parking_measurement_unit => 'Parking Spaces',
           :facility_object_key => r.object_key
@@ -223,7 +223,7 @@ class NtdReportingService
           :estimated_cost => r.scheduled_replacement_cost,
           :estimated_cost_year => r.scheduled_replacement_year,
           :reported_condition_rating => condition_update ? (condition_update.assessed_rating+0.5).to_i : nil,
-          :reported_condition_date => condition_update.event_date,
+          :reported_condition_date => condition_update ? condition_update.event_date : nil,
           :facility_object_key => r.object_key
       }
 
@@ -350,8 +350,8 @@ class NtdReportingService
       WHERE
         a.asset_type_id IN (#{asset_type_id.join(',')})
       AND (
-        (assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key)
-        OR (assets.disposition_date >= #{@form.start_date} AND assets.disposition_date <= #{@form.end_date})
+        (a.disposition_date IS NULL AND a.asset_tag != a.object_key)
+        OR (a.disposition_date >= #{@form.start_date} AND a.disposition_date <= #{@form.end_date})
       )
       AND
         a.organization_id IN (#{organization_ids.join(',')})

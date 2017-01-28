@@ -81,6 +81,10 @@ class NtdFormsController < FormAwareController
   end
 
   def create
+
+    params[:ntd_form][:start_date] = reformat_date(params[:ntd_form][:start_date]) unless params[:ntd_form][:start_date].blank?
+    params[:ntd_form][:end_date] = reformat_date(params[:ntd_form][:end_date]) unless params[:ntd_form][:end_date].blank?
+
     @form = NtdForm.new(form_params)
     @form.form = @form_type
 
@@ -156,6 +160,11 @@ class NtdFormsController < FormAwareController
   # Never trust parameters from the scary internet, only allow the white list through.
   def form_params
     params.require(:ntd_form).permit(NtdForm.allowable_params)
+  end
+
+  def reformat_date(date_str)
+    form_date = Date.strptime(date_str, '%m/%d/%Y')
+    return form_date.strftime('%Y-%m-%d')
   end
 
   def get_form

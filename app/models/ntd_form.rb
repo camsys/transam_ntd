@@ -56,6 +56,8 @@ class NtdForm < ActiveRecord::Base
   #------------------------------------------------------------------------------
   validates :organization,        :presence => true
   validates :form,                :presence => true
+  validates :start_date,          :presence => true
+  validates :end_date,                :presence => true
   #validates :fy_year,             :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 2012}
 
   # Agency Information -- This is cached in case the organization's personel
@@ -79,8 +81,8 @@ class NtdForm < ActiveRecord::Base
   # List of hash parameters allowed by the controller
   FORM_PARAMS = [
     :organization_id,
-    :fy_year,
-
+    :start_date,
+    :end_date,
     :reporter_name,
     :reporter_title,
     :reporter_department,
