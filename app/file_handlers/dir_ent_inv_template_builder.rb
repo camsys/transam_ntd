@@ -116,12 +116,12 @@ class DirEntInvTemplateBuilder < TemplateBuilder
         row_data << rev_vehicle.model_number
         row_data << rev_vehicle.renewal_year
         row_data << rev_vehicle.renewal_type
-        row_data << '???'
-        row_data << '???'
-        row_data << '???'
-        row_data << '???'
-        row_data << '???'
-        row_data << '???'
+        row_data << rev_vehicle.renewal_cost
+        row_data << rev_vehicle.renewal_cost_year
+        row_data << rev_vehicle.replacement_cost
+        row_data << rev_vehicle.replacement_cost_year
+        row_data << rev_vehicle.replacement_cost_parts
+        row_data << rev_vehicle.replacement_cost_warranty
         row_data << rev_vehicle.fuel_type.code
         row_data << rev_vehicle.vehicle_length
         row_data << rev_vehicle.seating_capacity
