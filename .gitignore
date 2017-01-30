@@ -9,3 +9,4 @@ spec/dummy/tmp
 
 .idea/
 .DS_Store
+Gemfile.lock
