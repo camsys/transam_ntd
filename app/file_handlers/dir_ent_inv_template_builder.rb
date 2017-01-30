@@ -112,7 +112,7 @@ class DirEntInvTemplateBuilder < TemplateBuilder
         row_data << rev_vehicle.funding_source.to_s
         row_data << rev_vehicle.useful_life_remaining
         row_data << rev_vehicle.manufacture_year
-        row_data << rev_vehicle.manufacture_code.code
+        row_data << rev_vehicle.manufacture_code
         row_data << rev_vehicle.model_number
         row_data << rev_vehicle.renewal_year
         row_data << rev_vehicle.renewal_type
@@ -122,7 +122,7 @@ class DirEntInvTemplateBuilder < TemplateBuilder
         row_data << rev_vehicle.replacement_cost_year
         row_data << rev_vehicle.replacement_cost_parts
         row_data << rev_vehicle.replacement_cost_warranty
-        row_data << rev_vehicle.fuel_type.code
+        row_data << rev_vehicle.fuel_type
         row_data << rev_vehicle.vehicle_length
         row_data << rev_vehicle.seating_capacity
         row_data << rev_vehicle.standing_capacity

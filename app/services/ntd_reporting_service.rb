@@ -87,7 +87,7 @@ class NtdReportingService
         :model_number => row[9],
         :manufacture_year => row[10],
         :renewal_year => row[11],
-        :renewal_cost => row[12],
+        :renewal_cost => row[13],
 
         :renewal_cost_year => row[14],
         :replacement_cost => row[15],
@@ -105,7 +105,7 @@ class NtdReportingService
         :vehicle_type => FtaVehicleType.find_by(id: row[6]).code,
         :funding_source => FundingSource.find_by(id: row[7]).to_s,
         :manufacture_code => Manufacturer.find_by(id: row[8]).code,
-        :renewal_type => VehicleRebuildType.find_by(id: row[13]).to_s,
+        :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
         :fuel_type => FuelType.find_by(id: row[18]).to_s
       }
       # calculate the additional properties and merge them into the results
@@ -131,7 +131,7 @@ class NtdReportingService
           :model_number => row[9],
           :manufacture_year => row[10],
           :renewal_year => row[11],
-          :renewal_cost => row[12],
+          :renewal_cost => row[13],
 
           :renewal_cost_year => row[14],
           :replacement_cost => row[15],
@@ -151,7 +151,7 @@ class NtdReportingService
           :vehicle_type => FtaVehicleType.find_by(id: row[6]).code,
           :funding_source => FundingSource.find_by(id: row[7]).to_s,
           :manufacture_code => Manufacturer.find_by(id: row[8]).code,
-          :renewal_type => VehicleRebuildType.find_by(id: row[13]).to_s,
+          :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
           :fuel_type => FuelType.find_by(id: row[18]).to_s
       }
       # calculate the additional properties and merge them into the results

@@ -114,7 +114,7 @@ class NtdFormsController < FormAwareController
   def generate
 
     add_breadcrumb @form_type.name.pluralize(2), form_path(@form_type)
-    add_breadcrumb @form
+    add_breadcrumb @form, form_ntd_form_path(@form_type, @form)
     add_breadcrumb 'Generate', generate_form_ntd_form_path(@form_type, @form)
 
     # Find out which builder is used to construct the template and create an instance
