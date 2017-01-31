@@ -250,8 +250,8 @@ class NtdReportingService
     num_active = 0
     num_ada_accessible = 0
     num_emergency_contingency = 0
+    total_active_miles = 0
     total_active_miles_in_period = 0
-    avg_lifetime_active_miles = 0
     replacement_cost = 0
     replacement_cost_year = current_fiscal_year_year
 
@@ -260,8 +260,10 @@ class NtdReportingService
       num_ada_accessible += 1 if vehicle.ada_accessible?
       num_emergency_contingency += 1 if vehicle.fta_emergency_contingency_fleet
 
-      mileage_update = vehicle.mileage_updates.where('event_date >= ? AND event_date <= ?', @form.start_date, @form.end_date).last
-      total_active_miles_in_period += mileage_update.current_mileage if !vehicle.disposed? && mileage_update
+      mileage_update_in_period = vehicle.mileage_updates.where('event_date >= ? AND event_date <= ?', @form.start_date, @form.end_date).last
+      mileage_update_not_in_period = vehicle.mileage_updates.where.not('event_date >= ? AND event_date <= ?', @form.start_date, @form.end_date).last
+      total_active_miles_in_period += (mileage_update_in_period.current_mileage - mileage_update_not_in_period.current_mileage)
+      total_active_miles += mileage_update_in_period.current_mileage if !vehicle.disposed? && mileage_update_in_period
 
       replacement_cost += vehicle.scheduled_replacement_cost
     end
@@ -273,7 +275,7 @@ class NtdReportingService
      end
 
     fleet_group[:total_active_miles_in_period] = total_active_miles_in_period
-    fleet_group[:avg_lifetime_active_miles] =  num_active > 0 ? (total_active_miles_in_period / num_active) : 0
+    fleet_group[:avg_lifetime_active_miles] =  num_active > 0 ? (total_active_miles / num_active) : 0
     fleet_group[:num_active] = num_active
     fleet_group[:num_ada_accessible] = num_ada_accessible
     fleet_group[:num_emergency_contingency] = num_emergency_contingency
