@@ -1,15 +1,17 @@
 language: ruby
 rvm:
-- 2.1.1
+- 2.2.2
 branches:
   only:
   - master
 env:
 - TEST_SUITE=rspec
 - TEST_SUITE=cucumber
+before_script:
+- bundle update transam_core transam_transit
+- cp spec/dummy/config/database.travis.yml spec/dummy/config/database.yml
 script:
 - bundle exec rake app:transam_ntd:prepare_rspec
 - bundle exec $TEST_SUITE
 before_install:
-- openssl aes-256-cbc -K $encrypted_b6ac448b830a_key -iv $encrypted_b6ac448b830a_iv
-  -in spec/dummy/db/schema.rb.enc -out spec/dummy/db/schema.rb -d
+- mysql -e "create database IF NOT EXISTS transam_ntd_testing;" -uroot

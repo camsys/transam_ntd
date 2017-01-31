@@ -9,7 +9,7 @@ require "sprockets/railtie"
 # require "rails/test_unit/railtie"
 
 Bundler.require(*Rails.groups)
-require "transam_spatial"
+require "transam_ntd"
 
 module Dummy
   class Application < Rails::Application
