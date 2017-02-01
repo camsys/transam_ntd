@@ -19,7 +19,7 @@ forms = [
 
 puts "======= Processing TransAM NTD Lookup Tables  ======="
 
-lookup_tables = %w{  }
+lookup_tables = %w{ }
 
 lookup_tables.each do |table_name|
   puts "  Loading #{table_name}"
@@ -45,10 +45,6 @@ end
 # These are merged tables TransAM NTD
 #
 #------------------------------------------------------------------------------
-
-forms = [
-  {:active => 1,  :name => 'NTD Reporting Form', :roles => "admin,manager", :controller => 'ntd_forms', :description => 'NTD Annual Reporting Forms.'}
-]
 
 puts "======= Processing TransAM NTD Merge Tables  ======="
 
