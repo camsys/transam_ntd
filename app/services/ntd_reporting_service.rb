@@ -262,7 +262,7 @@ class NtdReportingService
 
       mileage_update_in_period = vehicle.mileage_updates.where('event_date >= ? AND event_date <= ?', @form.start_date, @form.end_date).last
       mileage_update_not_in_period = vehicle.mileage_updates.where.not('event_date >= ? AND event_date <= ?', @form.start_date, @form.end_date).last
-      total_active_miles_in_period += (mileage_update_in_period.current_mileage - mileage_update_not_in_period.current_mileage)
+      total_active_miles_in_period += [(mileage_update_in_period.try(:current_mileage).to_i - mileage_update_not_in_period.try(:current_mileage).to_i), 0].max
       total_active_miles += mileage_update_in_period.current_mileage if !vehicle.disposed? && mileage_update_in_period
 
       replacement_cost += vehicle.scheduled_replacement_cost
