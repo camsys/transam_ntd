@@ -103,7 +103,7 @@ class NtdReportingService
 
         # These could all be populated via SQL if we wanted to go just get the name or code column for these.
         :vehicle_type => FtaVehicleType.find_by(id: row[6]).code,
-        :funding_source => FundingSource.find_by(id: row[7]).to_s,
+        :funding_source => FtaFundingType.find_by(id: row[7]).name,
         :manufacture_code => Manufacturer.find_by(id: row[8]).code,
         :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
         :fuel_type => FuelType.find_by(id: row[18]).to_s
@@ -149,7 +149,7 @@ class NtdReportingService
 
           # These could all be populated via SQL if we wanted to go just get the name or code column for these.
           :vehicle_type => FtaVehicleType.find_by(id: row[6]).code,
-          :funding_source => FundingSource.find_by(id: row[7]).to_s,
+          :funding_source => FtaFundingType.find_by(id: row[7]).name,
           :manufacture_code => Manufacturer.find_by(id: row[8]).code,
           :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
           :fuel_type => FuelType.find_by(id: row[18]).to_s
@@ -243,7 +243,7 @@ class NtdReportingService
   # needed for the report. I think this could all be done in SQL and would save us a lot of queries and time.
   def calc_revenue_fleet_items(fleet_group, organization_ids, asset_subtype_id)
      vehicles = Vehicle.where('(assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key) OR (assets.disposition_date >= ? AND assets.disposition_date <= ?)', @form.start_date, @form.end_date).where(organization_id: organization_ids, asset_subtype_id: asset_subtype_id, fta_vehicle_type_id: FtaVehicleType.find_by(code:fleet_group[:vehicle_type]).id,
-                       fta_funding_type_id: FundingSource.find_by(name:fleet_group[:funding_source]).id, manufacturer_id: Manufacturer.where(code:fleet_group[:manufacture_code]).ids, manufacturer_model: fleet_group[:model_number],
+                       fta_funding_type_id: FtaFundingType.find_by(name:fleet_group[:funding_source]).id, manufacturer_id: Manufacturer.where(code:fleet_group[:manufacture_code]).ids, manufacturer_model: fleet_group[:model_number],
                        manufacture_year: fleet_group[:manufacture_year], rebuild_year: fleet_group[:renewal_year], fuel_type_id: FuelType.find_by(name:fleet_group[:fuel_type]).id,
                        vehicle_length: fleet_group[:vehicle_length], seating_capacity: fleet_group[:seating_capacity], standing_capacity: fleet_group[:standing_capacity])
 
