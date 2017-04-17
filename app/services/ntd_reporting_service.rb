@@ -12,6 +12,7 @@ class NtdReportingService
 
   def initialize(params)
     @form = params[:form]
+    @process_log = ProcessLog.new
   end
 
   #------------------------------------------------------------------------------
@@ -19,6 +20,10 @@ class NtdReportingService
   # Instance Methods
   #
   #------------------------------------------------------------------------------
+
+  def process_log
+    @process_log.to_s
+  end
 
   # Returns a collection of revenue vehicle fleets by grouping vehicle assets in
   # for the organization on the NTD fleet groups and calculating the totals for
@@ -78,6 +83,23 @@ class NtdReportingService
     # Convert the results set to an array of hashes
     fleets = []
     results.each do |row|
+
+      has_error = false
+      vehicle_type = FtaVehicleType.find_by(id: row[6])
+      if vehicle_type.nil? || vehicle_type.name == 'Unknown'
+        vehicle_type = nil
+        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets")
+        has_error = true
+        @process_log.add_processing_message(2, 'warning', 'FTA vehicle type is Unknown.')
+      end
+
+      funding_type = FtaFundingType.find_by(id: row[7])
+      if funding_type.nil? || funding_type.name == 'Unknown'
+        funding_type = nil
+        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
+        @process_log.add_processing_message(2, 'warning', 'FTA funding type is Unknown.')
+      end
+
       fleet = {
         :size => row[2],
         :num_active => row[3],
@@ -102,8 +124,8 @@ class NtdReportingService
         :notes => row[24],
 
         # These could all be populated via SQL if we wanted to go just get the name or code column for these.
-        :vehicle_type => FtaVehicleType.find_by(id: row[6]).code,
-        :funding_source => FtaFundingType.find_by(id: row[7]).name,
+        :vehicle_type => vehicle_type.code,
+        :funding_source => funding_type.name,
         :manufacture_code => Manufacturer.find_by(id: row[8]).code,
         :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
         :fuel_type => FuelType.find_by(id: row[18]).to_s
@@ -122,6 +144,23 @@ class NtdReportingService
     # Convert the results set to an array of hashes
     fleets = []
     results.each do |row|
+
+      has_error = false
+      vehicle_type = FtaVehicleType.find_by(id: row[6])
+      if vehicle_type.nil? || vehicle_type.name == 'Unknown'
+        vehicle_type = nil
+        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets")
+        has_error = true
+        @process_log.add_processing_message(2, 'warning', 'FTA vehicle type is Unknown.')
+      end
+
+      funding_type = FtaFundingType.find_by(id: row[7])
+      if funding_type.nil? || funding_type.name == 'Unknown'
+        funding_type = nil
+        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
+        @process_log.add_processing_message(2, 'warning', 'FTA funding type is Unknown.')
+      end
+
       fleet = {
           :size => row[2],
           :num_active => row[3],
@@ -148,8 +187,8 @@ class NtdReportingService
           :estimated_cost_year => row[26],
 
           # These could all be populated via SQL if we wanted to go just get the name or code column for these.
-          :vehicle_type => FtaVehicleType.find_by(id: row[6]).code,
-          :funding_source => FtaFundingType.find_by(id: row[7]).name,
+          :vehicle_type => vehicle_type.code,
+          :funding_source => funding_type.name,
           :manufacture_code => Manufacturer.find_by(id: row[8]).code,
           :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
           :fuel_type => FuelType.find_by(id: row[18]).to_s
@@ -167,6 +206,13 @@ class NtdReportingService
     facilities = []
     result.each { |r|
       primary_fta_mode_type = FtaModeType.find_by(id: r.primary_fta_mode_type_id)
+      if primary_fta_mode_type && primary_fta_mode_type.name == 'Unknown'
+        primary_fta_mode_type = nil
+      end
+      unless primary_fta_mode_type
+        @process_log.add_processing_message(1, 'info', "Transit Facility #{r.asset_tag}")
+        @process_log.add_processing_message(2, 'warning', 'Primary FTA Mode Type is Unknown.')
+      end
       condition_update = r.condition_updates.where('event_date >= ? AND event_date <= ?', @form.start_date, @form.end_date).last
       facility = {
           :name => r.description,
@@ -204,6 +250,13 @@ class NtdReportingService
     facilities = []
     result.each { |r|
       primary_fta_mode_type = FtaModeType.find_by(id: r.primary_fta_mode_type_id)
+      if primary_fta_mode_type && primary_fta_mode_type.name == 'Unknown'
+        primary_fta_mode_type = nil
+      end
+      unless primary_fta_mode_type
+        @process_log.add_processing_message(1, 'info', "Support Facility #{r.asset_tag}")
+        @process_log.add_processing_message(2, 'warning', 'Primary FTA Mode Type is Unknown.')
+      end
       condition_update = r.condition_updates.where('event_date >= ? AND event_date <= ?', @form.start_date, @form.end_date).last
       facility = {
           :name => r.description,
@@ -265,7 +318,7 @@ class NtdReportingService
       total_active_miles_in_period += [(mileage_update_in_period.try(:current_mileage).to_i - mileage_update_not_in_period.try(:current_mileage).to_i), 0].max
       total_active_miles += mileage_update_in_period.current_mileage if !vehicle.disposed? && mileage_update_in_period
 
-      replacement_cost += vehicle.scheduled_replacement_cost
+      replacement_cost += vehicle.scheduled_replacement_cost || 0
     end
 
     # It might be better to capture these at a higher level like in the query but the logic around these might be a little convoluted

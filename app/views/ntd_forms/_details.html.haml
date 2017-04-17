@@ -20,6 +20,9 @@
   %li
     %a{:href => "#hist", :data =>{:toggle => 'tab'}}
       = "History"
+  %li
+    %a{:href => "#log", :data =>{:toggle => 'tab'}}
+      = "Process Log"
 
   %li
     %a{:href => "#comments", :data =>{:toggle => 'tab'}}
@@ -50,6 +53,10 @@
   .tab-pane.fade#hist
     .tab-content
       = render 'history_table'
+
+  .tab-pane.fade#log
+    .tab-content{:style => "overflow-y:scroll;height:400px;"}
+      = render 'process_log'
 
   .tab-pane.fade#comments
     .tab-content
