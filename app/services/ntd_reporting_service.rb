@@ -100,6 +100,21 @@ class NtdReportingService
         @process_log.add_processing_message(2, 'warning', 'FTA funding type is Unknown.')
       end
 
+      manufacturer = Manufacturer.find_by(id: row[8])
+      if manufacturer.nil? || manufacturer.name == 'Unknown'
+        manufacturer = nil
+        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
+        @process_log.add_processing_message(2, 'warning', 'Manufacturer is Unknown.')
+      end
+
+      fuel_type = FuelType.find_by(id: row[18])
+      if fuel_type.nil? || fuel_type.name == 'Unknown'
+        fuel_type = nil
+        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
+        @process_log.add_processing_message(2, 'warning', 'Fuel Type is Unknown.')
+      end
+
+
       fleet = {
         :size => row[2],
         :num_active => row[3],
@@ -124,11 +139,11 @@ class NtdReportingService
         :notes => row[24],
 
         # These could all be populated via SQL if we wanted to go just get the name or code column for these.
-        :vehicle_type => vehicle_type.code,
-        :funding_source => funding_type.name,
-        :manufacture_code => Manufacturer.find_by(id: row[8]).code,
+        :vehicle_type => vehicle_type.try(:code),
+        :funding_source => funding_type.try(:name),
+        :manufacture_code => manufacturer.try(:code),
         :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
-        :fuel_type => FuelType.find_by(id: row[18]).to_s
+        :fuel_type => fuel_type.to_s
       }
       # calculate the additional properties and merge them into the results
       # hash
@@ -161,6 +176,20 @@ class NtdReportingService
         @process_log.add_processing_message(2, 'warning', 'FTA funding type is Unknown.')
       end
 
+      manufacturer = Manufacturer.find_by(id: row[8])
+      if manufacturer.nil? || manufacturer.name == 'Unknown'
+        manufacturer = nil
+        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
+        @process_log.add_processing_message(2, 'warning', 'Manufacturer is Unknown.')
+      end
+
+      fuel_type = FuelType.find_by(id: row[18])
+      if fuel_type.nil? || fuel_type.name == 'Unknown'
+        fuel_type = nil
+        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
+        @process_log.add_processing_message(2, 'warning', 'Fuel Type is Unknown.')
+      end
+
       fleet = {
           :size => row[2],
           :num_active => row[3],
@@ -187,11 +216,11 @@ class NtdReportingService
           :estimated_cost_year => row[26],
 
           # These could all be populated via SQL if we wanted to go just get the name or code column for these.
-          :vehicle_type => vehicle_type.code,
-          :funding_source => funding_type.name,
-          :manufacture_code => Manufacturer.find_by(id: row[8]).code,
+          :vehicle_type => vehicle_type.try(:code),
+          :funding_source => funding_type.try(:name),
+          :manufacture_code => manufacturer.try(:code),
           :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
-          :fuel_type => FuelType.find_by(id: row[18]).to_s
+          :fuel_type => fuel_type.to_s
       }
       # calculate the additional properties and merge them into the results
       # hash
