@@ -84,37 +84,6 @@ class NtdReportingService
     fleets = []
     results.each do |row|
 
-      has_error = false
-      vehicle_type = FtaVehicleType.find_by(id: row[6])
-      if vehicle_type.nil? || vehicle_type.name == 'Unknown'
-        vehicle_type = nil
-        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets")
-        has_error = true
-        @process_log.add_processing_message(2, 'warning', 'FTA vehicle type is Unknown.')
-      end
-
-      funding_type = FtaFundingType.find_by(id: row[7])
-      if funding_type.nil? || funding_type.name == 'Unknown'
-        funding_type = nil
-        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
-        @process_log.add_processing_message(2, 'warning', 'FTA funding type is Unknown.')
-      end
-
-      manufacturer = Manufacturer.find_by(id: row[8])
-      if manufacturer.nil? || manufacturer.name == 'Unknown'
-        manufacturer = nil
-        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
-        @process_log.add_processing_message(2, 'warning', 'Manufacturer is Unknown.')
-      end
-
-      fuel_type = FuelType.find_by(id: row[18])
-      if fuel_type.nil? || fuel_type.name == 'Unknown'
-        fuel_type = nil
-        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
-        @process_log.add_processing_message(2, 'warning', 'Fuel Type is Unknown.')
-      end
-
-
       fleet = {
         :size => row[2],
         :num_active => row[3],
@@ -139,11 +108,11 @@ class NtdReportingService
         :notes => row[24],
 
         # These could all be populated via SQL if we wanted to go just get the name or code column for these.
-        :vehicle_type => vehicle_type.try(:code),
-        :funding_source => funding_type.try(:name),
-        :manufacture_code => manufacturer.try(:code),
+        :vehicle_type => FtaVehicleType.find_by(id: row[6]).code,
+        :funding_source => FtaFundingType.find_by(id: row[7]).name,
+        :manufacture_code => Manufacturer.find_by(id: row[8]).code,
         :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
-        :fuel_type => fuel_type.to_s
+        :fuel_type => FuelType.find_by(id: row[18]).to_s
       }
       # calculate the additional properties and merge them into the results
       # hash
@@ -159,36 +128,6 @@ class NtdReportingService
     # Convert the results set to an array of hashes
     fleets = []
     results.each do |row|
-
-      has_error = false
-      vehicle_type = FtaVehicleType.find_by(id: row[6])
-      if vehicle_type.nil? || vehicle_type.name == 'Unknown'
-        vehicle_type = nil
-        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets")
-        has_error = true
-        @process_log.add_processing_message(2, 'warning', 'FTA vehicle type is Unknown.')
-      end
-
-      funding_type = FtaFundingType.find_by(id: row[7])
-      if funding_type.nil? || funding_type.name == 'Unknown'
-        funding_type = nil
-        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
-        @process_log.add_processing_message(2, 'warning', 'FTA funding type is Unknown.')
-      end
-
-      manufacturer = Manufacturer.find_by(id: row[8])
-      if manufacturer.nil? || manufacturer.name == 'Unknown'
-        manufacturer = nil
-        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
-        @process_log.add_processing_message(2, 'warning', 'Manufacturer is Unknown.')
-      end
-
-      fuel_type = FuelType.find_by(id: row[18])
-      if fuel_type.nil? || fuel_type.name == 'Unknown'
-        fuel_type = nil
-        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
-        @process_log.add_processing_message(2, 'warning', 'Fuel Type is Unknown.')
-      end
 
       fleet = {
           :size => row[2],
@@ -216,11 +155,11 @@ class NtdReportingService
           :estimated_cost_year => row[26],
 
           # These could all be populated via SQL if we wanted to go just get the name or code column for these.
-          :vehicle_type => vehicle_type.try(:code),
-          :funding_source => funding_type.try(:name),
-          :manufacture_code => manufacturer.try(:code),
+          :vehicle_type => FtaVehicleType.find_by(id: row[6]).code,
+          :funding_source => FtaFundingType.find_by(id: row[7]).name,
+          :manufacture_code => Manufacturer.find_by(id: row[8]).code,
           :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
-          :fuel_type => fuel_type.to_s
+          :fuel_type => FuelType.find_by(id: row[18]).to_s
       }
       # calculate the additional properties and merge them into the results
       # hash
@@ -364,6 +303,34 @@ class NtdReportingService
     fleet_group[:replacement_cost] = replacement_cost
     fleet_group[:replacement_cost_year] = replacement_cost_year
 
+     has_error = false
+     if FtaVehicleType.find_by(code:fleet_group[:vehicle_type]).name == 'Unknown'
+       fleet_group[:vehicle_type] = ''
+       @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets")
+       has_error = true
+       @process_log.add_processing_message(2, 'warning', 'FTA vehicle type is Unknown.')
+     end
+
+     if FtaFundingType.find_by(name:fleet_group[:funding_source]).name == 'Unknown'
+       fleet_group[:funding_source] = ''
+       @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets") unless has_error
+       has_error = true
+       @process_log.add_processing_message(2, 'warning', 'FTA funding type is Unknown.')
+     end
+
+     if Manufacturer.find_by(code:fleet_group[:manufacture_code]).name == 'Unknown'
+       fleet_group[:manufacture_code] = ''
+       @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
+       has_error = true
+       @process_log.add_processing_message(2, 'warning', 'Manufacturer is Unknown.')
+     end
+
+     if FuelType.find_by(name:fleet_group[:fuel_type]).name == 'Unknown'
+       fleet_group[:fuel_type] = ''
+       @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
+       @process_log.add_processing_message(2, 'warning', 'Fuel Type is Unknown.')
+     end
+
     fleet_group
   end
 
@@ -377,6 +344,12 @@ class NtdReportingService
 
     vehicles.each do |vehicle|
       replacement_cost += vehicle.scheduled_replacement_cost
+    end
+
+    if FtaVehicleType.find_by(code: fleet_group[:vehicle_type]).name == 'Unknown'
+      fleet_group[:vehicle_type] = ''
+      @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets")
+      @process_log.add_processing_message(2, 'warning', 'FTA vehicle type is Unknown.')
     end
 
     service_fleet = {
