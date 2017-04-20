@@ -320,14 +320,14 @@ class NtdReportingService
 
      if Manufacturer.find_by(code:fleet_group[:manufacture_code]).name == 'Unknown'
        fleet_group[:manufacture_code] = ''
-       @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
+       @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets") unless has_error
        has_error = true
        @process_log.add_processing_message(2, 'warning', 'Manufacturer is Unknown.')
      end
 
      if FuelType.find_by(name:fleet_group[:fuel_type]).name == 'Unknown'
        fleet_group[:fuel_type] = ''
-       @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: row[0])}: #{row[2]} assets") unless has_error
+       @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets") unless has_error
        @process_log.add_processing_message(2, 'warning', 'Fuel Type is Unknown.')
      end
 
