@@ -1,3 +1,4 @@
-%li
-  %a{:href => "#ntdr", :data =>{:toggle => 'tab'}}
-    = "NTD Reports"
+- unless @org.type_of? :planning_partner
+  %li
+    %a{:href => "#ntdr", :data =>{:toggle => 'tab'}}
+      = "NTD Reports"

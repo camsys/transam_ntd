@@ -1,3 +1,4 @@
-.tab-pane.fade#ntdr
-  .tab-content
-    = render 'ntd_reports'
+- unless @org.type_of? :planning_partner
+  .tab-pane.fade#ntdr
+    .tab-content
+      = render 'ntd_reports'
