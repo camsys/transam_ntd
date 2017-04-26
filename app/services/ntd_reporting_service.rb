@@ -108,11 +108,11 @@ class NtdReportingService
         :notes => row[24],
 
         # These could all be populated via SQL if we wanted to go just get the name or code column for these.
-        :vehicle_type => FtaVehicleType.find_by(id: row[6]).code,
-        :funding_source => FtaFundingType.find_by(id: row[7]).name,
+        :vehicle_type => row[6],
+        :funding_source => row[7],
         :manufacture_code => Manufacturer.find_by(id: row[8]).code,
         :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
-        :fuel_type => FuelType.find_by(id: row[18]).to_s
+        :fuel_type => row[18]
       }
       # calculate the additional properties and merge them into the results
       # hash
@@ -155,7 +155,7 @@ class NtdReportingService
           :estimated_cost_year => row[26],
 
           # These could all be populated via SQL if we wanted to go just get the name or code column for these.
-          :vehicle_type => FtaVehicleType.find_by(id: row[6]).code,
+          :vehicle_type => FtaVehicleType.find_by(id: row[6]).name,
           :funding_source => FtaFundingType.find_by(id: row[7]).name,
           :manufacture_code => Manufacturer.find_by(id: row[8]).code,
           :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
@@ -263,9 +263,9 @@ class NtdReportingService
   # Selects the actual vehicles in the fleet and generates the additional data components
   # needed for the report. I think this could all be done in SQL and would save us a lot of queries and time.
   def calc_revenue_fleet_items(fleet_group, organization_ids, asset_subtype_id)
-     vehicles = Vehicle.where('(assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key) OR (assets.disposition_date >= ? AND assets.disposition_date <= ?)', @form.start_date, @form.end_date).where(organization_id: organization_ids, asset_subtype_id: asset_subtype_id, fta_vehicle_type_id: FtaVehicleType.find_by(code:fleet_group[:vehicle_type]).id,
-                       fta_funding_type_id: FtaFundingType.find_by(name:fleet_group[:funding_source]).id, manufacturer_id: Manufacturer.where(code:fleet_group[:manufacture_code]).ids, manufacturer_model: fleet_group[:model_number],
-                       manufacture_year: fleet_group[:manufacture_year], rebuild_year: fleet_group[:renewal_year], fuel_type_id: FuelType.find_by(name:fleet_group[:fuel_type]).id,
+     vehicles = Vehicle.where('(assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key) OR (assets.disposition_date >= ? AND assets.disposition_date <= ?)', @form.start_date, @form.end_date).where(organization_id: organization_ids, asset_subtype_id: asset_subtype_id, fta_vehicle_type_id: fleet_group[:vehicle_type],
+                       fta_funding_type_id: fleet_group[:funding_source], manufacturer_id: Manufacturer.where(code:fleet_group[:manufacture_code]).ids, manufacturer_model: fleet_group[:model_number],
+                       manufacture_year: fleet_group[:manufacture_year], rebuild_year: fleet_group[:renewal_year], fuel_type_id: fleet_group[:fuel_type],
                        vehicle_length: fleet_group[:vehicle_length], seating_capacity: fleet_group[:seating_capacity], standing_capacity: fleet_group[:standing_capacity])
 
     num_active = 0
@@ -304,31 +304,41 @@ class NtdReportingService
     fleet_group[:replacement_cost_year] = replacement_cost_year
 
      has_error = false
-     if FtaVehicleType.find_by(code:fleet_group[:vehicle_type]).name == 'Unknown'
+     vehicle_type = FtaVehicleType.find_by(id:fleet_group[:vehicle_type])
+     fleet_group[:vehicle_type] = vehicle_type.to_s
+     if vehicle_type.name == 'Unknown'
        fleet_group[:vehicle_type] = ''
        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets")
        has_error = true
        @process_log.add_processing_message(2, 'warning', 'FTA vehicle type is Unknown.')
      end
 
-     if FtaFundingType.find_by(name:fleet_group[:funding_source]).name == 'Unknown'
+     funding_type = FtaFundingType.find_by(id:fleet_group[:funding_source])
+     fleet_group[:funding_source] = funding_type.to_s
+     if funding_type.name == 'Unknown'
        fleet_group[:funding_source] = ''
        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets") unless has_error
        has_error = true
        @process_log.add_processing_message(2, 'warning', 'FTA funding type is Unknown.')
      end
 
-     if Manufacturer.find_by(code:fleet_group[:manufacture_code]).name == 'Unknown'
+     manufacturer = Manufacturer.find_by(code:fleet_group[:manufacture_code])
+     if manufacturer.name == 'Unknown'
        fleet_group[:manufacture_code] = ''
        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets") unless has_error
        has_error = true
        @process_log.add_processing_message(2, 'warning', 'Manufacturer is Unknown.')
+     else
+       fleet_group[:manufacture_code] = manufacturer.to_s
      end
 
-     if FuelType.find_by(name:fleet_group[:fuel_type]).name == 'Unknown'
+     fuel_type = FuelType.find_by(id:fleet_group[:fuel_type])
+     if fuel_type.name == 'Unknown'
        fleet_group[:fuel_type] = ''
        @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets") unless has_error
        @process_log.add_processing_message(2, 'warning', 'Fuel Type is Unknown.')
+     else
+       fleet_group[:fuel_type] = fuel_type.to_s
      end
 
     fleet_group
@@ -337,7 +347,7 @@ class NtdReportingService
 
   def calc_service_fleet_items(fleet_group, organization_ids, asset_subtype_id)
 
-    vehicles = SupportVehicle.where('(assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key) OR (assets.disposition_date >= ? AND assets.disposition_date <= ?)', @form.start_date, @form.end_date).where(organization_id: organization_ids, asset_subtype_id: asset_subtype_id, fta_vehicle_type_id: FtaVehicleType.find_by(code:fleet_group[:vehicle_type]).id,
+    vehicles = SupportVehicle.where('(assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key) OR (assets.disposition_date >= ? AND assets.disposition_date <= ?)', @form.start_date, @form.end_date).where(organization_id: organization_ids, asset_subtype_id: asset_subtype_id, fta_vehicle_type_id: FtaVehicleType.find_by(name:fleet_group[:vehicle_type]).id,
                   manufacturer_id: Manufacturer.where(code:fleet_group[:manufacture_code]).ids,  manufacturer_model: fleet_group[:model_number], manufacture_year: fleet_group[:manufacture_year],
                   pcnt_capital_responsibility: fleet_group[:pcnt_capital_responsibility], scheduled_replacement_year: fleet_group[:estimated_cost_year])
     replacement_cost = 0
@@ -346,7 +356,7 @@ class NtdReportingService
       replacement_cost += vehicle.scheduled_replacement_cost
     end
 
-    if FtaVehicleType.find_by(code: fleet_group[:vehicle_type]).name == 'Unknown'
+    if fleet_group[:vehicle_type] == 'Unknown'
       fleet_group[:vehicle_type] = ''
       @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets")
       @process_log.add_processing_message(2, 'warning', 'FTA vehicle type is Unknown.')
