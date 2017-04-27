@@ -13,7 +13,7 @@ is_sqlite =  (ActiveRecord::Base.configurations[Rails.env]['adapter'] == 'sqlite
 #------------------------------------------------------------------------------
 
 forms = [
-  {:active => 1,  :name => 'NTD Reporting Form', :roles => "admin,manager,transit_manager", :controller => 'ntd_forms', :description => 'NTD Annual Reporting Forms.'}
+  {:active => 1,  :name => 'NTD Reporting Form', :roles => "guest,admin,manager,transit_manager", :controller => 'ntd_forms', :description => 'NTD Annual Reporting Forms.'}
 ]
 
 
