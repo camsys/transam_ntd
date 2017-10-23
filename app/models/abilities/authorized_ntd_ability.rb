@@ -2,10 +2,14 @@ module Abilities
   class AuthorizedNtdAbility
     include CanCan::Ability
 
-    def initialize(user)
+    def initialize(user, organization_ids=[])
+
+      if organization_ids.empty?
+        organization_ids = user.organization_ids
+      end
 
       can :manage, NtdForm do |n|
-        user.organization_ids.include? n.organization_id
+        organization_ids.include? n.organization_id
       end
 
     end
