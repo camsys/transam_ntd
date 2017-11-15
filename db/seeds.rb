@@ -16,6 +16,10 @@ forms = [
   {:active => 1,  :name => 'NTD Reporting Form', :roles => "guest,user,admin,manager,transit_manager", :controller => 'ntd_forms', :description => 'NTD Annual Reporting Forms.'}
 ]
 
+asset_fleet_types = [
+    {name: 'Default', fields: 'asset_type_id,asset_subtype_id,manufacturer_id,manufacturer_model,manufacture_year,fuel_type_id', active: true}
+]
+
 
 puts "======= Processing TransAM NTD Lookup Tables  ======="
 
@@ -48,7 +52,7 @@ end
 
 puts "======= Processing TransAM NTD Merge Tables  ======="
 
-merge_tables = %w{ forms }
+merge_tables = %w{ forms asset_fleet_types }
 
 merge_tables.each do |table_name|
   puts "  Merging #{table_name}"

@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
 
+  resources :asset_fleets
+
   # NTD Forms Controllers
   resources :forms, :only => [] do
     resources :ntd_forms do
