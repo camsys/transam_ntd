@@ -4,6 +4,7 @@ class CreateAssetFleets < ActiveRecord::Migration
       t.string :object_key, index: true
       t.references :organization, index: true
       t.references :asset_fleet_type
+      t.string :agency_fleet_id
       t.integer :ntd_id
       t.boolean :dedicated
       t.boolean :has_capital_responsibility
@@ -12,9 +13,9 @@ class CreateAssetFleets < ActiveRecord::Migration
       t.timestamps
     end
 
-    # create_join_table :asset_fleets, :assets do |t|
-    #   t.index [:asset_fleet_id, :asset_id]
-    #   t.index [:asset_id, :asset_fleet_id]
-    # end
+    create_table :assets_asset_fleets, id: false do |t|
+      t.belongs_to :asset, index: true
+      t.belongs_to :asset_fleet, index: true
+    end
   end
 end

@@ -6,4 +6,10 @@ class AssetFleetType < ActiveRecord::Base
     name
   end
 
+  def group_by_fields
+    groups.split(',')
+
+    'asset_subtype_id,fuel_type_id'
+  end
+
 end

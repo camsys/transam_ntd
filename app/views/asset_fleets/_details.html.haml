@@ -1,0 +1,28 @@
+%ul.nav.nav-tabs
+  %li
+    %a{:href => "#ntd", :data =>{:toggle => 'tab'}}
+      = "NTD"
+  %li
+    %a{:href => "#assets", :data =>{:toggle => 'tab'}}
+      %span{:style => 'white-space: nowrap !important;'}
+        Assets
+        %span.badge= @asset_fleet.total_assets_count
+
+  %li
+    %a{:href => "#fleets", :data =>{:toggle => 'tab'}}
+      %span{:style => 'white-space: nowrap !important;'}
+        Usable Fleets
+
+.tab-content{:style => 'max-height:400px;overflow-y: auto;'}
+  .tab-pane.fade#ntd
+    .tab-content
+      - @asset_fleet.group_by_fields.each do |field|
+        = format_field(field[0], field[1].to_s)
+
+  .tab-pane.fade#assets
+    .tab-content
+      = format_as_text(@bond_request.justification)
+
+  .tab-pane.fade#fleets
+    .tab-content
+      = format_as_text(@bond_request.rejection)

@@ -1,0 +1,62 @@
+.row
+  .col-md-12
+    - if can? :create, BondRequest
+      .btn-group{style: 'margin-top:-2px;'}
+        = link_to new_bond_request_path, :class => 'btn btn-default' do
+          %i.fa.fa-plus.fa-fw
+          = "Add Bond Request"
+
+    = form_tag bond_requests_path, :id => 'filter_form', :method => "get", :class => 'navbar-form navbar-right panel-action', style: 'padding-top: 1px' do
+      .form-group
+        = select_tag(:state_filter, options_for_select(BondRequest.state_names.collect{|a| [a.titleize, a]}, :selected => @request_state), :class => "form-control", :multiple => true)
+      .form-group
+        = select_tag(:submitted_at_filter, options_for_select(BondRequest.where('submitted_at IS NOT NULL').pluck(:submitted_at).collect{|d| [format_as_date(d.to_date), d.to_date]}.uniq, :selected => @submitted_at), :class => "form-control", :prompt => "Any Submission Date...", :disabled => true)
+
+      = button_tag :class => 'btn btn-default', :type => 'submit' do
+        %i.fa.fa-filter
+
+.row
+  .col-md-12
+    - if @request_state.length == 1 && (can? :update_status, BondRequest)
+      - BondRequest.state_names.each do |state|
+        - if (BondRequest.state_predecessors state).include? @request_state[0]
+          - event = BondRequest.new.state_paths(:from => @request_state[0], :to => state).events.first
+          .btn-group{style: 'margin-top:10px;'}
+            - if state == 'authorized'
+              = link_to new_workflow_event_bond_requests_path(:event => event), :remote => true, :method => :get, :role => 'button', :class => "btn btn-default selected-action", :data => {:precursors => BondRequest.event_predecessors(event)} do
+                %i.fa.fa-fw{:class => get_workflow_event_icon(event.to_s)}
+                = "Mark as #{state.titleize}"
+            - elsif state != 'rejected'
+              = link_to fire_workflow_events_bond_requests_path(:event => event), :method => :get, :role => 'button', :class => "btn btn-default selected-action", :data => {:precursors => BondRequest.event_predecessors(event)} do
+                %i.fa.fa-fw{:class => get_workflow_event_icon(event.to_s)}
+                = "Mark as #{state.titleize}"
+
+:javascript
+
+  $(document).ready(function() {
+
+    $('#state_filter').multiselect({
+      inheritClass: true,
+      maxHeight: 250,
+      buttonText: function(options, select) {
+        if (options.length === 0) {
+          return 'Any Status...';
+        } else {
+          return 'Status - ' + options.length + ' selected';
+        }
+      }
+    });
+
+    $('#state_filter').change();
+
+  });
+
+  $('#state_filter').on('change', function(e) {
+    filtered = $('#state_filter').val();
+    if (filtered && filtered.length == 1 && filtered.indexOf('submitted') > -1) {
+      $('#submitted_at_filter').prop('disabled', false);
+    } else {
+      $('#submitted_at_filter').prop('disabled', true);
+    }
+  });
+

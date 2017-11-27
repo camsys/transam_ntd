@@ -1,0 +1,117 @@
+:ruby
+  table_dom_id = SecureRandom.hex
+  show_actions ||= 0
+
+
+#asset_fleets_table_actions.btn-toolbar
+  - if show_actions == 1
+    = render :partial => "index_actions"
+
+.table-responsive
+  %table.table.table-hover{:id => table_dom_id, :data => {:toggle => 'table',
+    :card_view => "false",
+    :pagination => 'true',
+    :show_pagination_switch => 'true',
+    :page_list => "[5, 10, 20, 50, 100, 200]",
+    :page_size => current_user.num_table_rows,
+    :search => 'false',
+    :toolbar => "#asset_fleets_table_actions",
+    :export_types => "['csv', 'txt', 'excel']",
+    :show_export => 'true',
+    :show_columns => 'true',
+    :state_save => 'true',
+    :state_save_id_table => "asset_fleets_id",
+    :state_save_expire => "1y"}, :style => 'width:100%;'}
+
+    %thead
+      %tr
+        %th.center{:data => {:field => 'object_key', :visible => 'false'}} Object Key
+        %th.left{:data => {:field => 'organization',:sortable => 'true'}} Organization
+        %th.center{:data => {:field => 'ntd_id', :sortable => 'true'}} RVI/SV ID
+        %th.right{:data => {:field => 'assets_count', :sortable => 'false'}} Assets
+        %th.center{:data => {:field => 'dedicated', :sortable => 'true', :formatter => 'boolean_formatter'}} Dedicated
+        %th.center{:data => {:field => 'has_capital_responsibility', :sortable => 'true', :formatter => 'boolean_formatter'}} Capital Responsibility
+        %th.center{:data => {:field => 'active', :visible => 'false', :sortable => 'true', :formatter => 'boolean_formatter'}} Active
+
+:javascript
+  $(document).ready(function() {
+    $('#' + '#{table_dom_id}').bootstrapTable('resetWidth');
+  });
+
+  var path = '#{asset_fleet_path("x")}';
+  function row_style(row, index) {
+    return {
+      classes: 'action-path'
+    };
+  };
+
+  $('#' + '#{table_dom_id}').on('click-row.bs.table', function (e, row, $element) {
+    var url = path.replace("x", row['object_key']);
+    document.location.href = url;
+  }).on('post-body.bs.table', function () {
+    $('.transam-popover').popover({
+      trigger: 'hover'
+    });
+
+    $('.transam-tooltip').tooltip();
+  });
+
+  $(window).resize(function() {
+    $('#' + '#{table_dom_id}').bootstrapTable('resetView');
+  });
+
+  // var org_filter = #{@org_filter || []};
+  // var fiscal_year_filter = #{@fiscal_year_filter || []};
+  // var capital_project_flag_filter = #{@capital_project_flag_filter || []};
+  // var capital_project_type_filter = #{@capital_project_type_filter || []};
+  // var asset_subtype_filter = #{@asset_subtype_filter || []};
+
+  // function query_params(params) {
+  //   if(org_filter.length > 0) {
+  //     params.org_filter = org_filter;
+  //   }
+  //
+  //   if(fiscal_year_filter.length > 0) {
+  //     params.fiscal_year_filter = fiscal_year_filter;
+  //   }
+  //
+  //   if(capital_project_flag_filter.length > 0) {
+  //     params.capital_project_flag_filter = capital_project_flag_filter;
+  //   }
+  //
+  //   if(capital_project_type_filter.length > 0) {
+  //     params.capital_project_type_filter = capital_project_type_filter;
+  //   }
+  //
+  //   if(asset_subtype_filter.length > 0) {
+  //     params.asset_subtype_filter = asset_subtype_filter;
+  //   }
+  //
+  //   return params;
+  // }
+
+  var formatMoney = function(n, c, d, t) {
+    var c = isNaN(c = Math.abs(c)) ? 0 : c,
+    d = d == undefined ? "." : d,
+    t = t == undefined ? "," : t,
+    s = n < 0 ? "-" : "",
+    i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "",
+    j = (j = i.length) > 3 ? j % 3 : 0;
+    return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+  }
+
+  function boolean_formatter(value) {
+    if (value) {
+      // add hidden div for exporting
+      return '<i class="fa fa-check"></i><div style = "visibility: hidden;">Yes</div>';
+    } else {
+      return '<div style = "visibility: hidden;">No</div>';
+    }
+  }
+
+  function currency_formatter(value) {
+    return "$" + formatMoney(value);
+  }
+
+
+

@@ -7,7 +7,27 @@ class AssetFleetsController < OrganizationAwareController
 
   # GET /asset_fleets
   def index
-    @asset_fleets = AssetFleet.where(organization_id: @organization_list)
+
+    params[:sort] = 'organizations.short_name' if params[:sort] == 'organization'
+
+    @asset_fleets = AssetFleet.where(organization_id: @organization_list).order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset])
+
+    respond_to do |format|
+      format.html # index.html.erb
+      format.json {
+        fleets_json = @asset_fleets.collect{ |p|
+          p.as_json.merge!({
+            organization: p.organization.to_s,
+            assets_count: p.assets.count
+          })
+        }
+        render :json => {
+            :total => @asset_fleets.count,
+            :rows =>  fleets_json
+        }
+      }
+      format.xls
+    end
   end
 
   # GET /asset_fleets/1
@@ -53,6 +73,14 @@ class AssetFleetsController < OrganizationAwareController
   def destroy
     @asset_fleet.destroy
     redirect_to asset_fleets_url, notice: 'Asset fleet was successfully destroyed.'
+  end
+
+  def builder
+
+  end
+
+  def runner
+
   end
 
   private

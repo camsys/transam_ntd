@@ -1,0 +1,18 @@
+- if (can? :update, @asset_fleet)
+  .btn-group.pull-right.panel-action
+    %button.btn.btn-primary.btn-sm.dropdown-toggle{:data => {:toggle => 'dropdown'}}
+      %i.fa.fa-cog
+      = " Actions"
+      %span.caret
+    %ul.dropdown-menu{:role => 'menu'}
+      %li
+        = link_to edit_bond_request_path(@bond_request) do
+          %i.fa.fa-edit.fa-fw
+          = " Update this request"
+      - if (can? :destroy, @funding_template)
+        %li.divider
+        %li
+          -# link_to funding_template_path(@funding_template), :method => :delete, :data => {:confirm => "This template is associated with #{@funding_template.funding_buckets.active.count} buckets, which are tagged to YYY projects. Are you sure? The action cannot be undone."}  do
+          = link_to funding_template_path(@funding_template), :method => :delete, :data => {:confirm => "This template is associated with #{@funding_template.funding_buckets.active.count} buckets. Are you sure? The action cannot be undone."}  do
+            %i.fa.fa-trash-o.fa-fw
+            = " Remove this template"
