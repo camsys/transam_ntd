@@ -28,10 +28,13 @@ class AssetFleet < ActiveRecord::Base
   # Every asset group is owned by an organization
   belongs_to :organization
 
+  belongs_to :parent,    :class_name => "AssetFleet"
+
   belongs_to :asset_fleet_type
 
   # Every asset grouop has zero or more assets
-  has_and_belongs_to_many :assets
+  has_and_belongs_to_many :assets, :inverse_of => :asset_fleet, :join_table => 'assets_asset_fleets'
+  accepts_nested_attributes_for :assets, reject_if: :all_blank, allow_destroy: true
 
   #------------------------------------------------------------------------------
   # Scopes
@@ -54,10 +57,13 @@ class AssetFleet < ActiveRecord::Base
   FORM_PARAMS = [
       :object_key,
       :organization_id,
+      :asset_fleet_type_id,
+      :agency_fleet_id,
       :ntd_id,
       :dedicated,
       :has_capital_responsibility,
-      :active
+      :active,
+      :assets_attributes => [:object_key, :asset_search_text, :_destroy]
   ]
 
   # List of fields which can be searched using a simple text-based search
@@ -112,11 +118,13 @@ class AssetFleet < ActiveRecord::Base
 
     asset_fleet_type.group_by_fields.each do |field|
       if field[-3..-1] == '_id'
-        field = field[-3..-1]
+        field = field[0..-4]
       end
 
       label = field.humanize.titleize
       label = label.gsub('Fta', 'FTA')
+
+      puts label
       a << [label, self.send('get_'+field)]
     end
 
@@ -134,8 +142,9 @@ class AssetFleet < ActiveRecord::Base
     if method_sym.to_s =~ DECORATOR_METHOD_SIGNATURE
       # Strip off the decorator and see who can handle the real request
       actual_method_sym = method_sym.to_s[4..-1]
-      if asset_fleet_type.include? actual_method_sym
-        assets.first.try(actual_method_sym)
+      if asset_fleet_type.groups.include? actual_method_sym
+        typed_asset = Asset.get_typed_asset(assets.first)
+        typed_asset.try(actual_method_sym)
       end
     else
       puts "Method #{method_sym.to_s} with #{arguments}"
@@ -149,6 +158,7 @@ class AssetFleet < ActiveRecord::Base
   def set_defaults
     self.dedicated = self.dedicated.nil? ? true : false
     self.has_capital_responsibility = self.has_capital_responsibility.nil? ? true : false
+    self.active = self.active.nil? ? true : false
   end
 
 end

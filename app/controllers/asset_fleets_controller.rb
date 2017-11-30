@@ -51,7 +51,9 @@ class AssetFleetsController < OrganizationAwareController
 
   # POST /asset_fleets
   def create
-    @asset_fleet = AssetFleet.new(asset_fleet_params)
+    @asset_fleet = AssetFleet.new(asset_fleet_params.except(:assets_attributes))
+
+    @asset_fleet.assets = Asset.where(object_key: params[:asset_fleet][:assets_attributes].collect{|k, v| v[:object_key] unless v[:_destroy]=='true'})
 
     if @asset_fleet.save
       redirect_to @asset_fleet, notice: 'Asset fleet was successfully created.'
@@ -62,7 +64,11 @@ class AssetFleetsController < OrganizationAwareController
 
   # PATCH/PUT /asset_fleets/1
   def update
-    if @asset_fleet.update(asset_fleet_params)
+
+
+    if @asset_fleet.update(asset_fleet_params.except(:assets_attributes))
+      @asset_fleet.assets = Asset.where(object_key: params[:asset_fleet][:assets_attributes].collect{|k, v| v[:object_key] unless v[:_destroy]=='true'})
+
       redirect_to @asset_fleet, notice: 'Asset fleet was successfully updated.'
     else
       render :edit
@@ -76,7 +82,21 @@ class AssetFleetsController < OrganizationAwareController
   end
 
   def builder
+    add_breadcrumb "Asset Fleet Builder"
 
+    # Select the asset types that they are allowed to build. This is narrowed down to only
+    # asset types they own
+    @asset_types = []
+    AssetType.all.each do |type|
+      assets = Asset.where(asset_type: type)
+      if assets.where(organization: @organization_list).count > 0
+        @asset_types << {id: type.id, name: type.to_s, orgs: @organization_list.select{|o| assets.where(organization_id: o).count > 0}}
+      end
+    end
+
+    @builder_proxy = FleetBuilderProxy.new
+
+    @message = "Creating asset fleets. This process might take a while."
   end
 
   def runner

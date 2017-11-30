@@ -1,102 +1,57 @@
-= simple_form_for(@bond_request,
-:html => {:class => 'form-vertical bond_request_form'},
+= simple_form_for(@asset_fleet,
+:html => {:class => 'form-vertical asset_fleet_form'},
 :wrapper => :vertical_form,
 :wrapper_mappings => {:check_boxes => :vertical_radio_and_checkboxes, :radio_buttons => :vertical_radio_and_checkboxes, :file => :vertical_file_input, :boolean => :vertical_boolean}) do |f|
 
-  = f.association :organization, :collection => Organization.where.not(organization_type: OrganizationType.find_by(class_name: 'PlanningPartner')).where(id: @organization_list), :label_method => :coded_name
-  = f.input :title
-  = f.input :description
-  = f.input :justification
-  .row
-    .col-sm-6
-      = f.input :amount, :wrapper=> :vertical_prepend, :label => "Amount" do
-        %span.input-group-addon
-          %i.fa.fa-usd
-        = f.input_field :amount, :min => 1, :class => "form-control"
+  = f.association :organization, :collection => TransitOperator.where(id: @organization_list), :label_method => 'coded_name'
+  = f.association :asset_fleet_type, :collection => AssetFleetType.active
+  = f.input :agency_fleet_id
+  = f.input :ntd_id, :label => 'NTD ID'
+  = f.input :dedicated
+  = f.input :has_capital_responsibility
 
-      = f.input :funding_template_id, label: 'Federal Funds' do
-        = f.select :funding_template_id, FundingTemplate.federal.map{ |l| [l.to_s, l.id, {'data-match-required': l.match_required} ] }, {include_blank: 'None'}, {class: 'form-control'}
-
-    .col-sm-6
-      .col-sm-6
-        = f.input :federal_pcnt, :wrapper=> :vertical_prepend, :label => "Federal Pcnt" do
-          = f.input_field :federal_pcnt, :class => "form-control", :disabled => true
-          %span.input-group-addon %
-      .col-sm-6
-        = f.input :federal_amount, :wrapper=> :vertical_prepend, :label => "Federal Amount" do
-          %span.input-group-addon
-            %i.fa.fa-usd
-          = f.input_field :federal_amount, :class => "form-control", :disabled => true
-
-      .col-sm-6
-        = f.input :state_pcnt, :wrapper=> :vertical_prepend, :label => "State Pcnt" do
-          = f.input_field :state_pcnt, :class => "form-control", :disabled => true
-          %span.input-group-addon %
-      .col-sm-6
-        = f.input :state_amount, :wrapper=> :vertical_prepend, :label => "State Amount" do
-          %span.input-group-addon
-            %i.fa.fa-usd
-          = f.input_field :state_amount, :class => "form-control", :disabled => true
-
-      .col-sm-6
-        = f.input :local_pcnt, :wrapper=> :vertical_prepend, :label => "Local Pcnt" do
-          = f.input_field :local_pcnt, :class => "form-control", :disabled => true
-          %span.input-group-addon %
-      .col-sm-6
-        = f.input :local_amount, :wrapper=> :vertical_prepend, :label => "Local Amount" do
-          %span.input-group-addon
-            %i.fa.fa-usd
-          = f.input_field :local_amount, :class => "form-control", :disabled => true
+  #assets.well.well-sm
+    %label.control-label
+      %i.fa.fa-bus.fa-1-5x
+      Assets
+    .links.pull-right
+      = link_to_add_association f, :assets, :class => 'btn btn-xs btn-info', data: {association_insertion_method: 'after'} do
+        %i.fa.fa-plus
+    %label#assets-error.error
+    = f.simple_fields_for :assets do |asset|
+      = render 'asset_fields', f: asset
 
   = f.button :submit, :class => "btn btn-primary"
 
 :javascript
+  var typeahead_field_line;
 
-  var grantor_id = parseInt('#{Grantor.first.id}');
-  var bond_state_match = parseFloat('#{FundingSource.find_by(name: "1514 Bond").funding_templates.find_by(owner_id: FundingSourceType.find_by(name: "State").id).match_required}');
-
-  $(document).ready(function() {
-    update_amount_pcnts();
-  });
-
-  $('.bond_request_form').validate({
+  $('.asset_fleet_form').validate({
     submitHandler: function(form) {
-      $( "#bond_request_federal_pcnt" ).prop( "disabled", false );
-      $( "#bond_request_state_pcnt" ).prop( "disabled", false );
       form.submit();
     }
   });
 
-  $('#bond_request_funding_template_id').on('change', function(e) {
-    update_amount_pcnts();
+  $('#assets').on('cocoon:after-insert', function(e, added_purchase) {
+    $('.asset_search_text').on('focus', function() {
+      nested_id = $(this).attr('id');
+      typeahead_field_line = '#'+nested_id.substr(0,nested_id.length-17);
+      _typeahead_source_url = $(this).data('url');
+    });
+
+    // Enable typeahead for the SMO filter
+    $('.asset_search_text').typeahead({
+      items: 10,
+      minLength: 2,
+      source: _typeahead_searcher,
+      matcher: _typeahead_matcher,
+      highlighter: _typeahead_highlighter,
+      updater: function (obj) {
+        var item = JSON.parse(obj);
+        // Update the UI
+        $(typeahead_field_line+'asset_search_text').attr('value', item.name);
+        $(typeahead_field_line+'object_key').val(item.id);
+        return item.name;
+      }
+    });
   });
-
-  $('#bond_request_organization_id').on('change', function(e) {
-    update_amount_pcnts();
-  });
-
-  $('#bond_request_amount').on('change', function(e) {
-    update_amount_pcnts();
-  });
-
-  function update_amount_pcnts() {
-    var funding_template_id = $('#bond_request_funding_template_id').val();
-    if (parseInt(funding_template_id) > 0) { // if has funding set
-      var funding_template_match_required = parseFloat($('#bond_request_funding_template_id option[value="'+funding_template_id+'"]').data('match-required'));
-    }  else {
-      var funding_template_match_required = 0;
-    }
-
-    state_pcnt = (100 - funding_template_match_required) * bond_state_match / 100.0
-    $('#bond_request_state_pcnt').val(state_pcnt.toFixed(3));
-    $('#bond_request_state_amount').val($('#bond_request_amount').val());
-    var amount = parseInt($('#bond_request_amount').val()) * 100.0 / state_pcnt;
-
-    $('#bond_request_federal_pcnt').val(funding_template_match_required);
-    $('#bond_request_federal_amount').val((funding_template_match_required * amount / 100.0).toFixed(0));
-
-    local_pcnt = 100 - funding_template_match_required - state_pcnt
-    $('#bond_request_local_pcnt').val(local_pcnt.toFixed(3));
-    $('#bond_request_local_amount').val((local_pcnt * amount / 100.0).toFixed(0));
-
-  }

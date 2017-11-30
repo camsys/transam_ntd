@@ -1,6 +1,11 @@
 Rails.application.routes.draw do
 
-  resources :asset_fleets
+  resources :asset_fleets do
+    collection do
+      get 'builder'
+      post 'runner'
+    end
+  end
 
   # NTD Forms Controllers
   resources :forms, :only => [] do

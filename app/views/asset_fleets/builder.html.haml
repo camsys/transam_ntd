@@ -1,0 +1,37 @@
+= render(:partial => 'shared/form_errors', :locals => {:obj => @builder_proxy}) unless @builder_proxy.errors.empty?
+
+.row
+  .col-md-6.col-md-offset-3
+    .page-header
+      %h2 Asset Fleet Builder
+
+#processing
+  = render :partial => 'shared/running_process', :locals => {:message => @message}
+
+.row#form
+  .col-md-6.col-md-offset-3
+    .row
+      .col-md-12
+        .alert.alert-info
+          = render 'builder_notes'
+      .col-md-12
+        = render 'builder_form'
+
+:javascript
+
+  // Document Ready
+  $(document).ready(function(){
+    // Hide the processing div and show the form
+    $('#processing').hide();
+    $('#form').show();
+  });
+
+  // jquery validations
+  $('#new_builder_proxy').validate({
+    ignore: [], //validate hidden fields
+    submitHandler: function(form) {
+      $('#processing').show();
+      $('#form').hide();
+      form.submit();
+    }
+  });

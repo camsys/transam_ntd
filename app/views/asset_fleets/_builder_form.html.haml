@@ -1,0 +1,52 @@
+= simple_form_for(@builder_proxy,
+  :html => {:class => 'form-vertical'},
+  :url => runner_asset_fleets_path,
+  :wrapper => :vertical_form,
+  :wrapper_mappings => {:check_boxes => :vertical_radio_and_checkboxes,
+  :radio_buttons => :vertical_radio_and_checkboxes,
+  :file => :vertical_file_input,
+  :boolean => :vertical_boolean}) do |f|
+
+  - if @organization_list.count > 1
+    .row
+      .col-md-12
+        = f.input :organization_id, :required => true, :collection => Organization.where(id: @organization_list), :label_method => 'coded_name'
+  .row
+    .col-md-6
+      = f.input :asset_types, :required => true,   :collection => @asset_types.map{|type| [type[:name], type[:id]]}, :multiple => true, :as => :check_boxes, :input_html => { :checked => true }
+    .col-md-6
+      = f.input :asset_fleet_type_id, :required => true, :collection => AssetFleetType.active, :label => "Fleet Type"
+
+  = f.submit "Run builder...", :class => "btn btn-primary", :id => "submit_button"
+
+
+:javascript
+  $(function(){
+    var org_id = 0;
+    var asset_types = JSON.parse('#{@asset_types.to_json}');
+
+    // Detect changes in the org selected
+    $('#builder_proxy_organization_id').on('change', function(event) {
+      var id = $(this).val();
+
+      if (id != org_id) {
+        // store the selected org
+        org_id = id;
+
+        // Set asset types of org only
+        for (var j = 0; j < asset_types.length; j++){
+          type = asset_types[j]
+
+          if ($.inArray( parseInt(id), type.orgs ) >= 0) {
+            $('#builder_proxy_asset_types_'+type.id).parent().parent().show();
+          } else {
+            $('#builder_proxy_asset_types_'+type.id).parent().parent().hide(); // hide whole span
+            $('#builder_proxy_asset_types_'+type.id).prop('checked', false);
+
+          }
+        }
+      }
+    });
+
+
+  });
