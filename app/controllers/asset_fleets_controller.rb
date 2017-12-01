@@ -55,6 +55,8 @@ class AssetFleetsController < OrganizationAwareController
 
     @asset_fleet.assets = Asset.where(object_key: params[:asset_fleet][:assets_attributes].collect{|k, v| v[:object_key] unless v[:_destroy]=='true'})
 
+    @asset_fleet.creator = current_user
+
     if @asset_fleet.save
       redirect_to @asset_fleet, notice: 'Asset fleet was successfully created.'
     else
@@ -100,7 +102,32 @@ class AssetFleetsController < OrganizationAwareController
   end
 
   def runner
+    add_breadcrumb "SOGR Capital Project Analyzer", builder_capital_projects_path
+    add_breadcrumb "Running..."
 
+    @builder_proxy = FleetBuilderProxy.new(params[:builder_proxy])
+    if @builder_proxy.valid?
+
+      if @builder_proxy.organization_id.blank?
+        org_id = @organization_list.first
+      else
+        org_id = @builder_proxy.organization_id
+      end
+      org = Organization.get_typed_organization(Organization.find(org_id))
+
+      Delayed::Job.enqueue CapitalProjectBuilderJob.new(org, @builder_proxy.asset_types, @builder_proxy.start_fy, current_user), :priority => 0
+
+      # Let the user know the results
+      msg = "SOGR Capital Project Analyzer is running. You will be notified when the process is complete."
+      notify_user(:notice, msg)
+
+      redirect_to capital_projects_url
+      return
+    else
+      respond_to do |format|
+        format.html { render :action => "builder" }
+      end
+    end
   end
 
   private

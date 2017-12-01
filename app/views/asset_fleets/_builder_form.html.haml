@@ -13,9 +13,8 @@
         = f.input :organization_id, :required => true, :collection => Organization.where(id: @organization_list), :label_method => 'coded_name'
   .row
     .col-md-6
-      = f.input :asset_types, :required => true,   :collection => @asset_types.map{|type| [type[:name], type[:id]]}, :multiple => true, :as => :check_boxes, :input_html => { :checked => true }
-    .col-md-6
-      = f.input :asset_fleet_type_id, :required => true, :collection => AssetFleetType.active, :label => "Fleet Type"
+      = f.input :asset_fleet_types do
+        = f.select :asset_fleet_types, AssetFleetType.active.where(class_name: @asset_types.pluck(:class_name)).map{ |l| [l.to_s, l.id, {'data-asset-type-class-name': l.class_name} ] }, {include_blank: 'None'}, {class: 'form-control'}
 
   = f.submit "Run builder...", :class => "btn btn-primary", :id => "submit_button"
 
@@ -26,25 +25,12 @@
     var asset_types = JSON.parse('#{@asset_types.to_json}');
 
     // Detect changes in the org selected
-    $('#builder_proxy_organization_id').on('change', function(event) {
-      var id = $(this).val();
-
-      if (id != org_id) {
-        // store the selected org
-        org_id = id;
-
-        // Set asset types of org only
-        for (var j = 0; j < asset_types.length; j++){
-          type = asset_types[j]
-
-          if ($.inArray( parseInt(id), type.orgs ) >= 0) {
-            $('#builder_proxy_asset_types_'+type.id).parent().parent().show();
-          } else {
-            $('#builder_proxy_asset_types_'+type.id).parent().parent().hide(); // hide whole span
-            $('#builder_proxy_asset_types_'+type.id).prop('checked', false);
-
-          }
-        }
+    $('#fleet_builder_proxy_organization_id').on('change', function(event) {
+      var funding_template_id = $('#bond_request_funding_template_id').val();
+      if (parseInt(funding_template_id) > 0) { // if has funding set
+        var funding_template_match_required = parseFloat($('#bond_request_funding_template_id option[value="'+funding_template_id+'"]').data('match-required'));
+      }  else {
+        var funding_template_match_required = 0;
       }
     });
 

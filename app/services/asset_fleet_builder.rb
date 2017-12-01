@@ -19,7 +19,7 @@ class AssetFleetBuilder
   # Main entry point for the builder. This invokes the bottom-up builder
   def build(organization, options = {})
 
-
+    sys_user = User.find_by(first_name: 'system')
 
     AssetFleetType.all.each do |fleet_type|
 
@@ -30,10 +30,11 @@ class AssetFleetBuilder
       group_by_values.each do |vals|
 
         if options[:use_existing]
-          fleet = AssetFleet.joins(:assets).where(assets: {organization: organization}, asset_fleets: {parent_id: nil}).where(Hash[*group_by_fields.map{|a| 'assets.'+a}.zip(vals).flatten]).first
+          fleet = AssetFleet.joins(:assets).where(assets: {organization: organization}, asset_fleets: {created_by_user_id: sys_user.id}).where(Hash[*group_by_fields.map{|a| 'assets.'+a}.zip(vals).flatten]).first
         else
           fleet = AssetFleet.new
           fleet.asset_fleet_type = fleet_type
+          fleet.creator = sys_user
           fleet.save!(:validate => false)
         end
 

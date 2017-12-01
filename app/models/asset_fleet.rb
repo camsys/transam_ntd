@@ -32,6 +32,8 @@ class AssetFleet < ActiveRecord::Base
 
   belongs_to :asset_fleet_type
 
+  belongs_to  :creator, :class_name => "User", :foreign_key => :created_by_user_id
+
   # Every asset grouop has zero or more assets
   has_and_belongs_to_many :assets, :inverse_of => :asset_fleet, :join_table => 'assets_asset_fleets'
   accepts_nested_attributes_for :assets, reject_if: :all_blank, allow_destroy: true
@@ -48,10 +50,12 @@ class AssetFleet < ActiveRecord::Base
   #------------------------------------------------------------------------------
   validates :organization,              :presence => true
   validates :asset_fleet_type,          :presence => true
+  validates :creator,                   :presence => true
 
   validates_inclusion_of :dedicated,  :in => [true, false]
   validates_inclusion_of :has_capital_responsibility,  :in => [true, false]
   validates_inclusion_of :active,  :in => [true, false]
+
 
   # List of hash parameters allowed by the controller
   FORM_PARAMS = [

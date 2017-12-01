@@ -3,7 +3,7 @@ class AssetFleetType < ActiveRecord::Base
   scope :active, -> { where(:active => true) }
 
   def to_s
-    name
+    class_name
   end
 
   def group_by_fields
