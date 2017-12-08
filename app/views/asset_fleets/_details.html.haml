@@ -11,8 +11,8 @@
 .tab-content{:style => 'max-height:400px;overflow-y: auto;'}
   .tab-pane.fade#ntd
     .tab-content
-      - @asset_fleet.group_by_fields.each do |field|
-        = format_field(field[0], field[1].to_s)
+      - @asset_fleet.group_by_fields(true).each do |k, v|
+        = format_field(k, v.to_s)
 
   .tab-pane.fade#assets
     .tab-content

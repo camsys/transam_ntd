@@ -6,7 +6,11 @@
   = f.association :organization, :collection => TransitOperator.where(id: @organization_list), :label_method => 'coded_name'
   = f.association :asset_fleet_type, :collection => AssetFleetType.active
   = f.input :agency_fleet_id
-  = f.input :ntd_id, :label => 'NTD ID'
+  - #if asset_type.class_name == 'Vehicle'
+    - #ntd_id_label = 'RVI ID'
+  - #elsif asset_type.class_name == 'Vehicle'
+    - #ntd_id_label = 'SV ID'
+  = f.input :ntd_id, :label => 'RVI ID / SV ID'
   = f.input :dedicated
   = f.input :has_capital_responsibility
 

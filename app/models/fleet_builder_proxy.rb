@@ -10,7 +10,7 @@ class FleetBuilderProxy < Proxy
   attr_accessor     :asset_fleet_types
 
   # Basic validations. Just checking that the form is complete
-  validates :asset_fleet_types, :presence => true
+  #validates :asset_fleet_types, :presence => true
 
   def initialize(attrs = {})
     super

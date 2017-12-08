@@ -12,6 +12,8 @@ class AssetFleetsController < OrganizationAwareController
 
     @asset_fleets = AssetFleet.where(organization_id: @organization_list).order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset])
 
+    puts @asset_fleets.inspect
+    puts "apples!!!!"
     respond_to do |format|
       format.html # index.html.erb
       format.json {
@@ -45,6 +47,7 @@ class AssetFleetsController < OrganizationAwareController
 
   # GET /asset_fleets/1/edit
   def edit
+    add_breadcrumb @asset_fleet
     add_breadcrumb 'Update'
 
   end
@@ -88,13 +91,8 @@ class AssetFleetsController < OrganizationAwareController
 
     # Select the asset types that they are allowed to build. This is narrowed down to only
     # asset types they own
-    @asset_types = []
-    AssetType.all.each do |type|
-      assets = Asset.where(asset_type: type)
-      if assets.where(organization: @organization_list).count > 0
-        @asset_types << {id: type.id, name: type.to_s, orgs: @organization_list.select{|o| assets.where(organization_id: o).count > 0}}
-      end
-    end
+    @asset_types = AssetType.where(id: Asset.where(organization: @organization_list).pluck('DISTINCT asset_type_id'))
+    puts @asset_types.inspect
 
     @builder_proxy = FleetBuilderProxy.new
 
@@ -102,10 +100,8 @@ class AssetFleetsController < OrganizationAwareController
   end
 
   def runner
-    add_breadcrumb "SOGR Capital Project Analyzer", builder_capital_projects_path
-    add_breadcrumb "Running..."
 
-    @builder_proxy = FleetBuilderProxy.new(params[:builder_proxy])
+    @builder_proxy = FleetBuilderProxy.new(params[:fleet_builder_proxy])
     if @builder_proxy.valid?
 
       if @builder_proxy.organization_id.blank?
@@ -115,13 +111,13 @@ class AssetFleetsController < OrganizationAwareController
       end
       org = Organization.get_typed_organization(Organization.find(org_id))
 
-      Delayed::Job.enqueue CapitalProjectBuilderJob.new(org, @builder_proxy.asset_types, @builder_proxy.start_fy, current_user), :priority => 0
+      Delayed::Job.enqueue AssetFleetBuilderJob.new(org, @builder_proxy.asset_fleet_types, current_user), :priority => 0
 
       # Let the user know the results
-      msg = "SOGR Capital Project Analyzer is running. You will be notified when the process is complete."
+      msg = "Fleet Builder is running. You will be notified when the process is complete."
       notify_user(:notice, msg)
 
-      redirect_to capital_projects_url
+      redirect_to asset_fleets_url
       return
     else
       respond_to do |format|

@@ -92,7 +92,7 @@ class AssetFleet < ActiveRecord::Base
 
 
   def to_s
-    asset_fleet_type.to_s
+   "#{organization.short_name} #{asset_fleet_type} #{ntd_id}"
   end
 
   def searchable_fields
@@ -117,19 +117,24 @@ class AssetFleet < ActiveRecord::Base
     assets.operational.count
   end
 
-  def group_by_fields
-    a = []
+  def group_by_fields(labeled=true)
+    a = Hash.new
 
-    asset_fleet_type.group_by_fields.each do |field|
-      if field[-3..-1] == '_id'
-        field = field[0..-4]
+    asset_fleet_type.group_by_fields.each do |field_name|
+      if field_name[-3..-1] == '_id'
+        field = field_name[0..-4]
+      else
+        field = field_name
       end
 
-      label = field.humanize.titleize
-      label = label.gsub('Fta', 'FTA')
+      if labeled
+        label = field.humanize.titleize
+        label = label.gsub('Fta', 'FTA')
+      else
+        label = field_name
+      end
 
-      puts label
-      a << [label, self.send('get_'+field)]
+      a[label] = self.send('get_'+field)
     end
 
     a
@@ -160,9 +165,9 @@ class AssetFleet < ActiveRecord::Base
   protected
 
   def set_defaults
-    self.dedicated = self.dedicated.nil? ? true : false
-    self.has_capital_responsibility = self.has_capital_responsibility.nil? ? true : false
-    self.active = self.active.nil? ? true : false
+    self.dedicated = self.dedicated.nil? ? true : self.dedicated
+    self.has_capital_responsibility = self.has_capital_responsibility.nil? ? true : self.dedicated
+    self.active = self.active.nil? ? true : self.active
   end
 
 end

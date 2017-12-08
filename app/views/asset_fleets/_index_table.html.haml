@@ -6,25 +6,39 @@
   = render :partial => "index_actions"
 
 .table-responsive
-  %table.table.table-hover{:id => table_dom_id, :data => {:toggle => 'table',
+  %table.table.table-condensed.table-hover{:id => table_dom_id,
+    :data => {:toggle => 'table',
+    :url => asset_fleets_path(:format => :json),
     :card_view => "false",
     :pagination => 'true',
+    :sort_order => 'asc',
+    :sortable => 'true',
+    :side_pagination => 'server',
     :show_pagination_switch => 'true',
+    :page_number => '1',
     :page_list => "[5, 10, 20, 50, 100, 200]",
     :page_size => current_user.num_table_rows,
     :search => 'false',
-    :toolbar => "#asset_fleets_table_actions",
-    :export_types => "['csv', 'txt', 'excel']",
-    :show_export => 'true',
     :show_columns => 'true',
+    :toolbar => "#table_actions",
+    :show_export => 'true',
+    :row_style => 'row_style',
+    :click_to_select => 'true',
+    :query_params => "query_params",
+    :show_export => 'true',
+    :id_field => 'object_key',
+    :export_types => "['csv', 'txt', 'excel']",
     :state_save => 'true',
-    :state_save_id_table => "asset_fleets_id",
-    :state_save_expire => "1y"}, :style => 'width:100%;'}
+    :state_save_id_table => "asset_fleetsid",
+    :state_save_expire => "1y",
+    :maintain_selected => 'true',
+    :single_select => 'false'}}
 
     %thead
       %tr
         %th.center{:data => {:field => 'object_key', :visible => 'false'}} Object Key
-        %th.left{:data => {:field => 'organization',:sortable => 'true'}} Organization
+        - if @organization_list.count > 1
+          %th.left{:data => {:field => 'organization',:sortable => 'true'}} Organization
         %th.center{:data => {:field => 'ntd_id', :sortable => 'true'}} RVI/SV ID
         %th.right{:data => {:field => 'assets_count', :sortable => 'false'}} Assets
         %th.center{:data => {:field => 'dedicated', :sortable => 'true', :formatter => 'boolean_formatter'}} Dedicated
