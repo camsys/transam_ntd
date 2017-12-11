@@ -12,8 +12,6 @@ class AssetFleetsController < OrganizationAwareController
 
     @asset_fleets = AssetFleet.where(organization_id: @organization_list).order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset])
 
-    puts @asset_fleets.inspect
-    puts "apples!!!!"
     respond_to do |format|
       format.html # index.html.erb
       format.json {
