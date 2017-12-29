@@ -24,33 +24,33 @@ class NtdRevenueVehicleFleet < ActiveRecord::Base
   validates :ntd_form,                  :presence => true
 
   # validates :rvi_id,                    :presence => true
-  # validates :size,                      :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  # validates :num_active,                :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  # validates :num_ada_accessible,        :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  # validates :num_emergency_contingency, :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
+  # validates :size,                      :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 0}
+  # validates :num_active,                :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 0}
+  # validates :num_ada_accessible,        :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 0}
+  # validates :num_emergency_contingency, :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 0}
   #
   # validates :vehicle_type,              :presence => true
   # validates :funding_source,            :presence => true
-  # validates :manufacture_year,          :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 1900}
+  # validates :manufacture_year,          :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 1900}
   # validates :manufacture_code,          :presence => true
   # validates :model_number,              :presence => true
   #
-  # validates :renewal_year,              :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
+  # validates :renewal_year,              :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 0}
   # validates :renewal_type,              :presence => true
-  # validates :renewal_cost,              :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  # validates :renewal_cost_year,         :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
+  # validates :renewal_cost,              :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 0}
+  # validates :renewal_cost_year,         :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 0}
   #
-  # validates :replacement_cost,          :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  # validates :replacement_cost_year,     :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 1900}
+  # validates :replacement_cost,          :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 0}
+  # validates :replacement_cost_year,     :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 1900}
   # validates_inclusion_of :replacement_cost_parts,     :in => [true, false]
   # validates_inclusion_of :replacement_cost_warranty,  :in => [true, false]
   #
   # validates :fuel_type,                 :presence => true
-  # validates :vehicle_length,            :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  # validates :seating_capacity,          :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  # validates :standing_capacity,         :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  # validates :total_active_miles_in_period, :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
-  # validates :avg_lifetime_active_miles, :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 0}
+  # validates :vehicle_length,            :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 0}
+  # validates :seating_capacity,          :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 0}
+  # validates :standing_capacity,         :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 0}
+  # validates :total_active_miles_in_period, :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 0}
+  # validates :avg_lifetime_active_miles, :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 0}
 
   #------------------------------------------------------------------------------
   # Scopes

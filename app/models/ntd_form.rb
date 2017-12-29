@@ -58,7 +58,7 @@ class NtdForm < ActiveRecord::Base
   validates :form,                :presence => true
   validates :start_date,          :presence => true
   validates :end_date,                :presence => true
-  #validates :fy_year,             :presence => true, :numericality => {:only_integer => :true, :greater_than_or_equal_to => 2012}
+  #validates :fy_year,             :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 2012}
 
   # Agency Information -- This is cached in case the organization's personel
   # changes and we retain the original reporting name
