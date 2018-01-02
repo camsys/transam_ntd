@@ -66,6 +66,7 @@ class AssetFleet < ActiveRecord::Base
       :ntd_id,
       :dedicated,
       :has_capital_responsibility,
+      :notes,
       :active,
       :assets_attributes => [:object_key, :asset_search_text, :_destroy]
   ]
@@ -97,6 +98,17 @@ class AssetFleet < ActiveRecord::Base
 
   def searchable_fields
     SEARCHABLE_FIELDS
+  end
+
+  def ntd_id_label
+    asset_klass = asset_fleet_type.try(:class_name)
+    if asset_klass == 'Vehicle'
+      'RVI ID'
+    elsif asset_klass == 'SupportVehicle'
+      'SV ID'
+    elsif asset_klass.include? 'Facility'
+      'Facility ID'
+    end
   end
 
   # Returns true if the asset group contains a homogeneous set of asset types, false otherwise

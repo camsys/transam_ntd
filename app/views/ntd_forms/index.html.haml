@@ -1,17 +1,22 @@
-.row
-  .col-md-12
-    .panel.panel-default.header-part
-      .panel-heading
+%ul.nav.nav-tabs
+  %li.active
+    %a{:href => "#fleets", :data =>{:toggle => 'tab'}}
+      Fleet Manager
+  %li
+    %a{:href => "#ntd", :data =>{:toggle => 'tab'}}
+      NTD Reports
+
+.tab-content
+  .tab-pane.fade.in.active#fleets
+    .tab-content
+      .col-sm-12.col-md-10.col-md-offset-1
         .row
-          .col-md-4
-            %h3.panel-title
-              %i.fa.fa-list
-              NTD Forms
-          .col-md-8
-            = render 'index_actions'
-      .panel-body
-        - if @forms.empty?
-          %p No forms found
-        - else
+          .col-md-12
+            = render :partial => 'asset_fleets/index_table'
+
+  .tab-pane.fade#ntd
+    .tab-content
+      .col-sm-12.col-md-10.col-md-offset-1
+        .row
           .col-md-12
             = render :partial => 'index_table', :locals => {:forms => @forms}

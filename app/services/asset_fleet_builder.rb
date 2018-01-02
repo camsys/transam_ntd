@@ -23,7 +23,7 @@ class AssetFleetBuilder
 
     sys_user = User.find_by(first_name: 'system')
 
-    asset_fleet_types = options[:asset_fleet_type_ids].blank? ? AssetFleetType.all : AssetFleetType.find_by(id: options[:asset_fleet_type_ids])
+    asset_fleet_types = options[:asset_fleet_type_ids].blank? ? AssetFleetType.all : AssetFleetType.where(id: options[:asset_fleet_type_ids])
 
     asset_fleet_types.each do |fleet_type|
 

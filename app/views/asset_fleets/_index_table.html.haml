@@ -3,7 +3,7 @@
 
 
 #asset_fleets_table_actions.btn-toolbar
-  = render :partial => "index_actions"
+  = render :partial => "asset_fleets/index_actions"
 
 .table-responsive
   %table.table.table-condensed.table-hover{:id => table_dom_id,
@@ -26,7 +26,6 @@
     :click_to_select => 'true',
     :query_params => "query_params",
     :show_export => 'true',
-    :id_field => 'object_key',
     :export_types => "['csv', 'txt', 'excel']",
     :state_save => 'true',
     :state_save_id_table => "asset_fleetsid",
@@ -40,7 +39,7 @@
         - if @organization_list.count > 1
           %th.left{:data => {:field => 'organization',:sortable => 'true'}} Organization
         %th.center{:data => {:field => 'ntd_id', :sortable => 'true'}} RVI/SV ID
-        %th.right{:data => {:field => 'assets_count', :sortable => 'false'}} Assets
+        %th.right{:data => {:field => 'assets_count', :sortable => 'true'}} Assets
         %th.center{:data => {:field => 'dedicated', :sortable => 'true', :formatter => 'boolean_formatter'}} Dedicated
         %th.center{:data => {:field => 'has_capital_responsibility', :sortable => 'true', :formatter => 'boolean_formatter'}} Capital Responsibility
         %th.center{:data => {:field => 'active', :visible => 'false', :sortable => 'true', :formatter => 'boolean_formatter'}} Active

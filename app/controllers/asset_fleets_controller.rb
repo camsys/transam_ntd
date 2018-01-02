@@ -3,7 +3,7 @@ class AssetFleetsController < OrganizationAwareController
   add_breadcrumb "Home", :root_path
   add_breadcrumb "Asset Fleets", :asset_fleets_path
 
-  before_action :set_asset_fleet, only: [:show, :edit, :update, :destroy]
+  before_action :set_asset_fleet, only: [:show, :edit, :update, :destroy, :filter]
 
   # GET /asset_fleets
   def index
@@ -45,7 +45,7 @@ class AssetFleetsController < OrganizationAwareController
 
   # GET /asset_fleets/1/edit
   def edit
-    add_breadcrumb @asset_fleet
+    add_breadcrumb @asset_fleet, asset_fleet_path(@asset_fleet)
     add_breadcrumb 'Update'
 
   end
@@ -122,6 +122,31 @@ class AssetFleetsController < OrganizationAwareController
         format.html { render :action => "builder" }
       end
     end
+  end
+
+  def filter
+
+    query = params[:query]
+    query_str = "%" + query + "%"
+    #Rails.logger.debug query_str
+
+    matches = []
+    assets = Asset
+       .where("organization_id = ? AND (asset_tag LIKE ? OR object_key LIKE ? OR description LIKE ?)", @asset_fleet.organization_id, query_str, query_str, query_str)
+       .where(@asset_fleet.group_by_fields(false))
+
+    assets.each do |asset|
+      matches << {
+          "id" => asset.object_key,
+          "name" => "#{asset.name}: #{asset.description}"
+      }
+    end
+
+    respond_to do |format|
+      format.js { render :json => matches.to_json }
+      format.json { render :json => matches.to_json }
+    end
+
   end
 
   private

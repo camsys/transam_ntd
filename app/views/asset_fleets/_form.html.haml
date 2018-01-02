@@ -4,26 +4,25 @@
 :wrapper_mappings => {:check_boxes => :vertical_radio_and_checkboxes, :radio_buttons => :vertical_radio_and_checkboxes, :file => :vertical_file_input, :boolean => :vertical_boolean}) do |f|
 
   = f.association :organization, :collection => TransitOperator.where(id: @organization_list), :label_method => 'coded_name'
-  = f.association :asset_fleet_type, :collection => AssetFleetType.active
+  = f.association :asset_fleet_type, :collection => AssetFleetType.active, :disabled => !@asset_fleet.new_record?
   = f.input :agency_fleet_id
-  - #if asset_type.class_name == 'Vehicle'
-    - #ntd_id_label = 'RVI ID'
-  - #elsif asset_type.class_name == 'Vehicle'
-    - #ntd_id_label = 'SV ID'
-  = f.input :ntd_id, :label => 'RVI ID / SV ID'
+  - unless @asset_fleet.new_record?
+    = f.input :ntd_id, :label => @asset_fleet.ntd_id_label, :required => true
+  = f.input :notes, :label => 'NTD Notes', :placeholder => 'Notes will appear in generated NTD report.'
   = f.input :dedicated
   = f.input :has_capital_responsibility
 
-  #assets.well.well-sm
-    %label.control-label
-      %i.fa.fa-bus.fa-1-5x
-      Assets
-    .links.pull-right
-      = link_to_add_association f, :assets, :class => 'btn btn-xs btn-info', data: {association_insertion_method: 'after'} do
-        %i.fa.fa-plus
-    %label#assets-error.error
-    = f.simple_fields_for :assets do |asset|
-      = render 'asset_fields', f: asset
+  - unless @asset_fleet.new_record?
+    #assets.well.well-sm
+      %label.control-label
+        %i.fa.fa-bus.fa-1-5x
+        Assets
+      .links.pull-right
+        = link_to_add_association f, :assets, :class => 'btn btn-xs btn-info', data: {association_insertion_method: 'after'} do
+          %i.fa.fa-plus
+      %label#assets-error.error
+      = f.simple_fields_for :assets do |asset|
+        = render 'asset_fields', f: asset
 
   = f.button :submit, :class => "btn btn-primary"
 
