@@ -17,7 +17,8 @@ forms = [
 ]
 
 asset_fleet_types = [
-    {name: 'Default', fields: 'asset_type_id,asset_subtype_id,manufacturer_id,manufacturer_model,manufacture_year,fuel_type_id', active: true}
+    {groups: 'asset_type_id,asset_subtype_id,manufacturer_id,manufacture_year,fuel_type_id', class_name: 'Vehicle', active: true},
+    {groups: 'asset_type_id,asset_subtype_id,manufacturer_id,manufacture_year,fuel_type_id', class_name: 'SupportVehicle', active: true}
 ]
 
 
