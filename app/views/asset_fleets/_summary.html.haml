@@ -1,11 +1,6 @@
+- unless @asset_fleet.homogeneous
+  .alert.alert-danger
+    Assets do not have similar properties. Please correct.
 = format_field("Organization", link_to(@asset_fleet.organization.short_name, organization_path(@asset_fleet.organization)))
-= format_field("Asset Type", format_as_list(@asset_fleet.asset_types))
-- if @asset_fleet.homogeneous?
-  - asset_type = @asset_fleet.asset_types.first
-  - if asset_type.class_name == 'Vehicle'
-    = format_field("RVI ID", @asset_fleet.ntd_id)
-  - elsif asset_type.class_name == 'SupportVehicle'
-    = format_field("SV ID", @asset_fleet.ntd_id)
-= format_field("Dedicated Fleet", format_as_boolean(@asset_fleet.dedicated))
-= format_field("Capital Responsibility", format_as_boolean(@asset_fleet.has_capital_responsibility))
+= format_field(@asset_fleet.ntd_id_label, @asset_fleet.ntd_id)
 = format_field("Active", format_as_boolean(@asset_fleet.active))

@@ -16,6 +16,7 @@ class AssetFleetBuilderJob < Job
     # Run the builder
     options = {}
     options[:asset_fleet_type_ids] = asset_fleet_types
+    options[:action] = builder_action
     builder = AssetFleetBuilder.new
     builder.build(organization, options)
 
@@ -40,10 +41,11 @@ class AssetFleetBuilderJob < Job
     raise ArgumentError, "creator can't be blank " if creator.nil?
   end
 
-  def initialize(organization, asset_fleet_types, creator)
+  def initialize(organization, asset_fleet_types, builder_action, creator)
     super
     self.organization = organization
     self.asset_fleet_types = asset_fleet_types
+    self.builder_action = builder_action
     self.creator = creator
   end
 

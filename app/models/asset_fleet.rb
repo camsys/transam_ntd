@@ -44,6 +44,7 @@ class AssetFleet < ActiveRecord::Base
 
   # All order types that are available
   scope :active, -> { where(:active => true) }
+  scope :homogeneous, -> { where(:homogeneous => true) }
 
   #------------------------------------------------------------------------------
   # Validations
@@ -64,8 +65,6 @@ class AssetFleet < ActiveRecord::Base
       :asset_fleet_type_id,
       :agency_fleet_id,
       :ntd_id,
-      :dedicated,
-      :has_capital_responsibility,
       :notes,
       :active,
       :assets_attributes => [:object_key, :asset_search_text, :_destroy]
@@ -111,22 +110,12 @@ class AssetFleet < ActiveRecord::Base
     end
   end
 
-  # Returns true if the asset group contains a homogeneous set of asset types, false otherwise
-  def homogeneous?
-    asset_types.length == 1
-  end
-
-  # Returns the unique set of asset_ids for assets stored in the group
-  def asset_types
-    AssetType.where(id: assets.scope.uniq.pluck(:asset_type_id))
-  end
-
-  def total_assets_count
+  def total_count
     assets.count
   end
 
-  def active_assets_count
-    assets.operational.count
+  def active_count
+    assets.in_service.count
   end
 
   def group_by_fields(labeled=true)
@@ -164,8 +153,12 @@ class AssetFleet < ActiveRecord::Base
       # Strip off the decorator and see who can handle the real request
       actual_method_sym = method_sym.to_s[4..-1]
       if asset_fleet_type.groups.include? actual_method_sym
-        typed_asset = Asset.get_typed_asset(assets.first)
-        typed_asset.try(actual_method_sym)
+        if self.homogeneous
+          typed_asset = Asset.get_typed_asset(assets.first)
+          typed_asset.try(actual_method_sym)
+        else
+          'ERROR: Assets do not match'
+        end
       end
     else
       puts "Method #{method_sym.to_s} with #{arguments}"
@@ -177,8 +170,7 @@ class AssetFleet < ActiveRecord::Base
   protected
 
   def set_defaults
-    self.dedicated = self.dedicated.nil? ? true : self.dedicated
-    self.has_capital_responsibility = self.has_capital_responsibility.nil? ? true : self.dedicated
+    self.homogeneous = self.homogeneous.nil? ? true: self.homogeneous
     self.active = self.active.nil? ? true : self.active
   end
 

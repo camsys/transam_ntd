@@ -1,6 +1,10 @@
 
 class FleetBuilderProxy < Proxy
 
+  RESET_ALL_ACTION            = 0         # clear out all existing fleets and rebuilt
+  USE_EXISTING_FLEET_ACTION   = 1         # add new assets to existing homogeneous fleets
+  NEW_FLEETS_ACTION           = 2         # add new assets to new fleets
+
   # General state variables
 
   # organization
@@ -8,6 +12,8 @@ class FleetBuilderProxy < Proxy
 
   # Type of asset type to process
   attr_accessor     :asset_fleet_types
+
+  attr_accessor     :action
 
   # Basic validations. Just checking that the form is complete
   #validates :asset_fleet_types, :presence => true

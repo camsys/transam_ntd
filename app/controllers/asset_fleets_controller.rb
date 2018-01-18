@@ -109,7 +109,7 @@ class AssetFleetsController < OrganizationAwareController
       end
       org = Organization.get_typed_organization(Organization.find(org_id))
 
-      Delayed::Job.enqueue AssetFleetBuilderJob.new(org, @builder_proxy.asset_fleet_types, current_user), :priority => 0
+      Delayed::Job.enqueue AssetFleetBuilderJob.new(org, @builder_proxy.asset_fleet_types, @builder_proxy.action,current_user), :priority => 0
 
       # Let the user know the results
       msg = "Fleet Builder is running. You will be notified when the process is complete."

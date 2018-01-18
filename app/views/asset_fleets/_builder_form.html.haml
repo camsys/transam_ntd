@@ -13,32 +13,8 @@
         = f.input :organization_id, :required => true, :collection => TransitOperator.where(id: @organization_list), :label_method => 'coded_name'
   .row
     .col-md-6
-      = f.input :asset_fleet_types do
-        = f.select :asset_fleet_types, AssetFleetType.active.where(class_name: @asset_types.pluck(:class_name)).map{ |l| [l.to_s, l.id, {'data-asset-type-class-name': l.class_name} ] }, {include_blank: 'None'}, {class: 'form-control'}
+      = f.input :action, :as => :radio_buttons, :required => true, :collection => [['Create all fleets from scratch', FleetBuilderProxy::RESET_ALL_ACTION],['Add new assets to existing fleets', FleetBuilderProxy::USE_EXISTING_FLEET_ACTION],['Add new assets to new fleets', FleetBuilderProxy::NEW_FLEETS_ACTION]]
+    .col-md-6
+      = f.input :asset_fleet_types, :as => :check_boxes, :required => true, :collection => AssetFleetType.all.map{|x| [AssetType.find_by(class_name: x.class_name).to_s, x.id] }, :label => 'Asset Types'
 
   = f.submit "Run builder...", :class => "btn btn-primary", :id => "submit_button"
-
-
-:javascript
-  $(function(){
-    var org_id = 0;
-    var asset_types = JSON.parse('#{@asset_types.to_json}');
-
-    // Detect changes in the org selected
-    $('#fleet_builder_proxy_organization_id').on('change', function(event) {
-      var funding_template_id = $('#bond_request_funding_template_id').val();
-      if (parseInt(funding_template_id) > 0) { // if has funding set
-        var funding_template_match_required = parseFloat($('#bond_request_funding_template_id option[value="'+funding_template_id+'"]').data('match-required'));
-      }  else {
-        var funding_template_match_required = 0;
-      }
-    });
-
-
-  });
-
-  $('#new_fleet_builder_proxy').validate({
-    submitHandler: function(form) {
-      form.submit();
-    }
-  });
