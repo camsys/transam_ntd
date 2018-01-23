@@ -9,6 +9,7 @@ class AssetFleetBuilderJob < Job
 
   attr_accessor :organization
   attr_accessor :asset_fleet_types
+  attr_accessor :builder_action
   attr_accessor :creator
 
   def run

@@ -6,7 +6,7 @@
 #
 #
 #------------------------------------------------------------------------------
-class NtdReportingService
+class NtdReportingServiceOld
 
   include FiscalYear
 
@@ -29,51 +29,14 @@ class NtdReportingService
   # for the organization on the NTD fleet groups and calculating the totals for
   # the columns which need it
   def revenue_vehicle_fleets(orgs)
+    asset_subtype_ids = AssetSubtype.where(asset_type_id: AssetType.find_by(name: 'Revenue Vehicles').id).ids
+    organizations = []
 
-    fleets = []
+    orgs.each { |o|
+      organizations << o.id
+    }
 
-    AssetFleet.where(organization: orgs, asset_fleet_type: AssetFleetType.find_by(class_name: 'Vehicle')).each do |row|
-
-      fleet ={
-          rvi_id: row.ntd_id,
-          fta_mode: row.get_primary_fta_mode_type.code,
-          fta_service_type: row.get_primary_fta_service_type.code,
-          agency_fleet_id: row.agency_fleet_id,
-          dedicated: row.get_dedicated,
-          direct_capital_responsibility: row.get_direct_capital_responsibility,
-          size: row.total_count,
-          num_active: row.active_count,
-          num_ada_accessible: row.ada_accessible_count,
-          num_emergency_contingency: row.fta_emergency_contingency_count,
-          vehicle_type: row.get_fta_vehicle_type.code,
-          manufacture_code: row.get_manufacturer.code,
-          rebuilt_year: 'TO DO',
-          model_number: 'TO DO',
-          other_manufacturer: row.get_other_manufacturer.to_s,
-          fuel_type: row.get_fuel_type.code,
-          dual_fuel_type: row.get_dual_fuel_type.try(:code),
-          vehicle_length: 'TO DO',
-          seating_capacity: 'TO DO',
-          standing_capacity: 'TO DO',
-          total_active_miles_in_period: row.miles_this_year,
-          avg_lifetime_active_miles: row.avg_active_lifetime_miles,
-          ownership_type: row.get_fta_ownership_type.code,
-          funding_type: row.get_fta_funding_type.code,
-          notes: row.notes,
-          status: 'TO DO',
-          useful_life_remaining: 'TO DO',
-          useful_life_benchmark: 'TO DO',
-          manufacture_year: row.get_manufacture_year,
-          additional_fta_mode: row.get_secondary_fta_mode_type.try(:code),
-          additional_fta_service_type: row.get_secondary_fta_service_type.try(:code)
-      }
-
-      # calculate the additional properties and merge them into the results
-      # hash
-      fleets << NtdRevenueVehicleFleet.new(fleet)
-    end
-    fleets
-
+    revenue_fleet_report_builder(asset_subtype_ids, organizations)
   end
 
   # Returns a collection of service vehicle fleets by grouping vehicle assets in
@@ -113,6 +76,50 @@ class NtdReportingService
     admin_and_maintenance_facilities_report_builder(asset_type_id, organizations)
   end
 
+
+  def revenue_fleet_report_builder(asset_subtype_ids, organization_ids)
+    results = fleet_query(asset_subtype_ids, organization_ids)
+
+    # Convert the results set to an array of hashes
+    fleets = []
+    results.each do |row|
+
+      fleet = {
+        :size => row[2],
+        :num_active => row[3],
+        :num_ada_accessible => row[4],
+        :num_emergency_contingency => row[5],
+
+        :model_number => row[9],
+        :manufacture_year => row[10],
+        :renewal_year => row[11],
+        :renewal_cost => row[13],
+
+        :renewal_cost_year => row[14],
+        :replacement_cost => row[15],
+        :replacement_cost_parts => row[16],
+        :replacement_cost_warranty => row[17],
+
+        :vehicle_length => row[19],
+        :seating_capacity => row[20],
+        :standing_capacity => row[21],
+        :total_active_miles_in_period => row[22],
+        :avg_lifetime_active_miles => row[23],
+        :notes => row[24],
+
+        # These could all be populated via SQL if we wanted to go just get the name or code column for these.
+        :vehicle_type => row[6],
+        :funding_source => row[7],
+        :manufacture_code => Manufacturer.find_by(id: row[8]).code,
+        :renewal_type => VehicleRebuildType.find_by(id: row[12]).to_s,
+        :fuel_type => row[18]
+      }
+      # calculate the additional properties and merge them into the results
+      # hash
+      fleets << NtdRevenueVehicleFleet.new(calc_revenue_fleet_items(fleet, organization_ids, row[0].to_i))
+    end
+    fleets
+  end
 
 
   def service_fleet_report_builder(asset_subtype_ids, organization_ids)
@@ -252,6 +259,90 @@ class NtdReportingService
   #
   #------------------------------------------------------------------------------
   protected
+
+  # Selects the actual vehicles in the fleet and generates the additional data components
+  # needed for the report. I think this could all be done in SQL and would save us a lot of queries and time.
+  def calc_revenue_fleet_items(fleet_group, organization_ids, asset_subtype_id)
+     vehicles = Vehicle.where('(assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key) OR (assets.disposition_date >= ? AND assets.disposition_date <= ?)', @form.start_date, @form.end_date).where(organization_id: organization_ids, asset_subtype_id: asset_subtype_id, fta_vehicle_type_id: fleet_group[:vehicle_type],
+                       fta_funding_type_id: fleet_group[:funding_source], manufacturer_id: Manufacturer.where(code:fleet_group[:manufacture_code]).ids, manufacturer_model: fleet_group[:model_number],
+                       manufacture_year: fleet_group[:manufacture_year], rebuild_year: fleet_group[:renewal_year], fuel_type_id: fleet_group[:fuel_type],
+                       vehicle_length: fleet_group[:vehicle_length], seating_capacity: fleet_group[:seating_capacity], standing_capacity: fleet_group[:standing_capacity])
+
+    num_active = 0
+    num_ada_accessible = 0
+    num_emergency_contingency = 0
+    total_active_miles = 0
+    total_active_miles_in_period = 0
+    replacement_cost = 0
+    replacement_cost_year = current_fiscal_year_year
+
+    vehicles.each do |vehicle|
+      num_active += 1 unless vehicle.disposed?
+      num_ada_accessible += 1 if vehicle.ada_accessible?
+      num_emergency_contingency += 1 if vehicle.fta_emergency_contingency_fleet
+
+      mileage_update_in_period = vehicle.mileage_updates.where('event_date >= ? AND event_date <= ?', @form.start_date, @form.end_date).last
+      mileage_update_not_in_period = vehicle.mileage_updates.where.not('event_date >= ? AND event_date <= ?', @form.start_date, @form.end_date).last
+      total_active_miles_in_period += [(mileage_update_in_period.try(:current_mileage).to_i - mileage_update_not_in_period.try(:current_mileage).to_i), 0].max
+      total_active_miles += mileage_update_in_period.current_mileage if !vehicle.disposed? && mileage_update_in_period
+
+      replacement_cost += vehicle.scheduled_replacement_cost || 0
+    end
+
+    # It might be better to capture these at a higher level like in the query but the logic around these might be a little convoluted
+     if vehicles.first
+      fleet_group[:additional_fta_mode] = vehicles.first.fta_mode_types.size > 1 ? vehicles.first.fta_mode_types[1] : nil
+      fleet_group[:useful_life_remaining] = vehicles.first.policy_analyzer.get_min_service_life_months / 12.0
+     end
+
+    fleet_group[:total_active_miles_in_period] = total_active_miles_in_period
+    fleet_group[:avg_lifetime_active_miles] =  num_active > 0 ? (total_active_miles / num_active) : 0
+    fleet_group[:num_active] = num_active
+    fleet_group[:num_ada_accessible] = num_ada_accessible
+    fleet_group[:num_emergency_contingency] = num_emergency_contingency
+    fleet_group[:replacement_cost] = replacement_cost
+    fleet_group[:replacement_cost_year] = replacement_cost_year
+
+     has_error = false
+     vehicle_type = FtaVehicleType.find_by(id:fleet_group[:vehicle_type])
+     fleet_group[:vehicle_type] = vehicle_type.to_s
+     if vehicle_type.name == 'Unknown'
+       fleet_group[:vehicle_type] = ''
+       @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets")
+       has_error = true
+       @process_log.add_processing_message(2, 'warning', 'FTA vehicle type is Unknown.')
+     end
+
+     funding_type = FtaFundingType.find_by(id:fleet_group[:funding_source])
+     fleet_group[:funding_source] = funding_type.to_s
+     if funding_type.name == 'Unknown'
+       fleet_group[:funding_source] = ''
+       @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets") unless has_error
+       has_error = true
+       @process_log.add_processing_message(2, 'warning', 'FTA funding type is Unknown.')
+     end
+
+     manufacturer = Manufacturer.find_by(code:fleet_group[:manufacture_code])
+     if manufacturer.name == 'Unknown'
+       fleet_group[:manufacture_code] = ''
+       @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets") unless has_error
+       has_error = true
+       @process_log.add_processing_message(2, 'warning', 'Manufacturer is Unknown.')
+     else
+       fleet_group[:manufacture_code] = manufacturer.to_s
+     end
+
+     fuel_type = FuelType.find_by(id:fleet_group[:fuel_type])
+     if fuel_type.name == 'Unknown'
+       fleet_group[:fuel_type] = ''
+       @process_log.add_processing_message(1, 'info', "#{AssetSubtype.find_by(id: asset_subtype_id)}: #{fleet_group[:size]} assets") unless has_error
+       @process_log.add_processing_message(2, 'warning', 'Fuel Type is Unknown.')
+     else
+       fleet_group[:fuel_type] = fuel_type.to_s
+     end
+
+    fleet_group
+  end
 
 
   def calc_service_fleet_items(fleet_group, organization_ids, asset_subtype_id)

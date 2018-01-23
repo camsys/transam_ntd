@@ -1,6 +1,6 @@
 class RemoveAssetFieldsAssetFleets < ActiveRecord::Migration
   def change
-    remove_column :dedicated, :asset_fleets
-    remove_column :has_capital_responsibility, :asset_fleets
+    remove_column :asset_fleets, :dedicated
+    remove_column :asset_fleets, :has_capital_responsibility
   end
 end

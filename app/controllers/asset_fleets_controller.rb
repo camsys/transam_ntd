@@ -1,8 +1,8 @@
 class AssetFleetsController < OrganizationAwareController
 
   add_breadcrumb "Home", :root_path
-  add_breadcrumb "Asset Fleets", :asset_fleets_path
 
+  before_action :set_fleets_index_path
   before_action :set_asset_fleet, only: [:show, :edit, :update, :destroy, :filter]
 
   # GET /asset_fleets
@@ -15,15 +15,9 @@ class AssetFleetsController < OrganizationAwareController
     respond_to do |format|
       format.html # index.html.erb
       format.json {
-        fleets_json = @asset_fleets.collect{ |p|
-          p.as_json.merge!({
-            organization: p.organization.to_s,
-            assets_count: p.assets.count
-          })
-        }
         render :json => {
             :total => @asset_fleets.count,
-            :rows =>  fleets_json
+            :rows =>  @asset_fleets
         }
       }
       format.xls
@@ -150,6 +144,15 @@ class AssetFleetsController < OrganizationAwareController
   end
 
   private
+
+    def set_fleets_index_path
+      if Form.find_by(name: 'NTD Reporting').present?
+        add_breadcrumb "Asset Fleets", form_path(Form.find_by(name: 'NTD Reporting'))
+      else
+        add_breadcrumb "Asset Fleets", asset_fleets_path
+      end
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def set_asset_fleet
       @asset_fleet = AssetFleet.find_by(object_key: params[:id], organization_id: @organization_list)

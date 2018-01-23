@@ -115,9 +115,6 @@ class NtdRevenueVehicleFleet < ActiveRecord::Base
 
   # Set resonable defaults for a new form component
   def set_defaults
-    self.replacement_cost_parts = self.replacement_cost_parts.nil? ? true : self.replacement_cost_parts
-    self.replacement_cost_warranty = self.replacement_cost_warranty.nil? ? true : self.replacement_cost_warranty
-    self.avg_expected_service_years ||= 0
     self.useful_life_remaining ||= 0
   end
 

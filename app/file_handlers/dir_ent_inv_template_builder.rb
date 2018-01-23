@@ -102,36 +102,36 @@ class DirEntInvTemplateBuilder < TemplateBuilder
 
       rev_vehicle = rev_vehicles[idx]
       if rev_vehicle
-        row_data << "#{rev_vehicle.manufacture_code}-#{rev_vehicle.model_number}-#{rev_vehicle.manufacture_year}"
+        row_data << rev_vehicle.rvi_id
+        row_data << rev_vehicle.agency_fleet_id
+        row_data << rev_vehicle.vehicle_type
         row_data << rev_vehicle.size
         row_data << rev_vehicle.num_active
-        row_data << rev_vehicle.num_ada_accessible
-        row_data << rev_vehicle.num_emergency_contingency
-        row_data << ''
-        row_data << rev_vehicle.vehicle_type
-        row_data << rev_vehicle.funding_source.to_s
-        row_data << rev_vehicle.useful_life_remaining
-        row_data << rev_vehicle.manufacture_year
+        row_data << rev_vehicle.dedicated
+        row_data << rev_vehicle.direct_capital_responsibility
         row_data << rev_vehicle.manufacture_code
+        row_data << rev_vehicle.other_manufacturer
         row_data << rev_vehicle.model_number
-        row_data << rev_vehicle.renewal_year
-        row_data << rev_vehicle.renewal_type
-        row_data << rev_vehicle.renewal_cost
-        row_data << rev_vehicle.renewal_cost_year
-        row_data << rev_vehicle.replacement_cost
-        row_data << rev_vehicle.replacement_cost_year
-        row_data << rev_vehicle.replacement_cost_parts
-        row_data << rev_vehicle.replacement_cost_warranty
+        row_data << rev_vehicle.manufacture_year
+        row_data << rev_vehicle.rebuilt_year
         row_data << rev_vehicle.fuel_type
+        row_data << rev_vehicle.dual_fuel_type
         row_data << rev_vehicle.vehicle_length
         row_data << rev_vehicle.seating_capacity
         row_data << rev_vehicle.standing_capacity
+        row_data << rev_vehicle.ownership_type
+        row_data << rev_vehicle.funding_type
+        row_data << rev_vehicle.num_ada_accessible
+        row_data << "#{rev_vehicle.additional_fta_mode} #{rev_vehicle.additional_fta_service_type}"
+        row_data << rev_vehicle.num_emergency_contingency
+        row_data << rev_vehicle.useful_life_benchmark
+        row_data << rev_vehicle.useful_life_remaining
         row_data << rev_vehicle.total_active_miles_in_period
         row_data << rev_vehicle.avg_lifetime_active_miles
-        row_data << rev_vehicle.additional_fta_mode
-        row_data << ''
+        row_data << rev_vehicle.status
+        row_data << rev_vehicle.notes
       else
-        row_data << ['']*27
+        row_data << ['']*28
       end
       row_data << ''
 
@@ -274,32 +274,32 @@ class DirEntInvTemplateBuilder < TemplateBuilder
       'Notes',
       '',
       'RVI ID.',
-      'Number of Vehicles in Total Fleet',
-      'Number of Active Vehicles in Fleet',
-      'Americans with Disabilities Act of 1990 (ADA) Accessible Vehicles',
-      'Number of Emergency Contingency Vehicles',
+      'Agency Fleet ID',
+      'Vehicle Type',
+      'Total Vehicles',
+      'Active Vehicles',
       'Dedicated Fleet',
-      'Vehicle Type Code',
-      'Funding Source',
-      'Average Expected Service Years When New',
-      'Year of Manufacture',
-      'Manufacturer Code',
-      'Model Number',
-      'Year of Last Renewal (Leave blank if N/A)',
-      'Type of Last Renewal (Leave blank if N/A)',
-      'Est. Renewal Cost',
-      'Yr. Dollars of Est. Renewal Cost',
-      'Est. Replacement Cost',
-      'Yr. Dollars of Est. Replacement Cost',
-      'Parts',
-      'Warranty',
-      'Fuel Type Code',
-      'Vehicle Length (in feet)',
+      'No Capital Replacement Responsibility',
+      'Manufacturer',
+      'Describe Other Manufacturer',
+      'Model',
+      'Year Manufactured',
+      'Year Rebuilt',
+      'Fuel Type',
+      'Dual Fuel Type',
+      'Vehicle Length',
       'Seating Capacity',
       'Standing Capacity',
-      'Total Miles on Active Vehicles During the Period',
-      'Average Lifetime Miles per Active Vehicle',
-      'Supports Another Mode',
+      'Ownership Type',
+      'Funding Type',
+      'ADA Accessible Vehicles',
+      'Supports Another Mode/TOS',
+      'Emergency Contingency Vehicles',
+      'Useful Life Benchmark',
+      'Useful Life Remaining',
+      'Miles This Year',
+      'Avg Lifetime Miles per Active Vehicle',
+      'Status',
       'Notes'
     ]
 

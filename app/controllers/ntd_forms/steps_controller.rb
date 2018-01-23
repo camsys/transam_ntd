@@ -60,7 +60,7 @@ class NtdForms::StepsController < FormAwareController
         reporting_service = NtdReportingService.new(form: @form)
 
         @form.ntd_revenue_vehicle_fleets = reporting_service.revenue_vehicle_fleets(Organization.where(id: @form.organization_id))
-        @form.ntd_service_vehicle_fleets = reporting_service.service_vehicle_fleets(Organization.where(id: @form.organization_id))
+        #@form.ntd_service_vehicle_fleets = reporting_service.service_vehicle_fleets(Organization.where(id: @form.organization_id))
         @form.ntd_passenger_and_parking_facilities = reporting_service.passenger_and_parking_facilities(Organization.where(id: @form.organization_id))
         @form.ntd_admin_and_maintenance_facilities = reporting_service.admin_and_maintenance_facilities(Organization.where(id: @form.organization_id))
 

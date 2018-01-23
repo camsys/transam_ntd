@@ -12,6 +12,8 @@ class AssetFleet < ActiveRecord::Base
   # Include the object key mixin
   include TransamObjectKey
 
+  include FiscalYear
+
   #------------------------------------------------------------------------------
   # Callbacks
   #------------------------------------------------------------------------------
@@ -53,8 +55,6 @@ class AssetFleet < ActiveRecord::Base
   validates :asset_fleet_type,          :presence => true
   validates :creator,                   :presence => true
 
-  validates_inclusion_of :dedicated,  :in => [true, false]
-  validates_inclusion_of :has_capital_responsibility,  :in => [true, false]
   validates_inclusion_of :active,  :in => [true, false]
 
 
@@ -90,6 +90,14 @@ class AssetFleet < ActiveRecord::Base
   #
   #------------------------------------------------------------------------------
 
+  def as_json(options={})
+    fleet_type_fields = self.group_by_fields(false)
+    super(options).merge!({
+        organization: self.organization.to_s,
+        total_count: self.total_count,
+        active_count: self.active_count
+    }).merge!(fleet_type_fields.each{|k,v| fleet_type_fields[k] = v.try(:code) || v.to_s})
+  end
 
   def to_s
    "#{organization.short_name} #{asset_fleet_type} #{ntd_id}"
@@ -116,6 +124,35 @@ class AssetFleet < ActiveRecord::Base
 
   def active_count
     assets.in_service.count
+  end
+
+  def ada_accessible_count
+    assets.where('ada_accessible_ramp=1 OR ada_accessible_lift=1').count
+  end
+
+  def fta_emergency_contingency_count
+    assets.where(fta_emergency_contingency_fleet: true).count
+  end
+
+  def miles_this_year(fiscal_year=nil)
+    start_of_fy = start_of_fiscal_year(fiscal_year || current_fiscal_year_year)
+    total_mileage_last_year = 0
+    assets.in_service.each do |asset|
+      a = Asset.get_typed_asset(asset)
+      total_mileage_last_year += a.mileage_updates.where('event_date < ?', start_of_fy).last.try(:current_mileage) || 0
+
+      # not completely accurate -- what if the event dates are off?
+    end
+
+    total_active_lifetime_miles - total_mileage_last_year
+  end
+
+  def total_active_lifetime_miles
+    assets.in_service.sum(:reported_mileage)
+  end
+
+  def avg_active_lifetime_miles
+    active_count > 0 ? total_active_lifetime_miles / active_count.to_i : active_count
   end
 
   def group_by_fields(labeled=true)
@@ -152,7 +189,7 @@ class AssetFleet < ActiveRecord::Base
     if method_sym.to_s =~ DECORATOR_METHOD_SIGNATURE
       # Strip off the decorator and see who can handle the real request
       actual_method_sym = method_sym.to_s[4..-1]
-      if asset_fleet_type.groups.include? actual_method_sym
+      if (asset_fleet_type.groups.include? actual_method_sym) || (asset_fleet_type.custom_groups.include? actual_method_sym)
         if self.homogeneous
           typed_asset = Asset.get_typed_asset(assets.first)
           typed_asset.try(actual_method_sym)

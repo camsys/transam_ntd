@@ -6,13 +6,16 @@
     %a{:href => "#assets", :data =>{:toggle => 'tab'}}
       %span{:style => 'white-space: nowrap !important;'}
         Assets
-        %span.badge= @asset_fleet.total_assets_count
+        %span.badge= @asset_fleet.total_count
 
 .tab-content{:style => 'max-height:400px;overflow-y: auto;'}
   .tab-pane.fade#ntd
     .tab-content
       - @asset_fleet.group_by_fields(true).each do |k, v|
-        = format_field(k, v.to_s)
+        - if [true, false].include? v
+          = format_field(k, format_as_boolean(v))
+        - else
+          = format_field(k, v.to_s)
 
   .tab-pane.fade#assets
     .tab-content

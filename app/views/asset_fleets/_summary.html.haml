@@ -3,4 +3,13 @@
     Assets do not have similar properties. Please correct.
 = format_field("Organization", link_to(@asset_fleet.organization.short_name, organization_path(@asset_fleet.organization)))
 = format_field(@asset_fleet.ntd_id_label, @asset_fleet.ntd_id)
+%br
+= format_field('Total Vehicles', format_as_integer(@asset_fleet.total_count))
+= format_field('Active Vehicles', format_as_integer(@asset_fleet.active_count))
+= format_field('Ada Accessible Vehicles', format_as_integer(@asset_fleet.ada_accessible_count))
+= format_field('Emergency Contingency Vehicles', format_as_integer(@asset_fleet.fta_emergency_contingency_count))
+%br
+= format_field('Miles This Year', "#{format_as_integer(@asset_fleet.miles_this_year)} miles")
+= format_field('Avg Lifetime Miles per Active Vehicle', "#{format_as_integer(@asset_fleet.avg_active_lifetime_miles)} miles")
+%br
 = format_field("Active", format_as_boolean(@asset_fleet.active))
