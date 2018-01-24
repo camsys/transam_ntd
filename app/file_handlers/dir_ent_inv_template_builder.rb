@@ -108,7 +108,7 @@ class DirEntInvTemplateBuilder < TemplateBuilder
         row_data << rev_vehicle.size
         row_data << rev_vehicle.num_active
         row_data << rev_vehicle.dedicated
-        row_data << rev_vehicle.direct_capital_responsibility
+        row_data << rev_vehicle.direct_capital_responsibility ? '' : 'Yes'
         row_data << rev_vehicle.manufacture_code
         row_data << rev_vehicle.other_manufacturer
         row_data << rev_vehicle.model_number
