@@ -63,6 +63,7 @@ class AssetFleet < ActiveRecord::Base
       :object_key,
       :organization_id,
       :asset_fleet_type_id,
+      :fleet_name,
       :agency_fleet_id,
       :ntd_id,
       :notes,
