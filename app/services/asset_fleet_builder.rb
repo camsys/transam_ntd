@@ -21,30 +21,29 @@ class AssetFleetBuilder
 
     sys_user = User.find_by(first_name: 'system')
 
-    if options[:action] == FleetBuilderProxy::RESET_ALL_ACTION
-      reset_all(organization)
-    end
-
     asset_fleet_types = options[:asset_fleet_type_ids].blank? ? AssetFleetType.all : AssetFleetType.where(id: options[:asset_fleet_type_ids])
 
+    if options[:action] == FleetBuilderProxy::RESET_ALL_ACTION
+      reset_all(organization, asset_fleet_types)
+    end
 
     # for each of the custom groups of the fleet type must do special selects and joins to pull out relevant info.
     asset_fleet_types.each do |fleet_type|
 
-      group_by_fields = fleet_type.groups.split(',') + ['primary_modes.fta_mode_type_id as primary_fta_mode_type_id', 'IF(assets.pcnt_capital_responsibility > 0, "YES", "NO") as direct_capital_responsibility']
+      group_by_fields = fleet_type.groups.split(',') + ['primary_modes.fta_mode_type_id as primary_fta_mode_type_id','secondary_modes.fta_mode_type_id as secondary_fta_mode_type_id']
 
       query = fleet_type.class_name.constantize
                   .joins('LEFT JOIN (SELECT * FROM assets_fta_mode_types WHERE is_primary=1) AS primary_modes ON assets.id = primary_modes.asset_id')
+                  .joins('LEFT JOIN (SELECT * FROM assets_fta_mode_types WHERE is_primary IS NULL OR is_primary!=1) AS secondary_modes ON assets.id = secondary_modes.asset_id')
                   .where(organization: organization)
 
       if fleet_type.class_name == 'Vehicle'
 
-        group_by_fields << ['service_types.fta_service_type_id as primary_fta_service_type_id','secondary_modes.fta_mode_type_id as secondary_fta_mode_type_id', 'secondary_service_types.fta_service_type_id as secondary_fta_service_type_id']
+        group_by_fields << ['IF(assets.pcnt_capital_responsibility > 0, "YES", "NO") as direct_capital_responsibility', 'service_types.fta_service_type_id as primary_fta_service_type_id', 'secondary_service_types.fta_service_type_id as secondary_fta_service_type_id']
 
         query = query
                     .joins('LEFT JOIN (SELECT * FROM assets_fta_service_types WHERE is_primary=1) AS service_types ON assets.id = service_types.asset_id')
                     .joins('LEFT JOIN (SELECT * FROM assets_fta_service_types WHERE is_primary IS NULL OR is_primary!=1) AS secondary_service_types ON assets.id = secondary_service_types.asset_id')
-                    .joins('LEFT JOIN (SELECT * FROM assets_fta_mode_types WHERE is_primary IS NULL OR is_primary!=1) AS secondary_modes ON assets.id = -secondary_modes.asset_id')
       end
 
       group_by_values = query.joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
@@ -89,8 +88,8 @@ class AssetFleetBuilder
 
   end
 
-  def reset_all(organization)
-    AssetFleet.where(organization: organization).destroy_all
+  def reset_all(organization, asset_fleet_types)
+    AssetFleet.where(organization: organization, asset_fleet: asset_fleet_types).destroy_all
   end
 
   # Set resonable defaults for the builder

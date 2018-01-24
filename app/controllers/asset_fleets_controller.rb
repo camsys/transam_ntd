@@ -10,7 +10,7 @@ class AssetFleetsController < OrganizationAwareController
 
     params[:sort] = 'organizations.short_name' if params[:sort] == 'organization'
 
-    @asset_fleets = AssetFleet.where(organization_id: @organization_list).order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset])
+    @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: params[:asset_fleet_type_id]).order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset])
 
     respond_to do |format|
       format.html # index.html.erb
@@ -109,7 +109,7 @@ class AssetFleetsController < OrganizationAwareController
       msg = "Fleet Builder is running. You will be notified when the process is complete."
       notify_user(:notice, msg)
 
-      redirect_to asset_fleets_url
+      redirect_to form_path(Form.find_by(name: 'NTD Reporting'))
       return
     else
       respond_to do |format|
@@ -146,11 +146,7 @@ class AssetFleetsController < OrganizationAwareController
   private
 
     def set_fleets_index_path
-      if Form.find_by(name: 'NTD Reporting').present?
-        add_breadcrumb "Asset Fleets", form_path(Form.find_by(name: 'NTD Reporting'))
-      else
-        add_breadcrumb "Asset Fleets", asset_fleets_path
-      end
+      add_breadcrumb "Asset Fleets", form_path(Form.find_by(name: 'NTD Reporting'))
     end
 
     # Use callbacks to share common setup or constraints between actions.
