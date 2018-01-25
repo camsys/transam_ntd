@@ -11,11 +11,9 @@
 .tab-content{:style => 'max-height:400px;overflow-y: auto;'}
   .tab-pane.fade#ntd
     .tab-content
-      - @asset_fleet.group_by_fields(true).each do |k, v|
-        - if [true, false].include? v
-          = format_field(k, format_as_boolean(v))
-        - else
-          = format_field(k, v.to_s)
+      - data = @asset_fleet.formatted_group_by_fields
+      - data[:labels].zip(data[:data],data[:formats]).each do |row|
+        = format_field(row[0], format_using_format(row[1], row[2]))
 
   .tab-pane.fade#assets
     .tab-content

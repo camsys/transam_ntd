@@ -92,7 +92,7 @@ class AssetFleet < ActiveRecord::Base
   #------------------------------------------------------------------------------
 
   def as_json(options={})
-    fleet_type_fields = self.group_by_fields(false)
+    fleet_type_fields = self.group_by_fields
     super(options).merge!({
         organization: self.organization.to_s,
         total_count: self.total_count,
@@ -156,7 +156,7 @@ class AssetFleet < ActiveRecord::Base
     active_count > 0 ? total_active_lifetime_miles / active_count.to_i : active_count
   end
 
-  def group_by_fields(labeled=true)
+  def group_by_fields
     a = Hash.new
 
     asset_fleet_type.group_by_fields.each do |field_name|
@@ -166,17 +166,48 @@ class AssetFleet < ActiveRecord::Base
         field = field_name
       end
 
-      if labeled
-        label = field.humanize.titleize
-        label = label.gsub('Fta', 'FTA')
-      else
-        label = field_name
-      end
+      label = field_name
 
       a[label] = self.send('get_'+field)
     end
 
     a
+  end
+
+
+  def formatted_group_by_fields
+    labels = []
+    data = []
+    formats = []
+
+    asset_fleet_type.group_by_fields.each do |field_name|
+      if field_name[-3..-1] == '_id'
+        field = field_name[0..-4]
+      else
+        field = field_name
+      end
+
+      label = field.humanize.titleize
+      label = label.gsub('Fta', 'FTA')
+
+      labels << label
+      data << self.send('get_'+field)
+
+      if [true,false].include? data[-1]
+        formats << :boolean
+      elsif label == label.pluralize # figure out if data is meant to be a list
+        formats << :list
+      elsif label[-4..-1] == 'Cost'
+        formats << :currency
+      elsif label[0..3] == 'Pcnt'
+        formats << :percent
+      else
+        formats << :string
+      end
+
+    end
+
+    {labels: labels, data: data, formats: formats}
   end
 
   #-----------------------------------------------------------------------------

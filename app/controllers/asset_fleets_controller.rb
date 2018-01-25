@@ -1,8 +1,8 @@
 class AssetFleetsController < OrganizationAwareController
 
   add_breadcrumb "Home", :root_path
+  add_breadcrumb "Asset Fleets", :asset_fleets_path
 
-  before_action :set_fleets_index_path
   before_action :set_asset_fleet, only: [:show, :edit, :update, :destroy, :filter]
 
   # GET /asset_fleets
@@ -13,7 +13,9 @@ class AssetFleetsController < OrganizationAwareController
     @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: params[:asset_fleet_type_id]).order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset])
 
     respond_to do |format|
-      format.html # index.html.erb
+      format.html {
+        redirect_to form_path(Form.find_by(controller: 'ntd_forms'))
+      }
       format.json {
         render :json => {
             :total => @asset_fleets.count,
@@ -109,7 +111,7 @@ class AssetFleetsController < OrganizationAwareController
       msg = "Fleet Builder is running. You will be notified when the process is complete."
       notify_user(:notice, msg)
 
-      redirect_to form_path(Form.find_by(name: 'NTD Reporting'))
+      redirect_to asset_fleets_path
       return
     else
       respond_to do |format|
@@ -127,7 +129,7 @@ class AssetFleetsController < OrganizationAwareController
     matches = []
     assets = Asset
        .where("organization_id = ? AND (asset_tag LIKE ? OR object_key LIKE ? OR description LIKE ?)", @asset_fleet.organization_id, query_str, query_str, query_str)
-       .where(@asset_fleet.group_by_fields(false))
+       .where(@asset_fleet.group_by_fields)
 
     assets.each do |asset|
       matches << {
@@ -144,10 +146,6 @@ class AssetFleetsController < OrganizationAwareController
   end
 
   private
-
-    def set_fleets_index_path
-      add_breadcrumb "Asset Fleets", form_path(Form.find_by(name: 'NTD Reporting'))
-    end
 
     # Use callbacks to share common setup or constraints between actions.
     def set_asset_fleet
