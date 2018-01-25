@@ -19,7 +19,7 @@ module TransamFleetable
     # Associations
     # ----------------------------------------------------
 
-    has_and_belongs_to_many :asset_fleets
+    has_and_belongs_to_many :asset_fleets, :join_table => 'assets_asset_fleets'
 
     # ----------------------------------------------------
     # Validations

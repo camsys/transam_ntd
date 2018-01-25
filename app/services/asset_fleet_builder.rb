@@ -23,7 +23,7 @@ class AssetFleetBuilder
 
     asset_fleet_types = options[:asset_fleet_type_ids].blank? ? AssetFleetType.all : AssetFleetType.where(id: options[:asset_fleet_type_ids])
 
-    if options[:action] == FleetBuilderProxy::RESET_ALL_ACTION
+    if options[:action].to_i == FleetBuilderProxy::RESET_ALL_ACTION
       reset_all(organization, asset_fleet_types)
     end
 
@@ -62,7 +62,7 @@ class AssetFleetBuilder
           end
         end
 
-        unless options[:action] == FleetBuilderProxy::USE_EXISTING_FLEET_ACTION
+        unless options[:action].to_i == FleetBuilderProxy::USE_EXISTING_FLEET_ACTION
           fleet = AssetFleet.new
           fleet.organization_id = organization.id
           fleet.asset_fleet_type = fleet_type

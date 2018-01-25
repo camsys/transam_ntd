@@ -26,7 +26,7 @@ class AssetFleetBuilderJob < Job
     # Add a row into the activity table
     ActivityLog.create({:organization_id => organization.id, :user_id => creator.id, :item_type => "AssetFleetBuilder", :activity => msg, :activity_time => Time.now})
 
-    event_url = Rails.application.routes.url_helpers.asset_fleets_path
+    event_url = Rails.application.routes.url_helpers.form_path(Form.find_by(name: 'NTD Reporting'))
     builder_notification = Notification.create(text: msg, link: event_url, notifiable_type: 'Organization', notifiable_id: organization.id)
     UserNotification.create(user: creator, notification: builder_notification)
 
