@@ -40,8 +40,8 @@ class NtdForm < ActiveRecord::Base
   accepts_nested_attributes_for :ntd_admin_and_maintenance_facilities, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
 
   # Passenger and parking facilties
-  has_many    :ntd_passenger_and_parking_facilities, :dependent => :destroy
-  accepts_nested_attributes_for :ntd_passenger_and_parking_facilities, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
+  #has_many    :ntd_passenger_and_parking_facilities, :dependent => :destroy
+  #accepts_nested_attributes_for :ntd_passenger_and_parking_facilities, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
 
   # Service vehicle fleets
   has_many    :ntd_service_vehicle_fleets, :dependent => :destroy

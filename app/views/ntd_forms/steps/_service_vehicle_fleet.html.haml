@@ -17,33 +17,38 @@
 
     %thead
       %tr
-        %th.center{:data => {:sortable => 'true'}} Description
-
-        %th.center{:data => {:sortable => 'true'}} Type of Service Vehicle
-        %th.center{:data => {:sortable => 'true'}} Num. Vehicles
-        %th.center{:data => {:sortable => 'true'}} Avg. Expected Service Years When New
-        %th.center{:data => {:sortable => 'true'}} Manufacture Year
-        %th.center{:data => {:sortable => 'true'}} Pcnt Transit Agency Capital Responsibility
+        %th.center{:data => {:sortable => 'true'}} SV ID
+        %th.center{:data => {:sortable => 'true'}} Agency Fleet ID
+        %th.center{:data => {:sortable => 'true'}} Fleet Name
+        %th.center{:data => {:sortable => 'true'}} Vehicle Type
+        %th.center{:data => {:sortable => 'true'}} Primary Mode
+        %th.center{:data => {:sortable => 'true'}} Year Manufactured
         %th.center{:data => {:sortable => 'true'}} Estimated Cost
+        %th.center{:data => {:sortable => 'true'}} Useful Life Benchmark
+        %th.center{:data => {:sortable => 'true'}} Useful Life Remaining
+        %th.center{:data => {:sortable => 'true'}} Total Vehicles
+        %th.center{:data => {:sortable => 'true'}} Pcnt Transit Agency Capital Responsibility
         %th.center{:data => {:sortable => 'true'}} Yr. Dollars of Estimated Cost
+        %th.center{:data => {:sortable => 'true'}} Secondary Mode(s))
         %th.center{:data => {:sortable => 'true'}} Notes
 
 
     %tbody
       - @form.ntd_service_vehicle_fleets.each do |f|
         %tr
-          %td.left= "NAME?"
-
+          %td.left= f.sv_id
+          %td.left= f.fleet_name
           %td.left= f.vehicle_type
-          %td.left= f.size
-
-          %td.left= f.avg_expected_years
+          %td.left= f.primary_fta_mode_type
           %td.left= f.manufacture_year
-          %td.left= format_as_percentage(f.pcnt_capital_responsibility)
           %td.left= format_as_currency(f.estimated_cost)
+          %td.left= f.useful_life_benchmark
+          %td.left= f.useful_life_remaining
+          %td.left= f.size
+          %td.left= format_as_percentage(f.pcnt_capital_responsibility)
           %td.left= f.estimated_cost_year
-          %td.left
-
+          %td.left= f.secondary_fta_mode_types
+          %td.left= f.notes
 
 :javascript
 
