@@ -16,7 +16,7 @@ class NtdForms::StepsController < FormAwareController
 
   def show
 
-    add_breadcrumb @form_type.name.pluralize(2), form_path(@form_type)
+    add_breadcrumb @form_type.name, form_path(@form_type)
     add_breadcrumb step.to_s.titleize
 
     # get data for the current form
@@ -50,7 +50,7 @@ class NtdForms::StepsController < FormAwareController
 
   def update
 
-    add_breadcrumb @form_type.name.pluralize(2), form_path(@form_type)
+    add_breadcrumb @form_type.name, form_path(@form_type)
     add_breadcrumb "New"
 
 

@@ -35,7 +35,8 @@
 
     %tbody
       - @form.ntd_service_vehicle_fleets.each do |f|
-        %tr
+        %tr{:id => f.vehicle_object_key, :class => 'action-path'}
+          %td.left= f.vehicle_object_key
           %td.left= f.sv_id
           %td.left= f.fleet_name
           %td.left= f.vehicle_type
@@ -67,3 +68,13 @@
       return format("##0.000", value) + "%";
     }
   };
+
+  $('#' + '#{table_dom_id}').on('click', 'td', function () {
+    var path = "#{asset_fleet_path('xxx')}";
+    var row = $(this).parent('tr').attr('id');
+
+    if ($(this).attr('data-field') != 'action-cell') {
+      var url = path.replace("xxx", row);
+      document.location.href = url;
+    }
+  });

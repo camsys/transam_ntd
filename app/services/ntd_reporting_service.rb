@@ -72,7 +72,8 @@ class NtdReportingService
           useful_life_benchmark: 'TO DO',
           manufacture_year: row.get_manufacture_year,
           additional_fta_mode: row.get_secondary_fta_mode_type.try(:code),
-          additional_fta_service_type: row.get_secondary_fta_service_type.try(:code)
+          additional_fta_service_type: row.get_secondary_fta_service_type.try(:code),
+          :vehicle_object_key => row.object_key
       }
 
       # calculate the additional properties and merge them into the results
@@ -110,6 +111,7 @@ class NtdReportingService
           :useful_life_benchmark => 'TO DO',
           :useful_life_remaining => 'TO DO',
           :secondary_fta_mode_types => row.get_secondary_fta_mode_types.pluck(:code).join(' '),
+          :vehicle_object_key => row.object_key,
           :notes => row.notes
       }
 
@@ -183,9 +185,9 @@ class NtdReportingService
 
     if data.try(:name) == 'Unknown'
         if row.try(:asset_fleet_type).present?
-          @process_log.add_processing_message(1, 'info', "#{AssetType.find_by(class_name: row.asset_fleet_type.class_name)} Fleet #{row.ntd_id}")
+          @process_log.add_processing_message(1, 'info', "<a href='#{Rails.application.routes.url_helpers.asset_fleet_path(row)}'>#{AssetType.find_by(class_name: row.asset_fleet_type.class_name)} - Fleet #{row.ntd_id}</a>")
         else
-          @process_log.add_processing_message(1, 'info', "#{row.asset_type} #{row.asset_tag}")
+          @process_log.add_processing_message(1, 'info', "<a href='#{Rails.application.routes.url_helpers.inventory_path(row)}'>#{row.asset_type} #{row.asset_tag}</a>")
         end
       @process_log.add_processing_message(2, 'warning', "#{field_name.humanize} is Unknown.")
     end

@@ -17,6 +17,7 @@
 
     %thead
       %tr
+        %th.center{:data => {:visible => 'false'}} Object Key
         %th.center{:data => {:sortable => 'true'}} RVI ID
         %th.center{:data => {:sortable => 'true'}} Agency Fleet ID
         %th.center{:data => {:sortable => 'true'}} Vehicle Type
@@ -55,7 +56,8 @@
     %tbody
       -#Get the organizations from the filter not the current user
       - @form.ntd_revenue_vehicle_fleets.each do |f|
-        %tr
+        %tr{:id => f.vehicle_object_key, :class => 'action-path'}
+          %td.left= f.vehicle_object_key
           %td.left= f.rvi_id
           %td.left= f.agency_fleet_id
           %td.left= f.vehicle_type
@@ -102,3 +104,13 @@
       return format("##0.000", value) + "%";
     }
   };
+
+  $('#' + '#{table_dom_id}').on('click', 'td', function () {
+    var path = "#{asset_fleet_path('xxx')}";
+    var row = $(this).parent('tr').attr('id');
+
+    if ($(this).attr('data-field') != 'action-cell') {
+      var url = path.replace("xxx", row);
+      document.location.href = url;
+    }
+  });
