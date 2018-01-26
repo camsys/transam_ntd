@@ -12,6 +12,10 @@ module Abilities
         organization_ids.include? n.organization_id
       end
 
+      can :manage, AssetFleet do |n|
+        organization_ids.include? n.organization_id
+      end
+
     end
   end
 end
