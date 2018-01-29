@@ -21,7 +21,7 @@ class DirEntInvTemplateBuilder < TemplateBuilder
     support_vehicles = @ntd_form.ntd_service_vehicle_fleets(Organization.where(id: @ntd_form.organization_id))
     rev_vehicles = @ntd_form.ntd_revenue_vehicle_fleets(Organization.where(id: @ntd_form.organization_id))
 
-    row_count = [support_facilities.count, transit_facilities.count, support_vehicles.count, rev_vehicles.count].max
+    row_count = [facilities.count, support_vehicles.count, rev_vehicles.count].max
 
     (0..row_count - 1).each do |idx|
 
@@ -167,6 +167,7 @@ class DirEntInvTemplateBuilder < TemplateBuilder
         ['']*27
 
     detail_row = [
+      '',
       'Facility ID',
       'Name',
       'Section of Larger Facility?',

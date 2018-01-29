@@ -67,7 +67,7 @@ class NtdReportingService
           ownership_type: "#{ownership_type.name} (#{ownership_type.code})",
           funding_type: "#{funding_type.name} (#{funding_type.code})",
           notes: row.notes,
-          status: 'TO DO',
+          status: row.active(@form.fy_year) ? 'Active' : 'Retired',
           useful_life_remaining: 'TO DO',
           useful_life_benchmark: 'TO DO',
           manufacture_year: row.get_manufacture_year,
@@ -123,7 +123,10 @@ class NtdReportingService
   end
 
   def admin_and_maintenance_facilities(orgs)
-    result = FtaFacility.where('(assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key) OR (assets.disposition_date >= ? AND assets.disposition_date <= ?)', @form.start_date, @form.end_date).where(organization_id: orgs.ids, asset_type_id: AssetType.where(class_name: ['TransitFacility', 'SupportFacility']).pluck(:id))
+    start_date = start_of_fiscal_year(@form.fy_year)
+    end_date = fiscal_year_end_date(start_of_fiscal_year(@form.fy_year))
+
+    result = FtaFacility.where('(assets.disposition_date IS NULL AND assets.asset_tag != assets.object_key) OR (assets.disposition_date >= ? AND assets.disposition_date <= ?)', start_date, end_date).where(organization_id: orgs.ids, asset_type_id: AssetType.where(class_name: ['TransitFacility', 'SupportFacility']).pluck(:id))
 
     facilities = []
     result.each { |row|
@@ -131,7 +134,7 @@ class NtdReportingService
       facility_type = check_seed_field(row, 'fta_facility_type')
 
 
-      condition_update = row.condition_updates.where('event_date >= ? AND event_date <= ?', @form.start_date, @form.end_date).last
+      condition_update = row.condition_updates.where('event_date >= ? AND event_date <= ?', start_date, end_date).last
       facility = {
           :facility_id => 'TO DO',
           :name => row.asset_tag,

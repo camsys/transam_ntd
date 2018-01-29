@@ -52,7 +52,7 @@ class AssetFleetBuilder
 
       end
 
-      group_by_values = query.joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
+      group_by_values = query.operational.joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
                             .where('assets_asset_fleets.asset_id IS NULL')
                             .group(*fleet_type.group_by_fields)
                             .pluck(*group_by_fields.flatten)
@@ -81,7 +81,7 @@ class AssetFleetBuilder
           fleet = AssetFleet.homogeneous.joins(:assets).where(assets: {object_key: possible_assets}).first
         end
 
-        assets = Asset.where(object_key: query.joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
+        assets = Asset.operational.where(object_key: query.joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
                                              .where('assets_asset_fleets.asset_id IS NULL')
                                              .having(conditions.join(' AND '), *(vals.reject! &:nil?))
                                              .pluck(*group_by_fields.flatten, 'object_key').map{|x| x[-1]}

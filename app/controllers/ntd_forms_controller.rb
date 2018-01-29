@@ -13,8 +13,6 @@ class NtdFormsController < FormAwareController
   def index
 
     add_breadcrumb @form_type.name, form_path(@form_type)
-    add_breadcrumb "All"
-
     @fiscal_years = get_fiscal_years
 
      # Start to set up the query

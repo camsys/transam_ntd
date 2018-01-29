@@ -45,7 +45,6 @@ class AssetFleet < ActiveRecord::Base
   #------------------------------------------------------------------------------
 
   # All order types that are available
-  scope :active, -> { where(:active => true) }
   scope :homogeneous, -> { where(:homogeneous => true) }
 
   #------------------------------------------------------------------------------
@@ -67,7 +66,6 @@ class AssetFleet < ActiveRecord::Base
       :agency_fleet_id,
       :ntd_id,
       :notes,
-      :active,
       :assets_attributes => [:object_key, :asset_search_text, :_destroy]
   ]
 
@@ -83,6 +81,10 @@ class AssetFleet < ActiveRecord::Base
 
   def self.allowable_params
     FORM_PARAMS
+  end
+
+  def self.active
+    AssetFleet.joins(:assets)
   end
 
   #------------------------------------------------------------------------------
@@ -125,6 +127,11 @@ class AssetFleet < ActiveRecord::Base
 
   def active_count
     assets.in_service.count
+  end
+
+  def active(fy_year=nil)
+    fy_year = current_fiscal_year_year - 1 if fy_year.nil?
+    assets.disposed.where('disposition_date >= ? AND disposition_date <= ?', start_of_fiscal_year(fy_year), fiscal_year_end_date(start_of_fiscal_year(fy_year))).count != total_count
   end
 
   def ada_accessible_count
@@ -240,7 +247,6 @@ class AssetFleet < ActiveRecord::Base
 
   def set_defaults
     self.homogeneous = self.homogeneous.nil? ? true: self.homogeneous
-    self.active = self.active.nil? ? true : self.active
   end
 
 end
