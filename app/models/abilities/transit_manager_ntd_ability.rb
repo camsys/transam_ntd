@@ -1,5 +1,5 @@
 module Abilities
-  class AuthorizedNtdAbility
+  class TransitManagerNtdAbility
     include CanCan::Ability
 
     def initialize(user, organization_ids=[])
