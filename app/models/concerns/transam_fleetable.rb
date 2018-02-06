@@ -47,6 +47,7 @@ module TransamFleetable
   protected
 
   def check_fleet
+
     asset_fleets.each do |fleet|
       #intersection
       self.changes.keys.each do |changed_field|
@@ -56,6 +57,8 @@ module TransamFleetable
         end
       end
     end
+
+    return true
   end
 
 end
