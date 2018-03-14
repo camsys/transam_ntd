@@ -12,10 +12,12 @@ class AssetFleetsController < OrganizationAwareController
 
     @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: params[:asset_fleet_type_id]).order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset])
 
+    @builder_proxy = FleetBuilderProxy.new
+
+    @message = "Creating asset fleets. This process might take a while."
+
     respond_to do |format|
-      format.html {
-        redirect_to form_path(Form.find_by(controller: 'ntd_forms'))
-      }
+      format.html 
       format.json {
         render :json => {
             :total => @asset_fleets.count,

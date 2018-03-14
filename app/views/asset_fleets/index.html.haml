@@ -1,9 +1,27 @@
-.col-sm-12.col-md-10.col-md-offset-1
-  .page-header
-    %h2 Asset Fleets
+.indent
+  .col-sm-12
+    .page-header
+      %h2 Fleets
 
-  .row
-    .col-md-12
-      = render :partial => 'index_table'
-
+    %ul.nav.nav-tabs
+      - AssetFleetType.all.each_with_index do |fleet_type, idx|
+        - asset_type = AssetType.find_by(class_name: fleet_type.class_name)
+        %li{idx == 0 ? {class: 'active'} : {}}
+          %a{:href => "##{fleet_type.class_name.underscore}", :data =>{:toggle => 'tab'}}
+            %i{:class => "#{asset_type.display_icon_name} fa-fw"}
+            = asset_type
+      %li
+        %a{:href => "#builder", :data => {:toggle => 'tab'}}
+          %i{:class => "fa fa-cogs fa-fw"}
+          Manage Fleets
+         
+    .tab-content
+      - AssetFleetType.all.each_with_index do |fleet_type, idx|
+        .tab-pane.fade{idx == 0 ? {id: fleet_type.class_name.underscore, class: 'in active'} : {id: fleet_type.class_name.underscore}}
+          - view_component = "#{fleet_type.class_name.underscore}_index_table"
+          - if lookup_context.template_exists?(view_component, 'asset_fleets', true)
+            = render :partial => "asset_fleets/#{view_component}"
+      .tab-pane.fade{id: 'builder'}
+        = render 'builder'
+        
 .modal.fade#form-modal{:tabindex => -1, :role => 'dialog', :aria => {:hidden => true}}
