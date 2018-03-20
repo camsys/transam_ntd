@@ -2,6 +2,9 @@ Rails.application.routes.draw do
 
   resources :asset_fleets do
     collection do
+      get 'orphaned_assets'
+      get 'add_asset'
+
       get 'builder'
       post 'runner'
     end

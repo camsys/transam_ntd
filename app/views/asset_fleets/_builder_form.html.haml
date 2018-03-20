@@ -13,7 +13,7 @@
         = f.input :organization_id, :required => true, :collection => TransitOperator.where(id: @organization_list), :label_method => 'coded_name'
   .row
     .col-md-6
-      = f.input :action, :as => :radio_buttons, :required => true, :collection => [['Create all fleets from scratch', FleetBuilderProxy::RESET_ALL_ACTION],['Add new assets to existing fleets', FleetBuilderProxy::USE_EXISTING_FLEET_ACTION],['Add new assets to new fleets', FleetBuilderProxy::NEW_FLEETS_ACTION]]
+      = f.input :action, :as => :radio_buttons, :required => true, :collection => [['Create all fleets from scratch', FleetBuilderProxy::RESET_ALL_ACTION]]
     .col-md-6
       = f.input :asset_fleet_types, :as => :check_boxes, :required => true, :collection => AssetFleetType.all.map{|x| [AssetType.find_by(class_name: x.class_name).to_s, x.id] }, :label => 'Asset Types'
 

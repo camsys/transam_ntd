@@ -1,0 +1,24 @@
+- content_for :content do
+
+  .indent
+  .col-sm-12
+    .page-header
+      %h2 Fleets
+
+    %ul.nav.nav-pills
+      - AssetFleetType.all.each do |fleet_type|
+        %li{@asset_fleet_type == fleet_type ? {class: 'active'}: {}}
+          = link_to asset_fleets_path(asset_fleet_type_id: fleet_type.id), :class => 'btn btn-default' do
+            = AssetType.find_by(class_name: fleet_type.class_name)
+      %li{params[:action] == 'builder' ? {class: 'active'}: {}}
+        = link_to builder_asset_fleets_path, :class => 'btn btn-default' do
+          Manage Fleets
+
+    .modal.fade#form-modal{:tabindex => -1, :role => 'dialog', :aria => {:hidden => true}}
+
+    .row{style: 'padding-top: 25px;'}
+      = yield
+
+= render template: "layouts/application"
+
+

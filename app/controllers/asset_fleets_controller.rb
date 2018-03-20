@@ -1,5 +1,7 @@
 class AssetFleetsController < OrganizationAwareController
 
+  layout 'asset_fleets'
+
   add_breadcrumb "Home", :root_path
   add_breadcrumb "Asset Fleets", :asset_fleets_path
 
@@ -10,7 +12,9 @@ class AssetFleetsController < OrganizationAwareController
 
     params[:sort] = 'organizations.short_name' if params[:sort] == 'organization'
 
-    @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: params[:asset_fleet_type_id]).order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset])
+    @asset_fleet_type = AssetFleetType.find_by(id: params[:asset_fleet_type_id]) || AssetFleetType.first
+
+    @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: @asset_fleet_type.id).order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset])
 
     @builder_proxy = FleetBuilderProxy.new
 
@@ -22,6 +26,38 @@ class AssetFleetsController < OrganizationAwareController
         render :json => {
             :total => @asset_fleets.count,
             :rows =>  @asset_fleets
+        }
+      }
+      format.xls
+    end
+  end
+
+  def orphaned_assets
+    # check that an order param was provided otherwise use asset_tag as the default
+    params[:sort] ||= 'asset_tag'
+
+    orphaned_assets = Asset
+                          .joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
+                          .where(asset_type: AssetType.where(class_name: ['Vehicle', 'SupportVehicle']), organization_id: @organization_list)
+                          .where('assets_asset_fleets.asset_id IS NULL')
+
+    respond_to do |format|
+      format.html
+      format.json {
+
+        # merge fields that
+        orphaned_assets_json = orphaned_assets.order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset]).collect{ |p|
+          p.as_json.merge!({
+             serial_number: p.serial_number,
+             license_plane: p.license_plate,
+             manufacturer_model: p.manufacturer_model,
+             vehicle_type: (FtaVehicleType.find_by(id: p.fta_vehicle_type_id) || FtaSupportVehicleType.find_by(id: p.fta_support_vehicle_type_id)).to_s
+         })
+        }
+
+        render :json => {
+            :total => orphaned_assets.count,
+            :rows =>  orphaned_assets_json
         }
       }
       format.xls
