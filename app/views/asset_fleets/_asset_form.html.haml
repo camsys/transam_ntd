@@ -13,14 +13,17 @@
         #add-asset
           %fieldset
             %legend Add to Existing Fleet
-            = simple_form_for(@asset_builder_proxy,
+            = simple_form_for(:fleet_asset_builder,
               :html => {:class => 'form-vertical'},
               :url => add_asset_asset_fleets_path,
+              :method => :get,
               :wrapper => :vertical_form,
               :wrapper_mappings => {:check_boxes => :vertical_radio_and_checkboxes,
               :radio_buttons => :vertical_radio_and_checkboxes,
               :file => :vertical_file_input,
               :boolean => :vertical_boolean}) do |f|
+
+              = f.input :asset_id, :as => :hidden, :value => @asset.id
 
               = f.input :asset_fleet_id, :collection => @available_fleets
 

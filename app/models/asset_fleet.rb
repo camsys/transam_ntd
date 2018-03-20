@@ -37,7 +37,7 @@ class AssetFleet < ActiveRecord::Base
   belongs_to  :creator, :class_name => "User", :foreign_key => :created_by_user_id
 
   # Every asset grouop has zero or more assets
-  has_and_belongs_to_many :assets_asset_fleets, :join_table => 'assets_asset_fleets'
+  has_many :assets_asset_fleets
 
   has_and_belongs_to_many :assets, :through => :assets_asset_fleets, :join_table => 'assets_asset_fleets'
 

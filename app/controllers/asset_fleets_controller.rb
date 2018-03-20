@@ -5,10 +5,11 @@ class AssetFleetsController < OrganizationAwareController
   add_breadcrumb "Home", :root_path
   add_breadcrumb "Asset Fleets", :asset_fleets_path
 
-  before_action :set_asset_fleet, only: [:show, :edit, :update, :destroy, :filter]
+  before_action :set_asset_fleet, only: [:show, :edit, :update, :destroy, :remove_asset]
 
   # GET /asset_fleets
   def index
+    params[:sort] ||= 'ntd_id'
 
     params[:sort] = 'organizations.short_name' if params[:sort] == 'organization'
 
@@ -69,6 +70,9 @@ class AssetFleetsController < OrganizationAwareController
   def show
     add_breadcrumb @asset_fleet
 
+    builder = AssetFleetBuilder.new(AssetFleetType.find_by(class_name: typed_asset.asset_type.class_name), typed_asset.organization, typed_asset.object_key)
+    @available_assets = builder.available_assets(@asset_fleet)
+
   end
 
   # GET /asset_fleets/new
@@ -102,11 +106,7 @@ class AssetFleetsController < OrganizationAwareController
 
   # PATCH/PUT /asset_fleets/1
   def update
-
-
-    if @asset_fleet.update(asset_fleet_params.except(:assets_attributes))
-      @asset_fleet.assets = Asset.where(object_key: params[:asset_fleet][:assets_attributes].collect{|k, v| v[:object_key] unless v[:_destroy]=='true'})
-
+    if @asset_fleet.update(asset_fleet_params)
       redirect_to @asset_fleet, notice: 'Asset fleet was successfully updated.'
     else
       render :edit
@@ -163,18 +163,35 @@ class AssetFleetsController < OrganizationAwareController
     asset = Asset.find_by(object_key: params[:asset_object_key])
 
     unless asset.nil?
-      typed_asset = Asset.get_typed_asset(asset)
-      @asset_builder_proxy = FleetAssetBuilderProxy.new(asset: typed_asset)
+      @asset = Asset.get_typed_asset(asset)
 
       # potential new fleet
       @asset_fleet = AssetFleet.new(organization_id: typed_asset.organization_id, asset_fleet_type: AssetFleetType.find_by(class_name: typed_asset.asset_type.class_name))
       @asset_fleet.assets << typed_asset
 
-      builder = AssetFleetBuilder.new
-      @available_fleets = builder.available_fleets(typed_asset)
+      builder = AssetFleetBuilder.new(AssetFleetType.find_by(class_name: typed_asset.asset_type.class_name), typed_asset.organization, typed_asset.object_key)
+      @available_fleets = builder.available_fleets(builder.asset_group_values.first)
     else
       redirect_to builder_asset_fleets_path
     end
+  end
+
+  def add_asset
+
+    @asset_fleet = AssetFleet.find_by(id: params[:fleet_asset_builder_asset_fleet_id])
+    @asset = Asset.find_by(id: params[:fleet_asset_builder_asset_id])
+
+    @asset_fleet.assets << @asset
+  end
+
+  def remove_asset
+    @asset = Asset.find_by(object_key: params[:asset])
+
+    if @asset.present?
+      @asset_fleet.assets.delete @asset
+    end
+
+    redirect_to :back
   end
 
   private
@@ -194,6 +211,10 @@ class AssetFleetsController < OrganizationAwareController
       end
 
     end
+
+  def fleet_asset_builder_params
+    params.require(:fleet_asset_builder_proxy).permit(FleetAssetBuilderProxy.allowable_params)
+  end
 
     # Only allow a trusted parameter "white list" through.
     def asset_fleet_params

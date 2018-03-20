@@ -5,10 +5,14 @@ Rails.application.routes.draw do
       get 'orphaned_assets'
 
       get 'new_asset'
-      post 'add_asset'
+      get 'add_asset'
 
       get 'builder'
       post 'runner'
+    end
+
+    member do
+      delete 'remove_asset'
     end
 
   end

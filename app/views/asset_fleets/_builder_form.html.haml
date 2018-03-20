@@ -15,6 +15,6 @@
     .col-md-6
       = f.input :action, :as => :radio_buttons, :required => true, :collection => [['Create all fleets from scratch', FleetBuilderProxy::RESET_ALL_ACTION]]
     .col-md-6
-      = f.input :asset_fleet_types, :as => :check_boxes, :required => true, :collection => AssetFleetType.all.map{|x| [AssetType.find_by(class_name: x.class_name).to_s, x.id] }, :label => 'Asset Types'
+      = f.input :asset_fleet_types, :as => :radio_buttons, :required => true, :collection => AssetFleetType.all.map{|x| [AssetType.find_by(class_name: x.class_name).to_s, x.id] }, :label => 'Asset Types'
 
   = f.submit "Run builder...", :class => "btn btn-primary", :id => "submit_button"
