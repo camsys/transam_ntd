@@ -51,7 +51,8 @@ class AssetFleetsController < OrganizationAwareController
              serial_number: p.serial_number,
              license_plane: p.license_plate,
              manufacturer_model: p.manufacturer_model,
-             vehicle_type: (FtaVehicleType.find_by(id: p.fta_vehicle_type_id) || FtaSupportVehicleType.find_by(id: p.fta_support_vehicle_type_id)).to_s
+             vehicle_type: (FtaVehicleType.find_by(id: p.fta_vehicle_type_id) || FtaSupportVehicleType.find_by(id: p.fta_support_vehicle_type_id)).to_s,
+             action: new_asset_asset_fleets_path(asset_object_key: p.object_key)
          })
         }
 
@@ -88,7 +89,7 @@ class AssetFleetsController < OrganizationAwareController
   def create
     @asset_fleet = AssetFleet.new(asset_fleet_params.except(:assets_attributes))
 
-    @asset_fleet.assets = Asset.where(object_key: params[:asset_fleet][:assets_attributes].collect{|k, v| v[:object_key] unless v[:_destroy]=='true'})
+    @asset_fleet.assets = Asset.where(object_key: params[:asset_object_key])
 
     @asset_fleet.creator = current_user
 
@@ -158,29 +159,22 @@ class AssetFleetsController < OrganizationAwareController
     end
   end
 
-  def filter
+  def new_asset
+    asset = Asset.find_by(object_key: params[:asset_object_key])
 
-    query = params[:query]
-    query_str = "%" + query + "%"
-    #Rails.logger.debug query_str
+    unless asset.nil?
+      typed_asset = Asset.get_typed_asset(asset)
+      @asset_builder_proxy = FleetAssetBuilderProxy.new(asset: typed_asset)
 
-    matches = []
-    assets = Asset
-       .where("organization_id = ? AND (asset_tag LIKE ? OR object_key LIKE ? OR description LIKE ?)", @asset_fleet.organization_id, query_str, query_str, query_str)
-       .where(@asset_fleet.group_by_fields)
+      # potential new fleet
+      @asset_fleet = AssetFleet.new(organization_id: typed_asset.organization_id, asset_fleet_type: AssetFleetType.find_by(class_name: typed_asset.asset_type.class_name))
+      @asset_fleet.assets << typed_asset
 
-    assets.each do |asset|
-      matches << {
-          "id" => asset.object_key,
-          "name" => "#{asset.name}: #{asset.description}"
-      }
+      builder = AssetFleetBuilder.new
+      @available_fleets = builder.available_fleets(typed_asset)
+    else
+      redirect_to builder_asset_fleets_path
     end
-
-    respond_to do |format|
-      format.js { render :json => matches.to_json }
-      format.json { render :json => matches.to_json }
-    end
-
   end
 
   private

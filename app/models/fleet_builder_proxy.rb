@@ -2,7 +2,7 @@
 class FleetBuilderProxy < Proxy
 
   RESET_ALL_ACTION            = 0         # clear out all existing fleets and rebuilt
-  USE_EXISTING_FLEET_ACTION   = 1         # add new assets to existing homogeneous fleets
+  USE_EXISTING_FLEET_ACTION   = 1         # add new assets to existing fleets
   NEW_FLEETS_ACTION           = 2         # add new assets to new fleets
 
   # General state variables

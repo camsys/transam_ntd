@@ -3,24 +3,14 @@
 :wrapper => :vertical_form,
 :wrapper_mappings => {:check_boxes => :vertical_radio_and_checkboxes, :radio_buttons => :vertical_radio_and_checkboxes, :file => :vertical_file_input, :boolean => :vertical_boolean}) do |f|
 
-  = f.association :organization, :collection => TransitOperator.where(id: @organization_list), :label_method => 'coded_name'
-  = f.association :asset_fleet_type, :collection => AssetFleetType.active, :disabled => !@asset_fleet.new_record?
-  = f.input :ntd_id, :required => !@asset_fleet.new_record?
+  = f.association :organization, :collection => TransitOperator.where(id: @organization_list), :label_method => 'coded_name', :disabled => asset.present?
+  = f.association :asset_fleet_type, :collection => AssetFleetType.active, :disabled => asset.present?
+  = f.input :ntd_id, :required => !@asset_fleet.new_record?, :label => 'NTD ID'
   = f.input :agency_fleet_id
   = f.input :fleet_name
   = f.input :notes, :label => 'NTD Notes', :placeholder => 'Notes will appear in generated NTD report.'
 
-  - unless @asset_fleet.new_record?
-    #assets.well.well-sm
-      %label.control-label
-        %i.fa.fa-bus.fa-1-5x
-        Assets
-      .links.pull-right
-        = link_to_add_association f, :assets, :class => 'btn btn-xs btn-info', data: {association_insertion_method: 'after'} do
-          %i.fa.fa-plus
-      %label#assets-error.error
-      = f.simple_fields_for :assets do |asset|
-        = render 'asset_fields', f: asset
+  = hidden_field_tag :asset_object_key, asset.try(:object_key)
 
   = f.button :submit, :class => "btn btn-primary"
 

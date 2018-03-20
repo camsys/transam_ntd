@@ -30,7 +30,7 @@ class AssetFleetBuilder
     # for each of the custom groups of the fleet type must do special selects and joins to pull out relevant info.
     asset_fleet_types.each do |fleet_type|
 
-      group_by_fields = fleet_type.groups.split(',') + ['primary_modes.fta_mode_type_id as primary_fta_mode_type_id']
+      group_by_fields = fleet_type.standard_group_by_fields + ['primary_modes.fta_mode_type_id as primary_fta_mode_type_id']
 
       query = fleet_type.class_name.constantize
                   .joins('LEFT JOIN (SELECT * FROM assets_fta_mode_types WHERE is_primary=1) AS primary_modes ON assets.id = primary_modes.asset_id')
@@ -78,7 +78,7 @@ class AssetFleetBuilder
           possible_assets = query
                                 .having(conditions.join(' AND '), *(vals.reject! &:nil?))
                                 .pluck(*group_by_fields.flatten, 'object_key').map{|x| x[-1]}
-          fleet = AssetFleet.homogeneous.joins(:assets).where(assets: {object_key: possible_assets}).first
+          fleet = AssetFleet.joins(:assets).where(assets: {object_key: possible_assets}).first
         end
 
         assets = Asset.operational.where(object_key: query.joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
@@ -96,6 +96,22 @@ class AssetFleetBuilder
 
   def reset_all(organization, asset_fleet_types)
     AssetFleet.where(organization: organization, asset_fleet_type: asset_fleet_types).destroy_all
+  end
+
+  def available_fleets(asset)
+    # rather than deal with an extremely complex query - find like assets by standard group by fields only
+    # then iterate through asset's fleets and compare all fields including custom to get possible fleets
+    fleet_type = AssetFleetType.find_by(class_name: asset.asset_type.class_name)
+
+    group_by_fields = asset.attributes.slice(*fleet_type.standard_group_by_fields)
+    fleets = AssetFleet.joins(:assets).where(asset_fleets: {organization_id: asset.organization_id}, assets: group_by_fields.merge({organization_id: asset.organization_id}), assets_asset_fleets: {active: true})
+
+    # in theory if a lot similar fleets should do more queries to make number smaller instead of iterate. For now just print to console
+    Rails.logger.info "There are a lot of similar fleets. This may take awhile." if fleets.count > 20
+
+    # check two assets within to see if the same (dont use fleet.group-by_fields cause that returns hash of data objects, takes more time, and you just need to check index values)
+    fleets.select {|fleet| fleet.assets_asset_fleets.active.first.asset.attributes.slice(*fleet_type.custom_group_by_fields) == asset.attributes.slice(*fleet_type.custom_group_by_fields)}
+
   end
 
   # Set resonable defaults for the builder

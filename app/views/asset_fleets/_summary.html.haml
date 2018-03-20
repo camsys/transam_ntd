@@ -10,8 +10,3 @@
 = format_field('Avg Lifetime Miles per Active Vehicle', "#{format_as_integer(@asset_fleet.avg_active_lifetime_miles)} miles")
 %br
 = format_field("Active", format_as_boolean(@asset_fleet.active))
-- if @asset_fleet.homogeneous
-  = format_field('Homogeneous', format_as_boolean(@asset_fleet.homogeneous))
-- else
-  .alert.alert-danger
-    Assets do not have similar properties. Please correct.

@@ -19,7 +19,8 @@ module TransamFleetable
     # Associations
     # ----------------------------------------------------
 
-    has_and_belongs_to_many :asset_fleets, :join_table => 'assets_asset_fleets', :foreign_key => :asset_id
+    has_and_belongs_to_many :assets_asset_fleets, :join_table => 'assets_asset_fleets', :foreign_key => :asset_id
+    has_and_belongs_to_many :asset_fleets, :through => :assets_asset_fleets, :join_table => 'assets_asset_fleets'
 
     # ----------------------------------------------------
     # Validations
@@ -52,8 +53,8 @@ module TransamFleetable
       #intersection
       self.changes.keys.each do |changed_field|
         if (fleet.asset_fleet_type.group_by_fields.include? changed_field) &&
-          # asset technically should not belong to fleet anymore because its property(s) is different than the others in fleet but for now mark fleet as non-homogeneous
-          fleet.update_columns(homogeneous: fleet.assets.pluck(changed_field).uniq.count == 1)
+          # asset technically should not belong to fleet anymore because its property(s) is different than the others so mark it as inactive
+          AssetsAssetFleet.find_by(asset: self, asset_fleet: fleet).update(active: false)
         end
       end
     end

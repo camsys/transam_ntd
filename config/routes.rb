@@ -3,14 +3,14 @@ Rails.application.routes.draw do
   resources :asset_fleets do
     collection do
       get 'orphaned_assets'
-      get 'add_asset'
+
+      get 'new_asset'
+      post 'add_asset'
 
       get 'builder'
       post 'runner'
     end
-    member do
-      get 'filter'
-    end
+
   end
 
   # NTD Forms Controllers

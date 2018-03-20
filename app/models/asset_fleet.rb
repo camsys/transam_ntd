@@ -37,15 +37,13 @@ class AssetFleet < ActiveRecord::Base
   belongs_to  :creator, :class_name => "User", :foreign_key => :created_by_user_id
 
   # Every asset grouop has zero or more assets
-  has_and_belongs_to_many :assets, :inverse_of => :asset_fleet, :join_table => 'assets_asset_fleets'
-  accepts_nested_attributes_for :assets, reject_if: :all_blank, allow_destroy: true
+  has_and_belongs_to_many :assets_asset_fleets, :join_table => 'assets_asset_fleets'
+
+  has_and_belongs_to_many :assets, :through => :assets_asset_fleets, :join_table => 'assets_asset_fleets'
 
   #------------------------------------------------------------------------------
   # Scopes
   #------------------------------------------------------------------------------
-
-  # All order types that are available
-  scope :homogeneous, -> { where(:homogeneous => true) }
 
   #------------------------------------------------------------------------------
   # Validations
@@ -217,6 +215,10 @@ class AssetFleet < ActiveRecord::Base
     {labels: labels, data: data, formats: formats}
   end
 
+  def homogeneous?
+    assets_asset_fleets.active.count == assets_asset_fleets.count
+  end
+
   #-----------------------------------------------------------------------------
   # Recieves method requests. Anything that does not start with get_ is delegated
   # to the super model otherwise the request is tested against the model components
@@ -229,12 +231,8 @@ class AssetFleet < ActiveRecord::Base
       # Strip off the decorator and see who can handle the real request
       actual_method_sym = method_sym.to_s[4..-1]
       if (asset_fleet_type.groups.include? actual_method_sym) || (asset_fleet_type.custom_groups.include? actual_method_sym)
-        if self.homogeneous
-          typed_asset = Asset.get_typed_asset(assets.first)
-          typed_asset.try(actual_method_sym)
-        else
-          'ERROR: Assets do not match'
-        end
+        typed_asset = Asset.get_typed_asset(assets_asset_fleets.active.first.asset)
+        typed_asset.try(actual_method_sym)
       end
     else
       puts "Method #{method_sym.to_s} with #{arguments}"
@@ -246,7 +244,7 @@ class AssetFleet < ActiveRecord::Base
   protected
 
   def set_defaults
-    self.homogeneous = self.homogeneous.nil? ? true: self.homogeneous
+
   end
 
 end

@@ -1,0 +1,20 @@
+:plain
+  $('#form-modal').html("#{escape_javascript(render 'asset_fleets/asset_form')}");
+  $('#form-modal').modal('show');
+
+  $("#action").bootstrapSwitch({
+    onText: 'Add to Existing Fleet',
+    offText: 'Create New Fleet',
+    onSwitchChange: switch_mode
+  });
+
+  function switch_mode() {
+    if ($("#action").prop('checked')) {
+      $('#add-asset').show();
+      $('#add-fleet').hide();
+
+    } else {
+      $('#add-asset').hide();
+      $('#add-fleet').show();
+    }
+  };
