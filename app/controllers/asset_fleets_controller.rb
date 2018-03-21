@@ -71,7 +71,7 @@ class AssetFleetsController < OrganizationAwareController
     add_breadcrumb @asset_fleet
 
     builder = AssetFleetBuilder.new(@asset_fleet.asset_fleet_type, @asset_fleet.organization)
-    @available_assets = builder.available_assets(@asset_fleet)
+    @available_assets = builder.available_assets(builder.asset_group_values({fleet: @asset_fleet}))
 
   end
 
@@ -166,11 +166,11 @@ class AssetFleetsController < OrganizationAwareController
       @asset = Asset.get_typed_asset(asset)
 
       # potential new fleet
-      @asset_fleet = AssetFleet.new(organization_id: typed_asset.organization_id, asset_fleet_type: AssetFleetType.find_by(class_name: typed_asset.asset_type.class_name))
-      @asset_fleet.assets << typed_asset
+      @asset_fleet = AssetFleet.new(organization_id: @asset.organization_id, asset_fleet_type: AssetFleetType.find_by(class_name: @asset.asset_type.class_name))
+      @asset_fleet.assets << @asset
 
-      builder = AssetFleetBuilder.new(AssetFleetType.find_by(class_name: typed_asset.asset_type.class_name), typed_asset.organization, typed_asset.object_key)
-      @available_fleets = builder.available_fleets(builder.asset_group_values.first)
+      builder = AssetFleetBuilder.new(AssetFleetType.find_by(class_name: @asset.asset_type.class_name), @asset.organization)
+      @available_fleets = builder.available_fleets(builder.asset_group_values({asset: @asset}))
     else
       redirect_to builder_asset_fleets_path
     end
@@ -178,10 +178,12 @@ class AssetFleetsController < OrganizationAwareController
 
   def add_asset
 
-    @asset_fleet = AssetFleet.find_by(id: params[:fleet_asset_builder_asset_fleet_id])
-    @asset = Asset.find_by(id: params[:fleet_asset_builder_asset_id])
+    @asset_fleet = AssetFleet.find_by(id: params[:fleet_asset_builder][:asset_fleet_id])
+    @asset = Asset.find_by(id: params[:fleet_asset_builder][:asset_id])
 
     @asset_fleet.assets << @asset
+
+    redirect_to :back
   end
 
   def remove_asset

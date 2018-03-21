@@ -6,7 +6,7 @@ class AssetsAssetFleet < ActiveRecord::Base
 
   after_initialize  :set_defaults
 
-  scope :active, -> { where(:active => true) }
+  scope :active, -> { where('active = 1 OR active IS NULL') }
 
   belongs_to :asset
   belongs_to :asset_fleet

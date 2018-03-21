@@ -40,7 +40,7 @@ class AssetFleet < ActiveRecord::Base
   has_many :assets_asset_fleets
 
   has_and_belongs_to_many :assets, :through => :assets_asset_fleets, :join_table => 'assets_asset_fleets'
-  has_and_belongs_to_many :active_assets, -> { where(assets_asset_fleets: {active: true}) }, :through => :assets_asset_fleets, :join_table => 'assets_asset_fleets', :class_name => 'Asset'
+  has_and_belongs_to_many :active_assets, -> { where('assets_asset_fleets.active = 1 OR assets_asset_fleets.active IS NULL') }, :through => :assets_asset_fleets, :join_table => 'assets_asset_fleets', :class_name => 'Asset'
 
   #------------------------------------------------------------------------------
   # Scopes

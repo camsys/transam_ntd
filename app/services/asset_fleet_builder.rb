@@ -9,7 +9,6 @@
 class AssetFleetBuilder
   attr_accessor :asset_fleet_type
   attr_accessor :organization
-  attr_accessor :asset_object_keys
   attr_accessor :query
 
 
@@ -31,15 +30,11 @@ class AssetFleetBuilder
     group_by_fields.flatten
   end
 
-  def asset_query(fleet_type, organization, options={})
+  def asset_query(fleet_type, organization)
 
     query = fleet_type.class_name.constantize
                 .joins('LEFT JOIN (SELECT * FROM assets_fta_mode_types WHERE is_primary=1) AS primary_modes ON assets.id = primary_modes.asset_id')
                 .where(organization: organization)
-
-    unless options[:asset_object_keys].blank?
-      query = query.where(object_key: options[:asset_object_keys].split(','))
-    end
 
     if fleet_type.class_name == 'Vehicle'
       query = query
@@ -54,14 +49,26 @@ class AssetFleetBuilder
     query
   end
 
-  def asset_group_values(new_assets_only=false)
+  def asset_group_values(options={})
     # can add operational scope here cause can assume assets manipulating NOW (= Time.now) must be operational (I think?)
     # TODO: should rethink this a little -- what happens if assets out of service in this FY and need to manipulate?
     query_values = @query.operational.joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
 
-    query_values = query_values.where('assets_asset_fleets.asset_id IS NULL') if new_assets_only
+    if options[:asset]
+      query_values = query_values.where(assets: {object_key: options[:asset].object_key})
+    elsif options[:fleet]
+      query_values = query_values.where(assets: {object_key: options[:fleet].active_assets.first.object_key})
+    else
+      query_values = query_values.where('assets_asset_fleets.asset_id IS NULL')
+    end
 
-    query_values.group(*@asset_fleet_type.group_by_fields).pluck(*group_by_fields(@asset_fleet_type))
+    query_values = query_values.group(*@asset_fleet_type.group_by_fields).pluck(*group_by_fields(@asset_fleet_type))
+
+    if options[:asset] || options[:fleet]
+      query_values.first
+    else
+      query_values
+    end
   end
 
   def available_fleets(asset_group_value)
@@ -76,20 +83,16 @@ class AssetFleetBuilder
     end
 
     possible_assets = @query
-                          .having(conditions.join(' AND '), *(asset_group_value.reject! &:nil?))
+                          .having(conditions.join(' AND '), *(asset_group_value.select{|x| !x.nil?}))
                           .pluck(*group_by_fields(@asset_fleet_type), 'object_key').map{|x| x[-1]}
 
-    AssetFleet.joins(:assets).where(assets: {object_key: possible_assets})
+    AssetFleet.distinct.joins(:assets).where(assets: {object_key: possible_assets})
   end
 
-  def available_assets(fleet)
-
-    fleet_type = fleet.asset_fleet_type
-    organization = fleet.organization
-    asset_group_value = asset_group_values.first
+  def available_assets(asset_group_value)
 
     conditions = []
-    fleet_type.group_by_fields.each_with_index do |field, idx|
+    @asset_fleet_type.group_by_fields.each_with_index do |field, idx|
       if asset_group_value[idx].nil?
         conditions << "#{field} IS NULL"
       else
@@ -100,8 +103,8 @@ class AssetFleetBuilder
     assets = Asset.operational.where(object_key: @query
                                                      .joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
                                                      .where('assets_asset_fleets.asset_id IS NULL')
-                                                     .having(conditions.join(' AND '), *(asset_group_value.reject! &:nil?))
-                                                     .pluck(*group_by_fields(fleet_type), 'object_key').map{|x| x[-1]})
+                                                     .having(conditions.join(' AND '), *(asset_group_value.select{|x| !x.nil?}))
+                                                     .pluck(*group_by_fields(@asset_fleet_type), 'object_key').map{|x| x[-1]})
 
     assets
   end
@@ -115,7 +118,7 @@ class AssetFleetBuilder
       reset_all
     end
 
-    group_by_values = asset_group_values(true)
+    group_by_values = asset_group_values
 
     group_by_values.each do |vals|
 
@@ -129,7 +132,7 @@ class AssetFleetBuilder
         fleet = available_fleets(vals).first
       end
 
-      fleet.assets << available_assets(fleet)
+      fleet.assets << available_assets(vals)
 
     end
 
@@ -140,12 +143,11 @@ class AssetFleetBuilder
   end
 
   # Set resonable defaults for the builder
-  def initialize(fleet_type, organization, asset_object_keys='')
+  def initialize(fleet_type, organization)
     self.organization = organization
     self.asset_fleet_type = fleet_type
-    self.asset_object_keys = asset_object_keys
 
-    self.query = asset_query(fleet_type, organization, {asset_object_keys: @asset_object_keys})
+    self.query = asset_query(fleet_type, organization)
   end
 
   #-----------------------------------------------------------------------------
