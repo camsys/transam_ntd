@@ -1,5 +1,13 @@
 = format_field("Organization", link_to(@asset_fleet.organization.short_name, organization_path(@asset_fleet.organization)))
 = format_field(@asset_fleet.ntd_id_label, @asset_fleet.ntd_id)
+- if @asset_fleet.ntd_id.nil?
+  .alert.alert-danger.alert-dismissible{:role=> "alert"}
+    %button.close{:data => {:dismiss => 'alert'}}
+      %span{:aria => {:hidden => true}} &times;
+    %p.text-center
+      %strong
+        Warning!
+      = "Please add #{@asset_fleet.ntd_id_label}.".html_safe
 %br
 = format_field('Total Vehicles', format_as_integer(@asset_fleet.total_count))
 = format_field('Active Vehicles', format_as_integer(@asset_fleet.active_count))

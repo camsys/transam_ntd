@@ -37,7 +37,7 @@
         %td.center= format_as_decimal(a.reported_condition_rating, 1)
         %td.center= a.service_status_type.code unless a.service_status_type.nil?
 
-        - assets_asset_fleet = a.assets_asset_fleets.find_by(asset_fleet: @asset_fleet)
+        - assets_asset_fleet = AssetsAssetFleet.find_by(asset: a, asset_fleet: @asset_fleet)
         %td.center= format_as_boolean(assets_asset_fleet.try(:active))
         %td.center
           - if assets_asset_fleet.present?

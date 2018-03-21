@@ -13,15 +13,6 @@
         = render 'summary'
 
   .col-md-9
-    - if @asset_fleet.ntd_id.nil?
-      .alert.alert-danger.alert-dismissible{:role=> "alert"}
-        %button.close{:data => {:dismiss => 'alert'}}
-          %span{:aria => {:hidden => true}} &times;
-        %p.text-center
-          %strong
-            Warning!
-          = "Please add #{@asset_fleet.ntd_id_label}.".html_safe
-
     .panel.panel-default.header-part
       .panel-heading
         .row

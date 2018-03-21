@@ -70,7 +70,7 @@ class AssetFleetsController < OrganizationAwareController
   def show
     add_breadcrumb @asset_fleet
 
-    builder = AssetFleetBuilder.new(AssetFleetType.find_by(class_name: typed_asset.asset_type.class_name), typed_asset.organization, typed_asset.object_key)
+    builder = AssetFleetBuilder.new(@asset_fleet.asset_fleet_type, @asset_fleet.organization)
     @available_assets = builder.available_assets(@asset_fleet)
 
   end

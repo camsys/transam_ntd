@@ -1,10 +1,13 @@
+:ruby
+  asset ||= nil
+
 = simple_form_for(@asset_fleet,
 :html => {:class => 'form-vertical asset_fleet_form'},
 :wrapper => :vertical_form,
 :wrapper_mappings => {:check_boxes => :vertical_radio_and_checkboxes, :radio_buttons => :vertical_radio_and_checkboxes, :file => :vertical_file_input, :boolean => :vertical_boolean}) do |f|
 
-  = f.association :organization, :collection => TransitOperator.where(id: @organization_list), :label_method => 'coded_name', :disabled => asset.present?
-  = f.association :asset_fleet_type, :collection => AssetFleetType.active, :disabled => asset.present?
+  = f.association :organization, :collection => TransitOperator.where(id: @organization_list), :label_method => 'coded_name', :disabled => true
+  = f.association :asset_fleet_type, :collection => AssetFleetType.active, :disabled => true
   = f.input :ntd_id, :required => !@asset_fleet.new_record?, :label => 'NTD ID'
   = f.input :agency_fleet_id
   = f.input :fleet_name

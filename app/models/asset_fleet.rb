@@ -81,10 +81,6 @@ class AssetFleet < ActiveRecord::Base
     FORM_PARAMS
   end
 
-  def self.active
-    AssetFleet.joins(:assets)
-  end
-
   #------------------------------------------------------------------------------
   #
   # Instance Methods

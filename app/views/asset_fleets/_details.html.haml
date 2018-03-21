@@ -1,7 +1,10 @@
 %ul.nav.nav-tabs
   %li
     %a{:href => "#ntd", :data =>{:toggle => 'tab'}}
-      = "NTD"
+      Information
+  %li
+    %a{:href => "#mileage", :data =>{:toggle => 'tab'}}
+      Mileage
   %li
     %a{:href => "#assets", :data =>{:toggle => 'tab'}}
       %span{:style => 'white-space: nowrap !important;'}
@@ -14,6 +17,10 @@
       - data = @asset_fleet.formatted_group_by_fields
       - data[:labels].zip(data[:data],data[:formats]).each do |row|
         = format_field(row[0], format_using_format(row[1], row[2]))
+
+  .tab-pane.fade#mileage
+    .tab-content
+      = render :partial => 'asset_fleets/asset_mileages_datatable'
 
   .tab-pane.fade#assets
     .tab-content

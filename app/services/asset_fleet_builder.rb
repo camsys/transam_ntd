@@ -54,11 +54,14 @@ class AssetFleetBuilder
     query
   end
 
-  def asset_group_values
-    @query.joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
-        .where('assets_asset_fleets.asset_id IS NULL')
-        .group(*@asset_fleet_type.group_by_fields)
-        .pluck(*group_by_fields(@asset_fleet_type))
+  def asset_group_values(new_assets_only=false)
+    # can add operational scope here cause can assume assets manipulating NOW (= Time.now) must be operational (I think?)
+    # TODO: should rethink this a little -- what happens if assets out of service in this FY and need to manipulate?
+    query_values = @query.operational.joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
+
+    query_values = query_values.where('assets_asset_fleets.asset_id IS NULL') if new_assets_only
+
+    query_values.group(*@asset_fleet_type.group_by_fields).pluck(*group_by_fields(@asset_fleet_type))
   end
 
   def available_fleets(asset_group_value)
@@ -94,7 +97,7 @@ class AssetFleetBuilder
       end
     end
 
-    assets = Asset.operational.where(object_key: asset_query(fleet_type, organization, options)
+    assets = Asset.operational.where(object_key: @query
                                                      .joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
                                                      .where('assets_asset_fleets.asset_id IS NULL')
                                                      .having(conditions.join(' AND '), *(asset_group_value.reject! &:nil?))
@@ -112,7 +115,7 @@ class AssetFleetBuilder
       reset_all
     end
 
-    group_by_values = asset_group_values
+    group_by_values = asset_group_values(true)
 
     group_by_values.each do |vals|
 
