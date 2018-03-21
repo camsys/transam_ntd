@@ -1,5 +1,6 @@
 :ruby
   table_dom_id = SecureRandom.hex
+  mileage_event_type = AssetEventType.find_by(class_name: "MileageUpdateEvent")
 
 = format_field("FY Year", format_as_fiscal_year(current_fiscal_year_year))
 = format_field('Miles This Year', "#{format_as_integer(@asset_fleet.miles_this_year)} miles")
@@ -29,17 +30,17 @@
           - mileage_fy_end = typed_asset.fiscal_year_mileage(current_fiscal_year_year)
           %tr
             %td.left= a.asset_tag
-            %td.right
+            %td.right{id: a.object_key+'_start_cell'}
               - if mileage_fy_start.present?
                 = mileage_fy_start
               - else
-                = link_to '#', :remote => true, :class => "btn btn-warning btn-sm" do
+                = link_to new_inventory_asset_event_path(a, :event_type => mileage_event_type.id, :mileage_event_date => (start_of_fiscal_year(current_fiscal_year_year)-1.day), view_div: a.object_key+'_start_cell', view_name: 'asset_fleets/update_asset_mileage'), :remote => true, :class => "btn btn-warning btn-sm" do
                   Record Mileage
-            %td.right
+            %td.right{id: a.object_key+'_end_cell'}
               - if mileage_fy_end.present?
                 = mileage_fy_end
               - else
-                = link_to '#', :remote => true, :class => "btn btn-warning btn-sm" do
+                = link_to new_inventory_asset_event_path(a, :event_type => mileage_event_type.id, :mileage_event_date => (start_of_fiscal_year(current_fiscal_year_year+1)-1.day), view_div: a.object_key+'_end_cell', view_name: 'asset_fleets/update_asset_mileage'), :remote => true, :class => "btn btn-warning btn-sm" do
                   Record Mileage
             %td.right
               - if mileage_fy_start.present? && mileage_fy_end.present?

@@ -1,7 +1,6 @@
 :ruby
   table_dom_id = SecureRandom.hex
 
-
 .table-responsive
   %table.table.table-condensed.table-hover{:id => table_dom_id,
     :data => {:toggle => 'table',
@@ -44,11 +43,12 @@
         %th.left{:data => {:field => 'fta_vehicle_type_id', :sortable => 'true'}} FTA Vehicle Type
 
         %th.left{:data => {:field => 'manufacturer_id', :sortable => 'true'}} Manufacturer
-        %th.left{:data => {:field => 'manufacturer_id', :sortable => 'true'}} Model
+        -#%th.left{:data => {:field => 'manufacturer_id', :sortable => 'true'}} Model
         %th.left{:data => {:field => 'manufacture_year', :sortable => 'true'}} Manufacture Year
 
-        %th.right{:data => {:field => 'manufacturer_id', :sortable => 'true'}} Useful Life Benchmark
-        %th.right{:data => {:field => 'manufacturer_id', :sortable => 'true'}} Useful Life Remaining
+        %th.right{:data => {:field => 'useful_life_benchmark', :sortable => 'true'}} Useful Life Benchmark
+        %th.right{:data => {:field => 'useful_life_remaining', :sortable => 'true'}} Useful Life Remaining
+        %th.center{:data => {:field => 'action', :formatter => 'action_formatter'}} Action
 
 :javascript
   $(document).ready(function() {
@@ -128,6 +128,10 @@
 
   function currency_formatter(value) {
     return "$" + formatMoney(value);
+  }
+
+  function action_formatter(value, data) {
+    return "<a class='btn btn-primary btn-sm' href='#{asset_fleets_path}/"+data.object_key+"'>View</a>";
   }
 
 

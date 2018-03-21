@@ -40,6 +40,7 @@ class AssetFleet < ActiveRecord::Base
   has_many :assets_asset_fleets
 
   has_and_belongs_to_many :assets, :through => :assets_asset_fleets, :join_table => 'assets_asset_fleets'
+  has_and_belongs_to_many :active_assets, -> { where(assets_asset_fleets: {active: true}) }, :through => :assets_asset_fleets, :join_table => 'assets_asset_fleets', :class_name => 'Asset'
 
   #------------------------------------------------------------------------------
   # Scopes
@@ -92,7 +93,9 @@ class AssetFleet < ActiveRecord::Base
     super(options).merge!({
         organization: self.organization.to_s,
         total_count: self.total_count,
-        active_count: self.active_count
+        active_count: self.active_count,
+        useful_life_benchmark: self.useful_life_benchmark,
+        useful_life_remaining: self.useful_life_remaining
     }).merge!(fleet_type_fields.each{|k,v| fleet_type_fields[k] = v.try(:code) || v.to_s})
   end
 
@@ -157,6 +160,14 @@ class AssetFleet < ActiveRecord::Base
     active_count > 0 ? total_active_lifetime_miles / active_count.to_i : active_count
   end
 
+  def useful_life_benchmark
+    active_assets.first.try(:useful_life_benchmark)
+  end
+
+  def useful_life_remaining
+    active_assets.first.try(:useful_life_remaining)
+  end
+
   def group_by_fields
     a = Hash.new
 
@@ -212,7 +223,7 @@ class AssetFleet < ActiveRecord::Base
   end
 
   def homogeneous?
-    assets_asset_fleets.active.count == assets_asset_fleets.count
+    active_assets.count == assets.count
   end
 
   #-----------------------------------------------------------------------------
@@ -227,7 +238,7 @@ class AssetFleet < ActiveRecord::Base
       # Strip off the decorator and see who can handle the real request
       actual_method_sym = method_sym.to_s[4..-1]
       if (asset_fleet_type.groups.include? actual_method_sym) || (asset_fleet_type.custom_groups.include? actual_method_sym)
-        typed_asset = Asset.get_typed_asset(assets_asset_fleets.active.first.asset)
+        typed_asset = Asset.get_typed_asset(active_assets.first)
         typed_asset.try(actual_method_sym)
       end
     else
