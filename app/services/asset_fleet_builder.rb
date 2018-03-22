@@ -54,6 +54,9 @@ class AssetFleetBuilder
     # TODO: should rethink this a little -- what happens if assets out of service in this FY and need to manipulate?
     query_values = @query.operational.joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
 
+
+    # trying to get the group values if given an asset or fleet
+    # if not given anything look only at assets not in fleets already and return an array of arrays of all possible grouped values
     if options[:asset]
       query_values = query_values.where(assets: {object_key: options[:asset].object_key})
     elsif options[:fleet]
