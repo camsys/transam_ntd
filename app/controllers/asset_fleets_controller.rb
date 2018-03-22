@@ -3,7 +3,7 @@ class AssetFleetsController < OrganizationAwareController
   layout 'asset_fleets'
 
   add_breadcrumb "Home", :root_path
-  add_breadcrumb "Asset Fleets", :asset_fleets_path
+  add_breadcrumb "Fleets", :asset_fleets_path
 
   before_action :set_asset_fleet, only: [:show, :edit, :update, :destroy, :remove_asset]
 
@@ -16,8 +16,9 @@ class AssetFleetsController < OrganizationAwareController
     @fta_asset_category = (FtaAssetCategory.find_by(id: params[:fta_asset_category_id]) || FtaAssetCategory.first)
     @asset_fleet_types = AssetFleetType.where(class_name: @fta_asset_category.asset_types.pluck(:class_name))
 
-    @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: @asset_fleet_types.pluck(:id)).order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset])
+    @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: @asset_fleet_types.pluck(:id))
 
+    add_breadcrumb @fta_asset_category.name == 'Equipment' ? "Support Vehicles" : @fta_asset_category.to_s
     @message = "Creating asset fleets. This process might take a while."
 
     respond_to do |format|
@@ -25,7 +26,7 @@ class AssetFleetsController < OrganizationAwareController
       format.json {
         render :json => {
             :total => @asset_fleets.count,
-            :rows =>  @asset_fleets
+            :rows =>  @asset_fleets.order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset])
         }
       }
       format.xls
@@ -119,7 +120,7 @@ class AssetFleetsController < OrganizationAwareController
   end
 
   def builder
-    add_breadcrumb "Asset Fleet Builder"
+    add_breadcrumb "Manage Fleets"
 
     # Select the asset types that they are allowed to build. This is narrowed down to only
     # asset types they own

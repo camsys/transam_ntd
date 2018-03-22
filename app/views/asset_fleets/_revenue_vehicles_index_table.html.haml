@@ -1,6 +1,11 @@
 :ruby
   table_dom_id = SecureRandom.hex
 
+:css
+  .th-inner {
+    white-space: normal !important;
+  }
+  
 .table-responsive
   %table.table.table-condensed.table-hover{:id => table_dom_id,
     :data => {:toggle => 'table',
@@ -14,20 +19,18 @@
     :page_number => '1',
     :page_list => "[5, 10, 20, 50, 100, 200]",
     :page_size => current_user.num_table_rows,
-    :search => 'false',
-    :show_columns => 'true',
+    :search => 'true',
+    :show_columns => 'false',
     :show_export => 'true',
     :row_style => 'row_style',
-    :click_to_select => 'true',
+    :click_to_select => 'false',
     :show_export => 'true',
     :export_types => "['csv', 'txt', 'excel']",
     :state_save => 'true',
     :state_save_id_table => "asset_fleetsid",
     :state_save_expire => "1y",
-    :maintain_selected => 'true',
+    :maintain_selected => 'false',
     :single_select => 'false'}}
-
-
 
     %thead
       %tr
@@ -43,7 +46,7 @@
         %th.left{:data => {:field => 'fta_vehicle_type_id', :sortable => 'true'}} FTA Vehicle Type
 
         %th.left{:data => {:field => 'manufacturer_id', :sortable => 'true'}} Manufacturer
-        -#%th.left{:data => {:field => 'manufacturer_id', :sortable => 'true'}} Model
+        %th.left{:data => {:field => 'manufacturer_model', :sortable => 'true'}} Model
         %th.left{:data => {:field => 'manufacture_year', :sortable => 'true'}} Manufacture Year
 
         %th.right{:data => {:field => 'useful_life_benchmark', :sortable => 'true'}} Useful Life Benchmark
@@ -52,7 +55,11 @@
 
 :javascript
   $(document).ready(function() {
-    $('#' + '#{table_dom_id}').bootstrapTable('resetWidth');
+    $('##{table_dom_id}').bootstrapTable('resetWidth');
+
+    $('##{table_dom_id}').on('post-body.bs.table', function (e) {
+    $("td").filter(function() { return $(this).text() === '-'}).removeClass('left').removeClass('right').addClass('center');
+    });
   });
 
   var path = '#{asset_fleet_path("x")}';
@@ -62,19 +69,8 @@
     };
   };
 
-  $('#' + '#{table_dom_id}').on('click-row.bs.table', function (e, row, $element) {
-    var url = path.replace("x", row['object_key']);
-    document.location.href = url;
-  }).on('post-body.bs.table', function () {
-    $('.transam-popover').popover({
-      trigger: 'hover'
-    });
-
-    $('.transam-tooltip').tooltip();
-  });
-
   $(window).resize(function() {
-    $('#' + '#{table_dom_id}').bootstrapTable('resetView');
+    $('##{table_dom_id}').bootstrapTable('resetView');
   });
 
   // var org_filter = #{@org_filter || []};
