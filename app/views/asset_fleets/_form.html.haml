@@ -10,7 +10,8 @@
   = f.input :asset_fleet_type_id, :as => :hidden
   = f.input :ntd_id, :required => !@asset_fleet.new_record?, :label => 'NTD ID'
   = f.input :agency_fleet_id
-  = f.input :fleet_name
+  - if @asset_fleet.asset_fleet_type.class_name == 'Equipment'
+    = f.input :fleet_name
   = f.input :notes, :label => 'NTD Notes', :placeholder => 'Notes will appear in generated NTD report.'
 
   = hidden_field_tag :asset_object_key, asset.try(:object_key)
