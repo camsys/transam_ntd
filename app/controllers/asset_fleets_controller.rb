@@ -119,43 +119,30 @@ class AssetFleetsController < OrganizationAwareController
   end
 
   def builder
-    add_breadcrumb "Asset Fleet Builder"
 
-    # Select the asset types that they are allowed to build. This is narrowed down to only
-    # asset types they own
-    @asset_types = AssetType.where(id: Asset.where(organization: @organization_list).pluck('DISTINCT asset_type_id'))
-    puts @asset_types.inspect
-
-    @builder_proxy = FleetBuilderProxy.new
+    # Select the fta asset categories that they are allowed to build.
+    # This is narrowed down to only asset types they own
+    @fta_asset_categories = []
+    rev_vehicles = FtaAssetCategory.find_by(name: 'Revenue Vehicles')
+    @fta_asset_categories << {id: rev_vehicles.id, label: rev_vehicles.to_s} if Asset.where(organization_id: @organization_list, asset_type: rev_vehicles.asset_types).count > 0
+    @fta_asset_categories << {id: FtaAssetCategory.find_by(name: 'Equipment').id, label: 'Support Vehicles'} if SupportVehicle.where(organization_id: @organization_list).count > 0
 
     @message = "Creating asset fleets. This process might take a while."
   end
 
   def runner
 
-    @builder_proxy = FleetBuilderProxy.new(params[:fleet_builder_proxy])
-    if @builder_proxy.valid?
+    fta_asset_category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
 
-      if @builder_proxy.organization_id.blank?
-        org_id = @organization_list.first
-      else
-        org_id = @builder_proxy.organization_id
-      end
-      org = Organization.get_typed_organization(Organization.find(org_id))
-
-      Delayed::Job.enqueue AssetFleetBuilderJob.new(org, @builder_proxy.asset_fleet_types, @builder_proxy.action,current_user), :priority => 0
+    if fta_asset_category.present?
+      Delayed::Job.enqueue AssetFleetBuilderJob.new(TransitOperator.where(id: @organization_list), AssetFleetType.where(class_name: fta_asset_category.asset_types.pluck(:class_name)), FleetBuilderProxy::RESET_ALL_ACTION,current_user), :priority => 0
 
       # Let the user know the results
       msg = "Fleet Builder is running. You will be notified when the process is complete."
       notify_user(:notice, msg)
-
-      redirect_to asset_fleets_path
-      return
-    else
-      respond_to do |format|
-        format.html { render :action => "builder" }
-      end
     end
+
+    redirect_to :back
   end
 
   def new_asset

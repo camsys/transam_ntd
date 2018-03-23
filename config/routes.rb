@@ -8,7 +8,7 @@ Rails.application.routes.draw do
       get 'add_asset'
 
       get 'builder'
-      post 'runner'
+      get 'runner'
     end
 
     member do

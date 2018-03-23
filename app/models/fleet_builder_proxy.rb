@@ -1,3 +1,6 @@
+# this class is no longer used other than the variables depicting the different types of actions
+# leaving code since already written and can be reused if the builder ever needs to be converted back to form
+
 
 class FleetBuilderProxy < Proxy
 
