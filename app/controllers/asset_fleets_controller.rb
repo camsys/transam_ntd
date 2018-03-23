@@ -16,11 +16,24 @@ class AssetFleetsController < OrganizationAwareController
     @fta_asset_category = (FtaAssetCategory.find_by(id: params[:fta_asset_category_id]) || FtaAssetCategory.first)
     @asset_fleet_types = AssetFleetType.where(class_name: @fta_asset_category.asset_types.pluck(:class_name))
 
+    add_breadcrumb @fta_asset_category.name == 'Equipment' ? "Support Vehicles" : @fta_asset_category.to_s
+    
     @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: @asset_fleet_types.pluck(:id))
 
-    add_breadcrumb @fta_asset_category.name == 'Equipment' ? "Support Vehicles" : @fta_asset_category.to_s
-    @message = "Creating asset fleets. This process might take a while."
-
+    # Filter results
+    # Primary FTA Mode Type is particularly messy
+    @primary_fta_mode_type_id = params[:primary_fta_mode_type_id]
+    if @primary_fta_mode_type_id.present?
+      @asset_fleets = @asset_fleets
+                      .joins(:assets)
+                      .joins("INNER JOIN assets_fta_mode_types ON assets.id = assets_fta_mode_types.asset_id")
+                      .where(assets_fta_mode_types: {fta_mode_type_id: @primary_fta_mode_type_id,
+                                                     is_primary: true})
+    end
+    @primary_modes = FtaModeType.where(id: AssetsFtaModeType.joins(:fta_mode_type)
+                                        .where(assets_fta_mode_types: {is_primary: true}, asset_id: @asset_fleets.joins(:assets).pluck(:asset_id))
+                                        .pluck(:fta_mode_type_id))
+    
     respond_to do |format|
       format.html 
       format.json {
