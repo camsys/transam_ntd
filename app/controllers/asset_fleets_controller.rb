@@ -13,11 +13,10 @@ class AssetFleetsController < OrganizationAwareController
 
     params[:sort] = 'organizations.short_name' if params[:sort] == 'organization'
 
-    @asset_fleet_type = AssetFleetType.find_by(id: params[:asset_fleet_type_id]) || AssetFleetType.first
+    @fta_asset_category = (FtaAssetCategory.find_by(id: params[:fta_asset_category_id]) || FtaAssetCategory.first)
+    @asset_fleet_types = AssetFleetType.where(class_name: @fta_asset_category.asset_types.pluck(:class_name))
 
-    @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: @asset_fleet_type.id).order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset])
-
-    @builder_proxy = FleetBuilderProxy.new
+    @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: @asset_fleet_types.pluck(:id)).order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset])
 
     @message = "Creating asset fleets. This process might take a while."
 

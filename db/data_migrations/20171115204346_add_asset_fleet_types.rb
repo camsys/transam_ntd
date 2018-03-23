@@ -13,10 +13,4 @@ class AddAssetFleetTypes < ActiveRecord::DataMigration
            active: true
      }) if AssetFleetType.find_by(class_name: 'SupportVehicle').nil?
   end
-
-  def down
-    AssetFleetType.delete_all
-    AssetFleet.delete_all
-    AssetsAssetFleet.delete_all
-  end
 end

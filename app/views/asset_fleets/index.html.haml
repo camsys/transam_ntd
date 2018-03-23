@@ -1,3 +1,3 @@
-- view_component = "#{@asset_fleet_type.class_name.underscore}_index_table"
+- view_component = "#{@fta_asset_category.name.parameterize.underscore}_index_table"
 - if lookup_context.template_exists?(view_component, 'asset_fleets', true)
   = render :partial => "asset_fleets/#{view_component}"

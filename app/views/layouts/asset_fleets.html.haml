@@ -6,10 +6,14 @@
       %h2 Fleets
 
     %ul.nav.nav-pills
-      - AssetFleetType.all.each do |fleet_type|
-        %li{@asset_fleet_type == fleet_type ? {class: 'active'}: {}}
-          = link_to asset_fleets_path(asset_fleet_type_id: fleet_type.id), :class => 'btn btn-default' do
-            = AssetType.find_by(class_name: fleet_type.class_name)
+      - rev_vehicles = FtaAssetCategory.find_by(name: 'Revenue Vehicles')
+      - support_vehicles = FtaAssetCategory.find_by(name: 'Equipment')
+      %li{@fta_asset_category == rev_vehicles ? {class: 'active'}: {}}
+        = link_to asset_fleets_path(fta_asset_category_id: rev_vehicles.id), :class => 'btn btn-default' do
+          = rev_vehicles
+      %li{@fta_asset_category == support_vehicles ? {class: 'active'}: {}}
+        = link_to asset_fleets_path(fta_asset_category_id: support_vehicles.id), :class => 'btn btn-default' do
+          Support Vehicles
       %li{params[:action] == 'builder' ? {class: 'active'}: {}}
         = link_to builder_asset_fleets_path, :class => 'btn btn-default' do
           Manage Fleets

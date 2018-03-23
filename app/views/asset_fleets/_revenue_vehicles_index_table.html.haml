@@ -1,11 +1,10 @@
 :ruby
   table_dom_id = SecureRandom.hex
 
-
 .table-responsive
   %table.table.table-condensed.table-hover{:id => table_dom_id,
     :data => {:toggle => 'table',
-    :url => asset_fleets_path(:asset_fleet_type_id => AssetFleetType.find_by(class_name: 'SupportVehicle').id, :format => :json),
+    :url => asset_fleets_path(:fta_asset_category_id => FtaAssetCategory.find_by(name: 'Revenue Vehicles').id, :format => :json),
     :card_view => "false",
     :pagination => 'true',
     :sort_order => 'asc',
@@ -35,12 +34,18 @@
         %th.left{:data => {:field => 'object_key', :visible => 'false'}} Object Key
         - if @organization_list.count > 1
           %th.left{:data => {:field => 'organization',:sortable => 'true'}} Agency
-        %th.left{:data => {:field => 'ntd_id', :sortable => 'true'}} NTD ID
+        %th.left{:data => {:field => 'ntd_id', :sortable => 'true'}} RVI ID
         %th.left{:data => {:field => 'agency_fleet_id', :sortable => 'true'}} Agency Fleet ID
         %th.left{:data => {:field => 'primary_fta_mode_type_id', :sortable => 'true'}} Primary Mode
-        %th.left{:data => {:field => 'manufacture_year', :sortable => 'true'}} Manufacture Year
+        %th.left{:data => {:field => 'primary_fta_service_type_id', :sortable => 'true'}} Type of Service
         %th.right{:data => {:field => 'total_count', :sortable => 'true'}} Total Vehicles
-        %th.left{:data => {:field => 'fta_support_vehicle_type_id', :sortable => 'true'}} FTA Vehicle Type
+        %th.right{:data => {:field => 'active_count', :sortable => 'true'}} Active Vehicles
+        %th.left{:data => {:field => 'fta_vehicle_type_id', :sortable => 'true'}} FTA Vehicle Type
+
+        %th.left{:data => {:field => 'manufacturer_id', :sortable => 'true'}} Manufacturer
+        -#%th.left{:data => {:field => 'manufacturer_id', :sortable => 'true'}} Model
+        %th.left{:data => {:field => 'manufacture_year', :sortable => 'true'}} Manufacture Year
+
         %th.right{:data => {:field => 'useful_life_benchmark', :sortable => 'true'}} Useful Life Benchmark
         %th.right{:data => {:field => 'useful_life_remaining', :sortable => 'true'}} Useful Life Remaining
         %th.center{:data => {:field => 'action', :formatter => 'action_formatter'}} Action
