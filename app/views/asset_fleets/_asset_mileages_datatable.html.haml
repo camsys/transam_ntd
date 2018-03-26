@@ -18,10 +18,14 @@
       :search => 'false'}}
       %thead
         %tr
-          %th.center{:data => {:sortable => 'true', :order => 'desc'}} Asset Tag
-          %th.center{:data => {:sortable => 'true', :order => 'desc'}} Odometer Reading FY Start
-          %th.center{:data => {:sortable => 'true', :order => 'desc'}} Odometer Reading FY End
-          %th.center{:data => {:sortable => 'true', :order => 'desc'}} Mileage During FY
+          %th.center{:data => {:sortable => 'true'}} Asset Tag
+          %th.center{:data => {:sortable => 'true'}} External ID
+          %th.center{:data => {:sortable => 'true'}} VIN
+          %th.center{:data => {:sortable => 'true'}} License Plate
+          %th.center{:data => {:sortable => 'true'}} Active
+          %th.center{:data => {:sortable => 'true'}} Odometer Reading FY Start
+          %th.center{:data => {:sortable => 'true'}} Odometer Reading FY End
+          %th.center{:data => {:sortable => 'true'}} Mileage During FY
 
       %tbody
         - @asset_fleet.assets.each do |a|
@@ -30,6 +34,11 @@
           - mileage_fy_end = typed_asset.fiscal_year_mileage(current_fiscal_year_year)
           %tr
             %td.left= a.asset_tag
+            %td.left= a.external_id
+            %td.left= a.serial_number
+            %td.left= a.license_plate
+            %td.left
+              HOW DO WE WANT TO HANDLE
             %td.right{id: a.object_key+'_start_cell'}
               - if mileage_fy_start.present?
                 = mileage_fy_start

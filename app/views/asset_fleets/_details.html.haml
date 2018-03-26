@@ -1,10 +1,20 @@
 %ul.nav.nav-tabs
   %li
-    %a{:href => "#ntd", :data =>{:toggle => 'tab'}}
-      Information
+    %a{:href => "#fleet", :data =>{:toggle => 'tab'}}
+      Basic Information
+
   %li
-    %a{:href => "#mileage", :data =>{:toggle => 'tab'}}
-      Mileage
+    %a{:href => "#asset-info", :data =>{:toggle => 'tab'}}
+      Vehicle Information
+
+  - if @asset_fleet.asset_fleet_type.class_name == 'SupportVehicle'
+    %li
+      %a{:href => "#finance", :data =>{:toggle => 'tab'}}
+        Finances
+  - else
+    %li
+      %a{:href => "#mileage", :data =>{:toggle => 'tab'}}
+        Mileage Information
   %li
     %a{:href => "#assets", :data =>{:toggle => 'tab'}}
       %span{:style => 'white-space: nowrap !important;'}
@@ -12,15 +22,22 @@
         %span.badge= @asset_fleet.total_count
 
 .tab-content{:style => 'max-height:400px;overflow-y: auto;'}
-  .tab-pane.fade#ntd
+  .tab-pane.fade#fleet
     .tab-content
-      - data = @asset_fleet.formatted_group_by_fields
-      - data[:labels].zip(data[:data],data[:formats]).each do |row|
-        = format_field(row[0], format_using_format(row[1], row[2]))
+      = render 'asset_fleet'
 
-  .tab-pane.fade#mileage
+  .tab-pane.fade#asset-info
     .tab-content
-      = render :partial => 'asset_fleets/asset_mileages_datatable'
+      = render 'asset_group_values'
+
+  - if @asset_fleet.asset_fleet_type.class_name == 'SupportVehicle'
+    .tab-pane.fade#finance
+      .tab-content
+        = render :partial => 'asset_fleets/asset_mileages_datatable'
+  - else
+    .tab-pane.fade#mileage
+      .tab-content
+        = render :partial => 'asset_fleets/asset_mileages_datatable'
 
   .tab-pane.fade#assets
     .tab-content
