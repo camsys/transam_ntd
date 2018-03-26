@@ -1,0 +1,7 @@
+= form_tag asset_fleets_path, :id => 'filter_form', :method => "get", :class => 'navbar-form navbar-right panel-action', style: 'padding-top: 1px' do
+  .form-group
+    = hidden_field_tag(:fta_asset_category_id, @fta_asset_category.id)
+    = select_tag(:primary_fta_mode_type_id, options_from_collection_for_select(@primary_modes, "id", "to_s",  @primary_fta_mode_type_id), :class => "form-control", :style => "width: 150px;", :prompt => "Any Mode...")
+
+    = button_tag :class => 'btn btn-default', :type => 'submit' do
+      %i.fa.fa-filter
