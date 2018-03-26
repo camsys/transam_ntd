@@ -4,24 +4,16 @@
   :wrapper_mappings => {:check_boxes => :vertical_radio_and_checkboxes, :radio_buttons => :vertical_radio_and_checkboxes, :file => :vertical_file_input, :boolean => :vertical_boolean}) do |f|
 
   = f.association :organization, :collection => Organization.where(id: @organization_list), :label_method => :coded_name
-  .row
-    .col-sm-3
-      = f.input :start_date, :label => 'Start Date', :wrapper => :vertical_append do
-        = f.input_field :start_date, :class => "form-control", :as => :string, :data => {'behavior' => 'datepicker'}, :value => format_as_date(start_of_fiscal_year(current_fiscal_year_year-1))
-        %span.input-group-addon
-          %i.fa.fa-calendar
-    .col-sm-3
-      = f.input :end_date, :label => 'End Date', :wrapper => :vertical_append do
-        = f.input_field :end_date, :class => "form-control", :as => :string, :data => {'behavior' => 'datepicker'}, :value => format_as_date(start_of_fiscal_year(current_fiscal_year_year)-1.day)
-        %span.input-group-addon
-          %i.fa.fa-calendar
+  = f.input :fy_year, as: :fiscal_year, :label => 'Fiscal Year'
 
-  = f.button :submit, :class => "btn btn-primary", :label => 'Save NTD Form'
+  = f.button :submit, 'Save NTD Form', :class => "btn btn-primary"
 
 :javascript
   $(document).ready(function(){
     transam.make_same_height('.header-part');
   });
+
+  transam.make_fiscal_year('input.fiscal_year');
 
   // jquery validations
   $('.ntd_form_form').validate({

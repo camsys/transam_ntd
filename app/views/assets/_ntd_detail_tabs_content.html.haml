@@ -1,0 +1,4 @@
+- if @asset.asset_fleets.count > 0
+  .tab-pane.fade#fleets
+    .tab-content
+      = format_field(@asset.asset_fleets.first.ntd_id_label, format_as_list(@asset.asset_fleets.map{|x| link_to x.to_s, asset_fleet_path(x)}))

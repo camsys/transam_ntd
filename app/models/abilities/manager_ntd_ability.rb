@@ -5,6 +5,7 @@ module Abilities
     def initialize(user)
 
       can :manage, NtdForm
+      can :manage, AssetFleet
 
 
     end

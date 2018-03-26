@@ -16,7 +16,7 @@ class NtdForms::StepsController < FormAwareController
 
   def show
 
-    add_breadcrumb @form_type.name.pluralize(2), form_path(@form_type)
+    add_breadcrumb @form_type.name, form_path(@form_type)
     add_breadcrumb step.to_s.titleize
 
     # get data for the current form
@@ -50,7 +50,7 @@ class NtdForms::StepsController < FormAwareController
 
   def update
 
-    add_breadcrumb @form_type.name.pluralize(2), form_path(@form_type)
+    add_breadcrumb @form_type.name, form_path(@form_type)
     add_breadcrumb "New"
 
 
@@ -61,7 +61,7 @@ class NtdForms::StepsController < FormAwareController
 
         @form.ntd_revenue_vehicle_fleets = reporting_service.revenue_vehicle_fleets(Organization.where(id: @form.organization_id))
         @form.ntd_service_vehicle_fleets = reporting_service.service_vehicle_fleets(Organization.where(id: @form.organization_id))
-        @form.ntd_passenger_and_parking_facilities = reporting_service.passenger_and_parking_facilities(Organization.where(id: @form.organization_id))
+        #@form.ntd_passenger_and_parking_facilities = reporting_service.passenger_and_parking_facilities(Organization.where(id: @form.organization_id))
         @form.ntd_admin_and_maintenance_facilities = reporting_service.admin_and_maintenance_facilities(Organization.where(id: @form.organization_id))
 
         @form.update_attributes(form_params.merge({processing_log: reporting_service.process_log}))
