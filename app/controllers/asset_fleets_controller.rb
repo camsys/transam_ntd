@@ -16,7 +16,16 @@ class AssetFleetsController < OrganizationAwareController
     @fta_asset_category = (FtaAssetCategory.find_by(id: params[:fta_asset_category_id]) || FtaAssetCategory.first)
     @asset_fleet_types = AssetFleetType.where(class_name: @fta_asset_category.asset_types.pluck(:class_name))
 
-    add_breadcrumb @fta_asset_category.name == 'Equipment' ? "Support Vehicles" : @fta_asset_category.to_s
+    case @fta_asset_category.name
+    when "Equipment"
+      crumb = "Support Vehicles"
+      @text_search_prompt = 'NTD ID/Agency Fleet ID/Fleet Name'
+    else
+      crumb =  @fta_asset_category.to_s
+      @text_search_prompt = 'RVI ID/Agency Fleet ID'
+    end
+    
+    add_breadcrumb crumb
     
     @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: @asset_fleet_types.pluck(:id))
 
