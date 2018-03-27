@@ -20,9 +20,11 @@ class AssetFleetsController < OrganizationAwareController
     when "Equipment"
       crumb = "Support Vehicles"
       @text_search_prompt = 'NTD ID/Agency Fleet ID/Fleet Name'
+      include_fleet_name = true
     else
       crumb =  @fta_asset_category.to_s
       @text_search_prompt = 'RVI ID/Agency Fleet ID'
+      include_fleet_name = false
     end
     
     add_breadcrumb crumb
@@ -40,9 +42,32 @@ class AssetFleetsController < OrganizationAwareController
                                                      is_primary: true})
     end
     @primary_modes = FtaModeType.where(id: AssetsFtaModeType.joins(:fta_mode_type)
-                                        .where(assets_fta_mode_types: {is_primary: true}, asset_id: @asset_fleets.joins(:assets).pluck(:asset_id))
+                                        .where(assets_fta_mode_types: {is_primary: true}, asset_id: @asset_fleets.joins(:assets).pluck('assets_asset_fleets.asset_id'))
                                         .pluck(:fta_mode_type_id))
-    
+
+    # Drop into arel for OR of LIKE queries
+    @text_search = params[:text_search]
+    if @text_search.present?
+      ntd_id = Integer(@text_search, 10) rescue nil
+      asset_fleet_table = AssetFleet.arel_table
+
+      if ntd_id && include_fleet_name
+        @asset_fleets = @asset_fleets.where(asset_fleet_table[:agency_fleet_id].matches("%#{@text_search}%")
+                                             .or(asset_fleet_table[:fleet_name].matches("%#{@text_search}%"))
+                                             .or(asset_fleet_table[:ntd_id].eq(ntd_id)))
+      elsif ntd_id
+        @asset_fleets = @asset_fleets.where(asset_fleet_table[:agency_fleet_id].matches("%#{@text_search}%")
+                                             .or(asset_fleet_table[:ntd_id].eq(ntd_id)))
+
+      elsif include_fleet_name
+        @asset_fleets = @asset_fleets.where(asset_fleet_table[:agency_fleet_id].matches("%#{@text_search}%")
+                                             .or(asset_fleet_table[:fleet_name].matches("%#{@text_search}%")))
+      else
+        @asset_fleets = @asset_fleets.where(asset_fleet_table[:agency_fleet_id].matches("%#{@text_search}%"))
+      end
+    end
+
+
     respond_to do |format|
       format.html 
       format.json {
@@ -144,29 +169,41 @@ class AssetFleetsController < OrganizationAwareController
   def builder
     add_breadcrumb "Manage Fleets"
 
-    # Select the fta asset categories that they are allowed to build.
-    # This is narrowed down to only asset types they own
-    @fta_asset_categories = []
-    rev_vehicles = FtaAssetCategory.find_by(name: 'Revenue Vehicles')
-    @fta_asset_categories << {id: rev_vehicles.id, label: rev_vehicles.to_s} if Asset.where(organization_id: @organization_list, asset_type: rev_vehicles.asset_types).count > 0
-    @fta_asset_categories << {id: FtaAssetCategory.find_by(name: 'Equipment').id, label: 'Support Vehicles'} if SupportVehicle.where(organization_id: @organization_list).count > 0
+    # Select the asset types that they are allowed to build. This is narrowed down to only
+    # asset types they own
+    @asset_types = AssetType.where(id: Asset.where(organization: @organization_list).pluck('DISTINCT asset_type_id'))
+    puts @asset_types.inspect
+
+    @builder_proxy = FleetBuilderProxy.new
 
     @message = "Creating asset fleets. This process might take a while."
   end
 
   def runner
 
-    fta_asset_category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
+    @builder_proxy = FleetBuilderProxy.new(params[:fleet_builder_proxy])
+    if @builder_proxy.valid?
 
-    if fta_asset_category.present?
-      Delayed::Job.enqueue AssetFleetBuilderJob.new(TransitOperator.where(id: @organization_list), AssetFleetType.where(class_name: fta_asset_category.asset_types.pluck(:class_name)), FleetBuilderProxy::RESET_ALL_ACTION,current_user), :priority => 0
+      if @builder_proxy.organization_id.blank?
+        org_id = @organization_list.first
+      else
+        org_id = @builder_proxy.organization_id
+      end
+      org = Organization.get_typed_organization(Organization.find(org_id))
+
+      Delayed::Job.enqueue AssetFleetBuilderJob.new(org, @builder_proxy.asset_fleet_types, @builder_proxy.action,current_user), :priority => 0
 
       # Let the user know the results
       msg = "Fleet Builder is running. You will be notified when the process is complete."
       notify_user(:notice, msg)
-    end
 
-    redirect_to :back
+      redirect_to asset_fleets_path
+      return
+    else
+      respond_to do |format|
+        format.html { render :action => "builder" }
+      end
+    end
   end
 
   def new_asset
