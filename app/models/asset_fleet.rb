@@ -64,6 +64,8 @@ class AssetFleet < ActiveRecord::Base
       :fleet_name,
       :agency_fleet_id,
       :ntd_id,
+      :estimated_cost,
+      :year_estimated_cost,
       :notes,
       :assets_attributes => [:object_key, :asset_search_text, :_destroy]
   ]

@@ -17,14 +17,16 @@ forms = [
 ]
 
 asset_fleet_types = [
-    {groups: 'asset_type_id,asset_subtype_id,manufacturer_id,manufacture_year,fuel_type_id', class_name: 'Vehicle', active: true},
-    {groups: 'asset_type_id,asset_subtype_id,manufacturer_id,manufacture_year,fuel_type_id', class_name: 'SupportVehicle', active: true}
+    {groups: 'asset_type_id,asset_subtype_id,fta_vehicle_type_id,dedicated,manufacturer_id,other_manufacturer,manufacture_year,fuel_type_id,dual_fuel_type_id,fta_ownership_type_id,fta_funding_type_id',custom_groups: 'primary_fta_mode_type_id,secondary_fta_mode_type_id,direct_capital_responsibility,primary_fta_service_type_id,secondary_fta_service_type_id',class_name: 'Vehicle',active: true},
+    {groups: 'asset_type_id,asset_subtype_id,fta_support_vehicle_type_id,manufacture_year,pcnt_capital_responsibility',custom_groups: 'primary_fta_mode_type_id,secondary_fta_mode_types',class_name: 'SupportVehicle',active: true},
+    {groups: 'asset_type_id,asset_subtype_id,fta_vehicle_type_id,dedicated,manufacturer_id,other_manufacturer,manufacture_year,fuel_type_id,dual_fuel_type_id,fta_ownership_type_id,fta_funding_type_id',custom_groups: 'primary_fta_mode_type_id,secondary_fta_mode_type_id,direct_capital_responsibility,primary_fta_service_type_id,secondary_fta_service_type_id',class_name: 'RailCar',active: true},
+    {groups: 'asset_type_id,asset_subtype_id,fta_vehicle_type_id,dedicated,manufacturer_id,other_manufacturer,manufacture_year,fuel_type_id,dual_fuel_type_id,fta_ownership_type_id,fta_funding_type_id',custom_groups: 'primary_fta_mode_type_id,secondary_fta_mode_type_id,direct_capital_responsibility,primary_fta_service_type_id,secondary_fta_service_type_id',class_name: 'Locomotive',active: true}
 ]
 
 
 puts "======= Processing TransAM NTD Lookup Tables  ======="
 
-lookup_tables = %w{ }
+lookup_tables = %w{ asset_fleet_types }
 
 lookup_tables.each do |table_name|
   puts "  Loading #{table_name}"
@@ -53,7 +55,7 @@ end
 
 puts "======= Processing TransAM NTD Merge Tables  ======="
 
-merge_tables = %w{ forms asset_fleet_types }
+merge_tables = %w{ forms }
 
 merge_tables.each do |table_name|
   puts "  Merging #{table_name}"

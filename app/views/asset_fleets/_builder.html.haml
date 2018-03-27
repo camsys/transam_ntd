@@ -51,6 +51,7 @@
           %th.left{:data => {:field => 'asset_subtype_id',:sortable => 'true'}} Asset Subtype
           %th.left{:data => {:field => 'vehicle_type', :sortable => 'true'}} FTA Vehicle Type
           %th.left{:data => {:field => 'service_status_type_id', :sortable => 'true'}} Status
+          %th.left{:data => {:field => 'disposition_date', :formatter => 'boolean_formatter', :sortable => 'true'}} Disposed
 
           %th.left{:data => {:field => 'action', :formatter => 'action_formatter'}} Action
 
@@ -86,3 +87,12 @@
   function action_formatter(value, data) {
     return '<a class="btn btn-primary btn-sm" title="Add to Fleet" data-remote="true" href="'+value+'"><i class="fa fa-plus"></i> Add to Fleet</a>';
   }
+
+  function boolean_formatter(value) {
+    if (parseInt(value)) {
+      // hidden div for exporting
+      return '<i class="fa fa-check"></i><div style = "visibility: hidden;">Yes</div>';
+    } else {
+      return '<div style = "visibility: hidden;">No</div>';
+    }
+  };

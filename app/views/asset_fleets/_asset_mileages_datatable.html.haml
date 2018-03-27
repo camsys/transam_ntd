@@ -37,8 +37,7 @@
             %td.left= a.external_id
             %td.left= a.serial_number
             %td.left= a.license_plate
-            %td.left
-              HOW DO WE WANT TO HANDLE
+            %td.left= format_as_boolean(a.disposed?)
             %td.right{id: a.object_key+'_start_cell'}
               - if mileage_fy_start.present?
                 = mileage_fy_start
