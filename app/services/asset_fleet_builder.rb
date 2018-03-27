@@ -21,10 +21,10 @@ class AssetFleetBuilder
   def group_by_fields(fleet_type)
     group_by_fields = fleet_type.standard_group_by_fields + ['primary_modes.fta_mode_type_id as primary_fta_mode_type_id']
 
-    if fleet_type.class_name == 'Vehicle'
-      group_by_fields << ['secondary_modes.fta_mode_type_id as secondary_fta_mode_type_id','IF(assets.pcnt_capital_responsibility > 0, "YES", "NO") as direct_capital_responsibility', 'service_types.fta_service_type_id as primary_fta_service_type_id', 'secondary_service_types.fta_service_type_id as secondary_fta_service_type_id']
-    elsif fleet_type.class_name == 'SupportVehicle'
+    if fleet_type.class_name == 'SupportVehicle'
       group_by_fields << ['secondary_modes.fta_mode_types_str as secondary_fta_mode_types']
+    else
+      group_by_fields << ['secondary_modes.fta_mode_type_id as secondary_fta_mode_type_id','IF(assets.pcnt_capital_responsibility > 0, "YES", "NO") as direct_capital_responsibility', 'service_types.fta_service_type_id as primary_fta_service_type_id', 'secondary_service_types.fta_service_type_id as secondary_fta_service_type_id']
     end
 
     group_by_fields.flatten
@@ -36,14 +36,14 @@ class AssetFleetBuilder
                 .joins('LEFT JOIN (SELECT * FROM assets_fta_mode_types WHERE is_primary=1) AS primary_modes ON assets.id = primary_modes.asset_id')
                 .where(organization: organization)
 
-    if fleet_type.class_name == 'Vehicle'
+    if fleet_type.class_name == 'SupportVehicle'
+      query = query
+                  .joins('LEFT JOIN (SELECT asset_id, GROUP_CONCAT(code SEPARATOR " ") as fta_mode_types_str FROM assets_fta_mode_types INNER JOIN fta_mode_types ON assets_fta_mode_types.fta_mode_type_id = fta_mode_types.id WHERE is_primary IS NULL OR is_primary !=1 GROUP BY asset_id) AS secondary_modes ON assets.id = secondary_modes.asset_id')
+    else
       query = query
                   .joins('LEFT JOIN (SELECT * FROM assets_fta_mode_types WHERE is_primary IS NULL OR is_primary!=1) AS secondary_modes ON assets.id = secondary_modes.asset_id')
                   .joins('LEFT JOIN (SELECT * FROM assets_fta_service_types WHERE is_primary=1) AS service_types ON assets.id = service_types.asset_id')
                   .joins('LEFT JOIN (SELECT * FROM assets_fta_service_types WHERE is_primary IS NULL OR is_primary!=1) AS secondary_service_types ON assets.id = secondary_service_types.asset_id')
-    elsif fleet_type.class_name == 'SupportVehicle'
-      query = query
-                  .joins('LEFT JOIN (SELECT asset_id, GROUP_CONCAT(code SEPARATOR " ") as fta_mode_types_str FROM assets_fta_mode_types INNER JOIN fta_mode_types ON assets_fta_mode_types.fta_mode_type_id = fta_mode_types.id WHERE is_primary IS NULL OR is_primary !=1 GROUP BY asset_id) AS secondary_modes ON assets.id = secondary_modes.asset_id')
     end
 
     query
