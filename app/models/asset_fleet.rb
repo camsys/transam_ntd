@@ -130,7 +130,7 @@ class AssetFleet < ActiveRecord::Base
 
   def active(fy_year=nil)
     fy_year = current_fiscal_year_year - 1 if fy_year.nil?
-    assets.disposed.where('disposition_date >= ? AND disposition_date <= ?', start_of_fiscal_year(fy_year), fiscal_year_end_date(start_of_fiscal_year(fy_year))).count != total_count
+    assets.disposed.where('disposition_date >= ?', start_of_fiscal_year(fy_year)).count != total_count
   end
 
   def ada_accessible_count
