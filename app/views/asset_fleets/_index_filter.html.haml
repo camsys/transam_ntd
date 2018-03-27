@@ -2,6 +2,17 @@
   .form-group
     = hidden_field_tag(:fta_asset_category_id, @fta_asset_category.id)
     = select_tag(:primary_fta_mode_type_id, options_from_collection_for_select(@primary_modes, "id", "to_s",  @primary_fta_mode_type_id), :class => "form-control", :style => "width: 150px;", :prompt => "Any Mode...")
+    = text_field_tag(:text_search, @text_search, class: 'form-control', placeholder: @text_search_prompt)
 
     = button_tag :class => 'btn btn-default', :type => 'submit' do
       %i.fa.fa-filter
+        
+    = link_to asset_fleets_path(fta_asset_category_id: @fta_asset_category), :class => 'btn btn-default btn-xs' do
+      %span.fa-stack
+        %i.fa.fa-filter.fa-stack-1x
+        %i.fa.fa-ban.fa-stack-2x
+
+:javascript
+  $("input[placeholder]").each(function () {
+    $(this).attr('size', $(this).attr('placeholder').length);
+  });
