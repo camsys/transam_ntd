@@ -50,9 +50,7 @@ class AssetFleetBuilder
   end
 
   def asset_group_values(options={})
-    # can add operational scope here cause can assume assets manipulating NOW (= Time.now) must be operational (I think?)
-    # TODO: should rethink this a little -- what happens if assets out of service in this FY and need to manipulate?
-    query_values = @query.operational.joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
+    query_values = @query.joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
 
 
     # trying to get the group values if given an asset or fleet
@@ -103,11 +101,11 @@ class AssetFleetBuilder
       end
     end
 
-    assets = Asset.operational.where(object_key: @query
-                                                     .joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
-                                                     .where('assets_asset_fleets.asset_id IS NULL')
-                                                     .having(conditions.join(' AND '), *(asset_group_value.select{|x| !x.nil?}))
-                                                     .pluck(*group_by_fields(@asset_fleet_type), 'object_key').map{|x| x[-1]})
+    assets = Asset.where(object_key: @query
+                   .joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
+                   .where('assets_asset_fleets.asset_id IS NULL')
+                   .having(conditions.join(' AND '), *(asset_group_value.select{|x| !x.nil?}))
+                   .pluck(*group_by_fields(@asset_fleet_type), 'object_key').map{|x| x[-1]})
 
     assets
   end
