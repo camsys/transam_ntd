@@ -14,7 +14,12 @@
     :data => {:toggle => 'table',
     :url => asset_fleets_path(:fta_asset_category_id => @fta_asset_category.id,
                               :primary_fta_mode_type_id => @primary_fta_mode_type_id,
+                              :fta_service_type_id => @fta_service_type_id,
                               :text_search => @text_search,
+                              :fta_vehicle_type_id => @fta_vehicle_type_id,
+                              :manufacturer_id => @manufacturer_id,
+                              :manufacture_year => @manufacture_year,
+                              :status => @status,
                               :format => :json),
     :card_view => "false",
     :pagination => 'true',
@@ -54,7 +59,7 @@
 
         %th.left{:data => {:field => 'manufacturer_id', :sortable => 'true'}} Manufacturer
         %th.left{:data => {:field => 'manufacturer_model', :sortable => 'true'}} Model
-        %th.left{:data => {:field => 'manufacture_year', :sortable => 'true'}} Manufacture Year
+        %th.left{:data => {:field => 'manufacture_year', :sortable => 'true'}} Year Manufactured
 
         %th.right{:data => {:field => 'useful_life_benchmark', :sortable => 'true'}} Useful Life Benchmark
         %th.right{:data => {:field => 'useful_life_remaining', :sortable => 'true'}} Useful Life Remaining

@@ -15,6 +15,9 @@
     :url => asset_fleets_path(:fta_asset_category_id => @fta_asset_category.id,
                               :primary_fta_mode_type_id => @primary_fta_mode_type_id,
                               :text_search => @text_search,
+                              :fta_vehicle_type_id => @fta_vehicle_type_id,
+                              :manufacture_year => @manufacture_year,
+                              :status => @status,
                               :format => :json),
     :card_view => "false",
     :pagination => 'true',
@@ -50,7 +53,7 @@
         %th.left{:data => {:field => 'agency_fleet_id', :sortable => 'true'}} Agency Fleet ID
         %th.left{:data => {:field => 'fleet_name', :sortable => 'true'}} Fleet Name
         %th.left{:data => {:field => 'primary_fta_mode_type_id', :sortable => 'true'}} Primary Mode
-        %th.left{:data => {:field => 'manufacture_year', :sortable => 'true'}} Manufacture Year
+        %th.left{:data => {:field => 'manufacture_year', :sortable => 'true'}} Year Manufactured
         %th.right{:data => {:field => 'total_count', :sortable => 'true'}} Total Vehicles
         %th.left{:data => {:field => 'fta_support_vehicle_type_id', :sortable => 'true'}} FTA Vehicle Type
         %th.right{:data => {:field => 'useful_life_benchmark', :sortable => 'true'}} Useful Life Benchmark

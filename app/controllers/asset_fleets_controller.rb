@@ -15,37 +15,41 @@ class AssetFleetsController < OrganizationAwareController
 
     @fta_asset_category = (FtaAssetCategory.find_by(id: params[:fta_asset_category_id]) || FtaAssetCategory.first)
     @asset_fleet_types = AssetFleetType.where(class_name: @fta_asset_category.asset_types.pluck(:class_name))
+    # Go ahead and join with assets since almost every query requires it
+    @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: @asset_fleet_types.pluck(:id)).uniq.joins(:assets)
 
     case @fta_asset_category.name
     when "Equipment"
       crumb = "Support Vehicles"
       @text_search_prompt = 'NTD ID/Agency Fleet ID/Fleet Name'
       include_fleet_name = true
-    else
+      @vehicle_types = FtaSupportVehicleType.where(id: @asset_fleets.uniq.pluck(:fta_support_vehicle_type_id))
+      use_support_vehicle_types = true
+    else # Primarily Revenue vehicles for now
       crumb =  @fta_asset_category.to_s
       @text_search_prompt = 'RVI ID/Agency Fleet ID'
       include_fleet_name = false
+      @service_types = FtaServiceType.active.all
+      @vehicle_types = FtaVehicleType.where(id: @asset_fleets.uniq.pluck(:fta_vehicle_type_id))
+      use_support_vehicle_types = false
     end
     
     add_breadcrumb crumb
     
-    @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: @asset_fleet_types.pluck(:id))
-
     # Filter results
     # Primary FTA Mode Type is particularly messy
     @primary_fta_mode_type_id = params[:primary_fta_mode_type_id]
     if @primary_fta_mode_type_id.present?
       @asset_fleets = @asset_fleets
-                      .joins(:assets)
                       .joins("INNER JOIN assets_fta_mode_types ON assets.id = assets_fta_mode_types.asset_id")
                       .where(assets_fta_mode_types: {fta_mode_type_id: @primary_fta_mode_type_id,
                                                      is_primary: true})
     end
     @primary_modes = FtaModeType.where(id: AssetsFtaModeType.joins(:fta_mode_type)
-                                        .where(assets_fta_mode_types: {is_primary: true}, asset_id: @asset_fleets.joins(:assets).pluck('assets_asset_fleets.asset_id'))
-                                        .pluck(:fta_mode_type_id))
+                                        .where(assets_fta_mode_types: {is_primary: true}, asset_id: @asset_fleets.pluck('assets_asset_fleets.asset_id'))
+                                       .uniq.pluck(:fta_mode_type_id))
 
-    # Drop into arel for OR of LIKE queries
+    # Drop into arel for OR of LIKE queries for text_search
     @text_search = params[:text_search]
     if @text_search.present?
       ntd_id = Integer(@text_search, 10) rescue nil
@@ -67,7 +71,33 @@ class AssetFleetsController < OrganizationAwareController
       end
     end
 
+    @fta_vehicle_type_id = params[:fta_vehicle_type_id]
+    if @fta_vehicle_type_id.present?
+      if use_support_vehicle_types
+        @asset_fleets = @asset_fleets.where(assets: {fta_support_vehicle_type_id: @fta_vehicle_type_id})
+      else
+        @asset_fleets = @asset_fleets.where(assets: {fta_vehicle_type_id: @fta_vehicle_type_id})
+      end
+    end
+    
+    @manufacturer_id = params[:manufacturer_id]
+    if @manufacturer_id.present?
+      @asset_fleets = @asset_fleets.where(assets: {manufacturer_id: @manufacturer_id})
+    end
+    @manufacturers = Manufacturer.where(id: @asset_fleets.uniq.pluck(:manufacturer_id))
 
+    @manufacture_year = params[:manufacture_year]
+    if @manufacture_year.present?
+      @asset_fleets = @asset_fleets.where(assets: {manufacture_year: @manufacture_year})
+    end
+
+    @status = params[:status] || 'Active'
+    if @status == 'Active'
+      @asset_fleets = @asset_fleets.where(assets: {disposition_date: nil})
+    else
+      @asset_fleets = @asset_fleets.where.not(assets: {disposition_date: nil})
+    end
+    
     respond_to do |format|
       format.html 
       format.json {
