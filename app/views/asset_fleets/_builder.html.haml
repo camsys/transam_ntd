@@ -1,12 +1,28 @@
 :ruby
   table_dom_id = SecureRandom.hex
 
+:css
+  .th-inner {
+    white-space: normal !important;
+  }
+
+#table_actions.btn-toolbar
+  = render partial: 'asset_fleets/orphaned_filter'
+
 %fieldset
   %legend Orphaned Assets
   .table-responsive
     %table.table.table-condensed.table-hover{:id => 'asset_server_table',
       :data => {:toggle => 'table',
-      :url => orphaned_assets_asset_fleets_path(:format => :json),
+      :url => orphaned_assets_asset_fleets_path(:asset_type_id => @asset_type_id,
+                                             :search_text => @search_text,
+                                             :manufacturer_id => @manufacturer_id,
+                                             :manufacturer_model => @manufacturer_model,
+                                             :manufacture_year => @manufacture_year,
+                                             :asset_subtype_id => @asset_subtype_id,
+                                             :vehicle_type => @vehicle_type,
+                                             :service_status_type_id => @service_status_type_id,
+                                             :format => :json),
       :card_view => "false",
       :pagination => 'true',
       :sort_order => 'asc',
@@ -46,12 +62,11 @@
           %th.left{:data => {:field => 'license_plate', :sortable => 'true'}} License Plate
           %th.left{:data => {:field => 'manufacturer_id', :sortable => 'true'}} Manufacturer
           %th.left{:data => {:field => 'manufacturer_model', :sortable => 'true'}} Model
-          %th.left{:data => {:field => 'manufacture_year', :sortable => 'true'}} Manufacture Year
+          %th.left{:data => {:field => 'manufacture_year', :sortable => 'true'}} Year Manufactured
 
           %th.left{:data => {:field => 'asset_subtype_id',:sortable => 'true'}} Asset Subtype
           %th.left{:data => {:field => 'vehicle_type', :sortable => 'true'}} FTA Vehicle Type
-          %th.left{:data => {:field => 'service_status_type_id', :sortable => 'true'}} Status
-          %th.left{:data => {:field => 'disposition_date', :formatter => 'boolean_formatter', :sortable => 'true'}} Disposed
+          %th.left{:data => {:field => 'service_status_type', :sortable => 'true'}} Status
 
           %th.left{:data => {:field => 'action', :formatter => 'action_formatter'}} Action
 
