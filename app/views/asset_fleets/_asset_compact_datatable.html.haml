@@ -51,9 +51,19 @@
           %td.center= format_as_boolean(assets_asset_fleet.try(:active))
           %td.center
             - if can? :update, @asset_fleet
-              - if assets_asset_fleet.present? && @asset_fleet.assets.count > 1
-                = link_to remove_asset_asset_fleet_path(@asset_fleet, asset: a.object_key), :method => :delete, :data => {:confirm => "Are you sure?"}, :title => 'Remove asset'  do
-                  %i.fa.fa-trash-o.fa-fw.text-danger
+              - if assets_asset_fleet.present?
+                - if @asset_fleet.assets.count > 1
+                  = link_to remove_asset_asset_fleet_path(@asset_fleet, asset: a.object_key), :method => :delete, :data => {:confirm => "Are you sure?"}, :title => 'Remove asset'  do
+                    %i.fa.fa-trash-o.fa-fw.text-danger
+                - else
+                  %a.transam-popover{data: {placement: 'left', toggle: 'popover', html: 'true', content: "You cannot remove the final asset in a fleet."}, title: 'Warning', tabindex: '0'}
+                    %i.fa.fa-trash.text-danger.fa-stack-1x
+                    %i.fa.fa-ban.text-danger.fa-stack-2x
               - else
                 = link_to add_asset_asset_fleets_path(fleet_asset_builder: {asset_id: a.id, asset_fleet_id: @asset_fleet.id}) do
                   %i.fa.fa-plus.text-success
+
+:javascript
+  $('.transam-popover').popover({
+    trigger: 'hover'
+  });
