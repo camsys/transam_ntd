@@ -8,7 +8,7 @@
 
   = f.input :organization_id, :as => :hidden
   = f.input :asset_fleet_type_id, :as => :hidden
-  = f.input :ntd_id, :required => !@asset_fleet.new_record?, :label => 'NTD ID'
+  = f.input :ntd_id, :label => 'NTD ID'
   = f.input :agency_fleet_id, :label => 'Agency Fleet ID'
   - if @asset_fleet.asset_fleet_type.class_name == 'SupportVehicle'
     = f.input :fleet_name
@@ -24,6 +24,7 @@
   = hidden_field_tag :asset_object_key, asset.try(:object_key)
 
   = f.button :submit, :class => "btn btn-primary"
+  = link_to "Cancel", :back, :class => "btn btn-warning cancel-action", :role => 'button'
 
 :javascript
   var typeahead_field_line;
