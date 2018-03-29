@@ -163,11 +163,11 @@ class AssetFleet < ActiveRecord::Base
   end
 
   def useful_life_benchmark
-    active_assets.first.try(:useful_life_benchmark)
+    Asset.get_typed_asset(active_assets.first).try(:useful_life_benchmark)
   end
 
   def useful_life_remaining
-    active_assets.first.try(:useful_life_remaining)
+    Asset.get_typed_asset(active_assets.first).try(:useful_life_remaining)
   end
 
   def group_by_fields

@@ -48,7 +48,7 @@
           %td.left= a.reported_mileage
 
           - assets_asset_fleet = AssetsAssetFleet.find_by(asset: a, asset_fleet: @asset_fleet)
-          %td.center= format_as_boolean(assets_asset_fleet.try(:active))
+          %td.center= format_as_boolean(assets_asset_fleet.present? ? assets_asset_fleet.active: true) # if possible to be added, would automatically be valid
           %td.center
             - if can? :update, @asset_fleet
               - if assets_asset_fleet.present?
