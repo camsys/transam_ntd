@@ -7,6 +7,8 @@ class AssetFleetsController < OrganizationAwareController
 
   before_action :set_asset_fleet, only: [:show, :edit, :update, :destroy, :remove_asset]
 
+  before_action :set_form_vars, only: [:orphaned_assets, :builder]
+  
   # GET /asset_fleets
   def index
     params[:sort] ||= 'ntd_id'
@@ -35,44 +37,44 @@ class AssetFleetsController < OrganizationAwareController
     end
     
     add_breadcrumb crumb
+
+    # Set up filter collections
+    @primary_modes = FtaModeType.where(id: AssetsFtaModeType.joins(:fta_mode_type)
+                                        .where(assets_fta_mode_types: {is_primary: true}, asset_id: @asset_fleets.pluck('assets_asset_fleets.asset_id'))
+                                       .uniq.pluck(:fta_mode_type_id))
+    @manufacturers = Manufacturer.where(id: @asset_fleets.uniq.pluck(:manufacturer_id))
     
     # Filter results
     # Primary FTA Mode Type is particularly messy
-    @primary_fta_mode_type_id = params[:primary_fta_mode_type_id]
-    if @primary_fta_mode_type_id.present?
+    set_var_and_yield_if_present :primary_fta_mode_type_id do
       @asset_fleets = @asset_fleets
                       .joins("INNER JOIN assets_fta_mode_types ON assets.id = assets_fta_mode_types.asset_id")
                       .where(assets_fta_mode_types: {fta_mode_type_id: @primary_fta_mode_type_id,
                                                      is_primary: true})
     end
-    @primary_modes = FtaModeType.where(id: AssetsFtaModeType.joins(:fta_mode_type)
-                                        .where(assets_fta_mode_types: {is_primary: true}, asset_id: @asset_fleets.pluck('assets_asset_fleets.asset_id'))
-                                       .uniq.pluck(:fta_mode_type_id))
 
     # Drop into arel for OR of LIKE queries for text_search
-    @text_search = params[:text_search]
-    if @text_search.present?
-      ntd_id = Integer(@text_search, 10) rescue nil
+    set_var_and_yield_if_present :search_text do
+      ntd_id = Integer(@search_text, 10) rescue nil
       asset_fleet_table = AssetFleet.arel_table
 
       if ntd_id && include_fleet_name
-        @asset_fleets = @asset_fleets.where(asset_fleet_table[:agency_fleet_id].matches("%#{@text_search}%")
-                                             .or(asset_fleet_table[:fleet_name].matches("%#{@text_search}%"))
+        @asset_fleets = @asset_fleets.where(asset_fleet_table[:agency_fleet_id].matches("%#{@search_text}%")
+                                             .or(asset_fleet_table[:fleet_name].matches("%#{@search_text}%"))
                                              .or(asset_fleet_table[:ntd_id].eq(ntd_id)))
       elsif ntd_id
-        @asset_fleets = @asset_fleets.where(asset_fleet_table[:agency_fleet_id].matches("%#{@text_search}%")
+        @asset_fleets = @asset_fleets.where(asset_fleet_table[:agency_fleet_id].matches("%#{@search_text}%")
                                              .or(asset_fleet_table[:ntd_id].eq(ntd_id)))
 
       elsif include_fleet_name
-        @asset_fleets = @asset_fleets.where(asset_fleet_table[:agency_fleet_id].matches("%#{@text_search}%")
-                                             .or(asset_fleet_table[:fleet_name].matches("%#{@text_search}%")))
+        @asset_fleets = @asset_fleets.where(asset_fleet_table[:agency_fleet_id].matches("%#{@search_text}%")
+                                             .or(asset_fleet_table[:fleet_name].matches("%#{@search_text}%")))
       else
-        @asset_fleets = @asset_fleets.where(asset_fleet_table[:agency_fleet_id].matches("%#{@text_search}%"))
+        @asset_fleets = @asset_fleets.where(asset_fleet_table[:agency_fleet_id].matches("%#{@search_text}%"))
       end
     end
 
-    @fta_vehicle_type_id = params[:fta_vehicle_type_id]
-    if @fta_vehicle_type_id.present?
+    set_var_and_yield_if_present :fta_vehicle_type_id do
       if use_support_vehicle_types
         @asset_fleets = @asset_fleets.where(assets: {fta_support_vehicle_type_id: @fta_vehicle_type_id})
       else
@@ -80,14 +82,11 @@ class AssetFleetsController < OrganizationAwareController
       end
     end
     
-    @manufacturer_id = params[:manufacturer_id]
-    if @manufacturer_id.present?
+    set_var_and_yield_if_present :manufacturer_id do
       @asset_fleets = @asset_fleets.where(assets: {manufacturer_id: @manufacturer_id})
     end
-    @manufacturers = Manufacturer.where(id: @asset_fleets.uniq.pluck(:manufacturer_id))
 
-    @manufacture_year = params[:manufacture_year]
-    if @manufacture_year.present?
+    set_var_and_yield_if_present :manufacture_year do
       @asset_fleets = @asset_fleets.where(assets: {manufacture_year: @manufacture_year})
     end
 
@@ -114,28 +113,51 @@ class AssetFleetsController < OrganizationAwareController
     # check that an order param was provided otherwise use asset_tag as the default
     params[:sort] ||= 'asset_tag'
 
-    orphaned_assets = Asset
-                          .joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
-                          .where(asset_type: AssetType.where(class_name: ['Vehicle', 'SupportVehicle']), organization_id: @organization_list)
-                          .where('assets_asset_fleets.asset_id IS NULL')
+    [:asset_type_id, :manufacturer_id, :manufacturer_model, :manufacture_year,
+     :asset_subtype_id, :vehicle_type, :service_status_type_id].each do |p|
+      set_var_and_yield_if_present p do
+        @orphaned_assets = @orphaned_assets.where(p => params[p])
+      end
+    end
 
+    set_var_and_yield_if_present :search_text do
+      asset_table = Asset.arel_table
+
+      @orphaned_assets = @orphaned_assets
+                         .where(asset_table[:asset_tag].matches("%#{@search_text}%")
+                                 .or(asset_table[:external_id].matches("%#{@search_text}%"))
+                                 .or(asset_table[:serial_number].matches("%#{@search_text}%"))
+                                 .or(asset_table[:license_plate].matches("%#{@search_text}%")))
+    end
+
+    set_var_and_yield_if_present :vehicle_type do
+      type_id = FtaSupportVehicleType.find_by(name: @vehicle_type) ||
+                FtaVehicleType.find_by(name: @vehicle_type)
+
+      asset_table = Asset.arel_table
+      @orphaned_assets = @orphaned_assets
+                         .where(asset_table[:fta_support_vehicle_type_id].eq(type_id)
+                                 .or(asset_table[:fta_vehicle_type_id].eq(type_id)))
+    end
+    
     respond_to do |format|
       format.html
       format.json {
 
-        # merge fields that
-        orphaned_assets_json = orphaned_assets.order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset]).collect{ |p|
+        # merge fields
+        orphaned_assets_json = @orphaned_assets.order("#{params[:sort]} #{params[:order]}").limit(params[:limit]).offset(params[:offset]).collect{ |p|
           p.as_json.merge!({
              serial_number: p.serial_number,
              license_plane: p.license_plate,
              manufacturer_model: p.manufacturer_model,
-             vehicle_type: (FtaVehicleType.find_by(id: p.fta_vehicle_type_id) || FtaSupportVehicleType.find_by(id: p.fta_support_vehicle_type_id)).to_s,
+             service_status_type: p.service_status_type.try(:to_s),
+             vehicle_type: (FtaSupportVehicleType.find_by(id: p.fta_support_vehicle_type_id) || FtaVehicleType.find_by(id: p.fta_vehicle_type_id)).to_s,
              action: new_asset_asset_fleets_path(asset_object_key: p.object_key)
          })
         }
 
         render :json => {
-            :total => orphaned_assets.count,
+            :total => @orphaned_assets.count,
             :rows =>  orphaned_assets_json
         }
       }
@@ -207,6 +229,12 @@ class AssetFleetsController < OrganizationAwareController
     @fta_asset_categories << {id: FtaAssetCategory.find_by(name: 'Equipment').id, label: 'Support Vehicles'} if SupportVehicle.where(organization_id: @organization_list).count > 0
 
     @message = "Creating asset fleets. This process might take a while."
+
+    # Pass params through to orphans table
+    [:asset_type_id, :search_text, :manufacturer_id, :manufacturer_model, :manufacture_year,
+     :asset_subtype_id, :vehicle_type, :service_status_type_id].each do |p|
+      instance_variable_set "@#{p}", params[p]
+    end
   end
 
   def runner
@@ -286,5 +314,26 @@ class AssetFleetsController < OrganizationAwareController
     # Only allow a trusted parameter "white list" through.
     def asset_fleet_params
       params.require(:asset_fleet).permit(AssetFleet.allowable_params)
+    end
+
+    def set_form_vars
+      @asset_types = AssetType.where(class_name: AssetFleetType.pluck(:class_name))
+
+      @orphaned_assets = Asset
+                         .joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
+                         .where(asset_type: @asset_types, organization_id: @organization_list)
+                         .where(assets_asset_fleets: {asset_id: nil})
+
+      fta_support_types = FtaSupportVehicleType.where(id: @orphaned_assets.uniq.pluck(:fta_support_vehicle_type_id))
+      fta_types = FtaVehicleType.where(id: @orphaned_assets.uniq.pluck(:fta_vehicle_type_id))
+      @vehicle_types = [["FTA Support Vehicle Type", fta_support_types], ["FTA Vehicle Type", fta_types]]
+      @manufacturers = Manufacturer.where(id: @orphaned_assets.uniq.pluck(:manufacturer_id))
+      @manufacturer_models = @orphaned_assets.order(:manufacturer_model).uniq.pluck(:manufacturer_model)
+      @asset_subtypes = AssetSubtype.where(id: @orphaned_assets.uniq.pluck(:asset_subtype_id))
+    end
+
+    def set_var_and_yield_if_present(param_key)
+      instance_variable_set("@#{param_key}", params[param_key])
+      yield if params[param_key].present?
     end
 end
