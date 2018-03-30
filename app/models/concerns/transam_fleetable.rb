@@ -13,7 +13,7 @@ module TransamFleetable
     # Callbacks
     # ----------------------------------------------------
 
-    before_save :check_fleet
+    after_save :check_fleet
 
     # ----------------------------------------------------
     # Associations
@@ -55,7 +55,6 @@ module TransamFleetable
   protected
 
   def check_fleet
-
     asset_fleets.each do |fleet|
       fleet_type = fleet.asset_fleet_type
 
@@ -63,22 +62,13 @@ module TransamFleetable
       if self.assets_asset_fleets.find_by(asset_fleet: fleet).active
 
         if fleet.active_assets.count == 1 && fleet.active_assets.first.object_key == self.object_key # if the last valid asset in fleet
-          puts "======="
           # check all other assets to see if they now match the last active fleet whose changes are now the fleets grouped values
           fleet.assets.where.not(id: self.id).each do |asset|
             typed_asset = Asset.get_typed_asset(asset)
             if asset.attributes.slice(*fleet_type.standard_group_by_fields) == self.attributes.slice(*fleet_type.standard_group_by_fields)
               is_valid = true
               fleet_type.custom_group_by_fields.each do |field|
-                puts "+++"
-                puts field.inspect
-                puts typed_asset.send(field)
-                puts "+++"
-                puts primary_fta_mode_type.id
-                puts send(field)
-                puts Asset.get_typed_asset(Asset.find_by(object_key: self.object_key)).send(field)
-                puts "+++"
-                if typed_asset.send(field) != Asset.get_typed_asset(Asset.find_by(object_key: self.object_key)).send(field)
+                if typed_asset.send(field) != self.send(field)
                   is_valid = false
                   break
                 end
@@ -87,15 +77,14 @@ module TransamFleetable
               AssetsAssetFleet.find_by(asset: asset, asset_fleet: fleet).update(active: is_valid)
             end
           end
-          puts "====="
         else
-          if (self.changes.keys & fleet_type.standard_group_by_fields).count > 0
+          if (self.previous_changes.keys & fleet_type.standard_group_by_fields).count > 0
             AssetsAssetFleet.find_by(asset: self, asset_fleet: fleet).update(active: false)
           else # check custom fields
             asset_to_follow = Asset.get_typed_asset(fleet.active_assets.where.not(id: self.id).first)
 
             fleet_type.custom_group_by_fields.each do |field|
-              if asset_to_follow.send(field) != typed_self.send(field)
+              if asset_to_follow.send(field) != self.send(field)
                 AssetsAssetFleet.find_by(asset: self, asset_fleet: fleet).update(active: false)
                 break
               end
