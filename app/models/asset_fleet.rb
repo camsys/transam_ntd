@@ -102,7 +102,7 @@ class AssetFleet < ActiveRecord::Base
   end
 
   def to_s
-   "#{organization.short_name} #{asset_fleet_type} #{ntd_id}"
+   "#{organization.short_name} #{asset_fleet_type.to_s.titleize} #{ntd_id}"
   end
 
   def searchable_fields

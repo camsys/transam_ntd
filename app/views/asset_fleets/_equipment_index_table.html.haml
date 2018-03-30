@@ -134,7 +134,7 @@
   }
 
   function action_formatter(value, data) {
-    return "<a class='btn btn-primary btn-sm' href='#{asset_fleets_path}/"+data.object_key+"'>View</a>";
+    return "<a class='btn btn-primary btn-sm' href='#{asset_fleets_path}/"+data.object_key+"?fta_asset_category_id=#{@fta_asset_category.id}'>View</a>";
   }
 
 
