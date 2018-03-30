@@ -76,10 +76,10 @@ class AssetFleetBuilder
 
     conditions = []
     @asset_fleet_type.group_by_fields.each_with_index do |field, idx|
-      if asset_group_value[idx].nil?
-        conditions << "#{field} IS NULL"
-      else
+      if asset_group_value[idx].present?
         conditions << "#{field} = ?"
+      else
+        conditions << "(#{field} IS NULL OR #{field} = '')"
       end
     end
 
@@ -94,10 +94,10 @@ class AssetFleetBuilder
 
     conditions = []
     @asset_fleet_type.group_by_fields.each_with_index do |field, idx|
-      if asset_group_value[idx].nil?
-        conditions << "#{field} IS NULL"
-      else
+      if asset_group_value[idx].present?
         conditions << "#{field} = ?"
+      else
+        conditions << "(#{field} IS NULL OR #{field} = '')"
       end
     end
 
