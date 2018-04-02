@@ -6,6 +6,7 @@ Rails.application.routes.draw do
 
       get 'new_asset'
       get 'add_asset'
+      get 'new_fleet'
 
       get 'builder'
       get 'runner'

@@ -153,7 +153,7 @@ class AssetFleetsController < OrganizationAwareController
              manufacturer_model: p.manufacturer_model,
              service_status_type: p.service_status_type.try(:to_s),
              vehicle_type: (FtaSupportVehicleType.find_by(id: p.fta_support_vehicle_type_id) || FtaVehicleType.find_by(id: p.fta_vehicle_type_id)).to_s,
-             action: new_asset_asset_fleets_path(asset_object_key: p.object_key)
+             action: new_asset_asset_fleets_path(asset_object_key: p.object_key, format: :js)
          })
         }
 
@@ -168,6 +168,10 @@ class AssetFleetsController < OrganizationAwareController
 
   # GET /asset_fleets/1
   def show
+    category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
+    add_breadcrumb (category.name == "Equipment") ? "Support Vehicles" : category.to_s,
+                   asset_fleets_path(fta_asset_category_id: category) if category
+    
     add_breadcrumb @asset_fleet
 
     builder = AssetFleetBuilder.new(@asset_fleet.asset_fleet_type, @asset_fleet.organization)
@@ -253,15 +257,22 @@ class AssetFleetsController < OrganizationAwareController
     redirect_to :back
   end
 
+  def new_fleet
+    asset = Asset.find(params[:asset_id])
+
+    asset_fleet = AssetFleet.new(organization_id: asset.organization_id, asset_fleet_type: AssetFleetType.find_by(class_name: asset.asset_type.class_name))
+    asset_fleet.assets << asset
+    asset_fleet.creator = current_user
+    asset_fleet.save
+    
+    redirect_to :back
+  end
+  
   def new_asset
     asset = Asset.find_by(object_key: params[:asset_object_key])
 
     unless asset.nil?
       @asset = Asset.get_typed_asset(asset)
-
-      # potential new fleet
-      @asset_fleet = AssetFleet.new(organization_id: @asset.organization_id, asset_fleet_type: AssetFleetType.find_by(class_name: @asset.asset_type.class_name))
-      @asset_fleet.assets << @asset
 
       builder = AssetFleetBuilder.new(AssetFleetType.find_by(class_name: @asset.asset_type.class_name), @asset.organization)
       @available_fleets = builder.available_fleets(builder.asset_group_values({asset: @asset}))
