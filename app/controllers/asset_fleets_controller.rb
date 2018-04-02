@@ -92,10 +92,10 @@ class AssetFleetsController < OrganizationAwareController
 
     @status = params[:status] || 'Active'
     if @status == 'Active'
-      @asset_fleets = @asset_fleets.where(assets: {disposition_date: nil})
+      @asset_fleets = @asset_fleets.where(assets: {disposition_date: nil, fta_emergency_contingency_fleet: false})
     else
       @asset_fleets = @asset_fleets
-                      .where.not(id: @asset_fleets.where(assets: {disposition_date: nil}).pluck(:id))
+                      .where.not(id: @asset_fleets.where(assets: {disposition_date: nil, fta_emergency_contingency_fleet: false}).pluck(:id))
     end
     
     respond_to do |format|

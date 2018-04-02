@@ -124,13 +124,12 @@ class AssetFleet < ActiveRecord::Base
     assets.count
   end
 
-  def active_count
-    assets.in_service.count
+  def active_count(date=Date.today)
+    assets.where(fta_emergency_contingency_fleet: false).where('disposition_date IS NULL OR disposition_date > ?', date).count
   end
 
-  def active(fy_year=nil)
-    fy_year = current_fiscal_year_year - 1 if fy_year.nil?
-    assets.disposed.where('disposition_date >= ?', start_of_fiscal_year(fy_year)).count != total_count
+  def active(date=Date.today)
+    active_count(date) != 0
   end
 
   def ada_accessible_count
@@ -141,25 +140,40 @@ class AssetFleet < ActiveRecord::Base
     assets.where(fta_emergency_contingency_fleet: true).count
   end
 
-  def miles_this_year(fiscal_year=nil)
-    start_of_fy = start_of_fiscal_year(fiscal_year || current_fiscal_year_year)
-    total_mileage_last_year = 0
-    assets.in_service.each do |asset|
-      a = Asset.get_typed_asset(asset)
-      total_mileage_last_year += a.mileage_updates.where('event_date < ?', start_of_fy).last.try(:current_mileage) || 0
+  def miles_this_year(date=Date.today)
+    total_miles = total_active_lifetime_miles(date)
+    if total_miles
+      start_date = start_of_fiscal_year(fiscal_year_year_on_date(date)) - 1.day
 
-      # not completely accurate -- what if the event dates are off?
+      total_mileage_last_year = 0
+      assets.where(fta_emergency_contingency_fleet: false).where('disposition_date IS NULL OR disposition_date > ?', date).each do |asset|
+        total_mileage_last_year += asset.mileage_updates.where(event_date: start_date).last.current_mileage
+      end
+
+      return total_miles - total_mileage_last_year
     end
 
-    total_active_lifetime_miles - total_mileage_last_year
   end
 
-  def total_active_lifetime_miles
-    assets.in_service.sum(:reported_mileage)
+  def total_active_lifetime_miles(date=Date.today)
+    start_date = start_of_fiscal_year(fiscal_year_year_on_date(date)) - 1.day
+    end_date = fiscal_year_end_date(date)
+
+    total_mileage = 0
+    assets.where(fta_emergency_contingency_fleet: false).where('disposition_date IS NULL OR disposition_date > ?', date).each do |asset|
+      if asset.mileage_updates.where(event_date: [start_date, end_date]).group(:event_date).count == 2
+        total_mileage += asset.mileage_updates.where(event_date: end_date).last.current_mileage
+      else
+        return nil
+      end
+    end
+
+    return total_mileage
   end
 
-  def avg_active_lifetime_miles
-    active_count > 0 ? total_active_lifetime_miles / active_count.to_i : active_count
+  def avg_active_lifetime_miles(date=Date.today)
+    active_assets_count = active_count(date)
+    active_assets_count > 0 ? total_active_lifetime_miles(date) / active_assets_count.to_i : 0
   end
 
   def useful_life_benchmark

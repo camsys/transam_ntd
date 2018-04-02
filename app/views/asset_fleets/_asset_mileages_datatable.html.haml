@@ -28,7 +28,7 @@
           %th.center{:data => {:sortable => 'true'}} Mileage During FY
 
       %tbody
-        - @asset_fleet.assets.each do |a|
+        - @asset_fleet.assets.operational.where(fta_emergency_contingency_fleet: false).each do |a|
           - typed_asset = Asset.get_typed_asset(a) # could make this faster rather than run on each asset
           - mileage_fy_start = typed_asset.fiscal_year_mileage(current_fiscal_year_year-1)
           - mileage_fy_end = typed_asset.fiscal_year_mileage(current_fiscal_year_year)
