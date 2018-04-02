@@ -18,4 +18,7 @@ class AssetFleetType < ActiveRecord::Base
     custom_groups.split(',')
   end
 
+  def label_fields
+    label_groups.split(',')
+  end
 end

@@ -3,8 +3,9 @@
   mileage_event_type = AssetEventType.find_by(class_name: "MileageUpdateEvent")
 
 = format_field("FY Year", format_as_fiscal_year(current_fiscal_year_year))
-= format_field('Miles This Year', "#{format_as_integer(@asset_fleet.miles_this_year)} miles")
-= format_field('Avg Lifetime Miles per Active Vehicle', "#{format_as_integer(@asset_fleet.avg_active_lifetime_miles)} miles")
+- has_miles = @asset_fleet.miles_this_year.present?
+= format_field('Miles This Year', "#{format_as_integer(@asset_fleet.miles_this_year)} #{has_miles ? 'miles': ''}")
+= format_field('Avg Lifetime Miles per Active Vehicle', "#{format_as_integer(@asset_fleet.avg_active_lifetime_miles)} #{has_miles ? 'miles': ''}")
 
 .row{style: 'padding-top: 25px;'}
   .col-xs-12

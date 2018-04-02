@@ -102,7 +102,13 @@ class AssetFleet < ActiveRecord::Base
   end
 
   def to_s
-   "#{organization.short_name} #{asset_fleet_type.to_s.titleize} #{ntd_id}"
+   label = "#{organization.short_name}"
+    asset_fleet_type.label_fields.each do |field|
+      label += " : " + (self.send("get_#{field}").try(:code) || self.send("get_#{field}").to_s)
+    end
+    label += " : #{ntd_id}" unless ntd_id.blank?
+
+    label
   end
 
   def searchable_fields
@@ -147,7 +153,7 @@ class AssetFleet < ActiveRecord::Base
 
       total_mileage_last_year = 0
       assets.where(fta_emergency_contingency_fleet: false).where('disposition_date IS NULL OR disposition_date > ?', date).each do |asset|
-        total_mileage_last_year += asset.mileage_updates.where(event_date: start_date).last.current_mileage
+        total_mileage_last_year += MileageUpdateEvent.where(asset: asset, event_date: start_date).last.current_mileage
       end
 
       return total_miles - total_mileage_last_year
@@ -161,7 +167,7 @@ class AssetFleet < ActiveRecord::Base
 
     total_mileage = 0
     assets.where(fta_emergency_contingency_fleet: false).where('disposition_date IS NULL OR disposition_date > ?', date).each do |asset|
-      if asset.mileage_updates.where(event_date: [start_date, end_date]).group(:event_date).count == 2
+      if MileageUpdateEvent.where(asset: asset, event_date: [start_date, end_date]).group(:event_date).count == 2
         total_mileage += asset.mileage_updates.where(event_date: end_date).last.current_mileage
       else
         return nil
@@ -173,7 +179,10 @@ class AssetFleet < ActiveRecord::Base
 
   def avg_active_lifetime_miles(date=Date.today)
     active_assets_count = active_count(date)
-    active_assets_count > 0 ? total_active_lifetime_miles(date) / active_assets_count.to_i : 0
+    total_miles = total_active_lifetime_miles(date)
+    if active_assets_count > 0 && total_miles
+      total_miles / active_assets_count.to_i
+    end
   end
 
   def useful_life_benchmark
@@ -253,7 +262,7 @@ class AssetFleet < ActiveRecord::Base
     if method_sym.to_s =~ DECORATOR_METHOD_SIGNATURE
       # Strip off the decorator and see who can handle the real request
       actual_method_sym = method_sym.to_s[4..-1]
-      if (asset_fleet_type.groups.include? actual_method_sym) || (asset_fleet_type.custom_groups.include? actual_method_sym)
+      if (asset_fleet_type.groups.include? actual_method_sym) || (asset_fleet_type.custom_groups.include? actual_method_sym) || (asset_fleet_type.label_groups.include? actual_method_sym)
         typed_asset = Asset.get_typed_asset(active_assets.first)
         typed_asset.try(actual_method_sym)
       end
