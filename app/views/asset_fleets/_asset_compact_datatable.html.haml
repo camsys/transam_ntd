@@ -22,8 +22,8 @@
         %th.left{:data => {:sortable => 'true'}} License Plate
         %th.left{:data => {:sortable => 'true'}} Title Number
         %th.left{:data => {:sortable => 'true'}} Status
-        %th.left{:data => {:sortable => 'true'}} Emerg. Cont.
-        %th.left{:data => {:sortable => 'true'}} ADA Access
+        %th.left{:data => {:sortable => 'true'}} Emergency Contingency
+        %th.left{:data => {:sortable => 'true'}} ADA Accessibility
         %th.left{:data => {:sortable => 'true'}} ULB
         %th.left{:data => {:sortable => 'true'}} Mileage
 
@@ -31,37 +31,38 @@
         %th.center Action
 
     %tbody
-      - (assets + @available_assets).each do |a|
-        %tr{:id => a.object_key, :class => 'action-path'}
+      - (@available_assets + assets).each do |a|
+        %tr{:id => a.object_key}
           %td.left
-            = link_to a.asset_tag, inventory_path(a)
+            = link_to a.asset_tag, inventory_path(a), target: :blank
           %td.left= a.external_id
           %td.left= a.serial_number
           %td.left= a.license_plate
           %td.left= a.title_number
           %td.left= a.service_status_type
-          %td.left= format_as_boolean(a.fta_emergency_contingency_fleet)
-          %td.left= format_as_boolean(a.ada_accessible_lift)
+          %td.left= format_as_yes_no(a.fta_emergency_contingency_fleet)
+          %td.left= format_as_yes_no(a.ada_accessible_lift)
           %td.left= @asset_fleet.useful_life_benchmark
           %td.left= a.reported_mileage
 
           - assets_asset_fleet = AssetsAssetFleet.find_by(asset: a, asset_fleet: @asset_fleet)
-          %td.center= format_as_boolean(assets_asset_fleet.present? ? assets_asset_fleet.active: true) # if possible to be added, would automatically be valid
+          %td.left= format_as_yes_no(assets_asset_fleet.present? ? assets_asset_fleet.active : true) # if possible to be added, would automatically be valid
           %td.center
             - if can? :update, @asset_fleet
               - if assets_asset_fleet.present?
                 - if @asset_fleet.assets.count > 1
-                  = link_to remove_asset_asset_fleet_path(@asset_fleet, asset: a.object_key), :method => :delete, :data => {:confirm => "Are you sure?"}, :title => 'Remove asset'  do
-                    %i.fa.fa-trash-o.fa-fw.text-danger
+                  = link_to remove_asset_asset_fleet_path(@asset_fleet, asset: a.object_key), :method => :delete, :title => 'Remove asset'  do
+                    %i.fa.fa-minus-square.fa-lg.text-danger
                 - else
-                  %a.transam-popover{data: {placement: 'left', toggle: 'popover', html: 'true', content: "You cannot remove the final asset in a fleet."}, title: 'Warning', tabindex: '0'}
-                    %i.fa.fa-trash.text-danger.fa-stack-1x
-                    %i.fa.fa-ban.text-danger.fa-stack-2x
+                  %a.transam-popover{data: {placement: 'left', toggle: 'popover', content: "You cannot remove the final asset in a fleet."}, title: 'Warning', tabindex: '0'}
+                    %i.fa.fa-ban.fa-lg.text-danger
               - else
                 = link_to add_asset_asset_fleets_path(fleet_asset_builder: {asset_id: a.id, asset_fleet_id: @asset_fleet.id}) do
-                  %i.fa.fa-plus.text-success
+                  %i.fa.fa-plus-square.fa-lg.text-success
 
 :javascript
-  $('.transam-popover').popover({
-    trigger: 'hover'
+  $(function () {
+    $('.transam-popover').popover({
+      trigger: 'hover'
+    });
   });
