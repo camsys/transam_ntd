@@ -84,7 +84,7 @@ class AssetFleetBuilder
     end
 
     possible_assets = @query
-                          .having(conditions.join(' AND '), *(asset_group_value.select{|x| !x.nil?}))
+                          .having(conditions.join(' AND '), *(asset_group_value.select{|x| x.present?}))
                           .pluck(*group_by_fields(@asset_fleet_type), 'object_key').map{|x| x[-1]}
 
     AssetFleet.distinct.joins(:assets).where(assets: {object_key: possible_assets})
@@ -104,7 +104,7 @@ class AssetFleetBuilder
     assets = Asset.where(object_key: @query
                    .joins('LEFT JOIN assets_asset_fleets ON assets.id = assets_asset_fleets.asset_id')
                    .where('assets_asset_fleets.asset_id IS NULL')
-                   .having(conditions.join(' AND '), *(asset_group_value.select{|x| !x.nil?}))
+                   .having(conditions.join(' AND '), *(asset_group_value.select{|x| x.present?}))
                    .pluck(*group_by_fields(@asset_fleet_type), 'object_key').map{|x| x[-1]})
 
     assets
