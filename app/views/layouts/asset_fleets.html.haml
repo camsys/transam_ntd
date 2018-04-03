@@ -2,10 +2,9 @@
 
   .indent
   .col-sm-12
-    .page-header
-      %h2 Fleets
-
-    - unless params[:action] == 'show'
+    %h2 Fleets
+    %hr
+    - unless ['show', 'edit'].include? params[:action]
       %ul.nav.nav-pills
         - rev_vehicles = FtaAssetCategory.find_by(name: 'Revenue Vehicles')
         - support_vehicles = FtaAssetCategory.find_by(name: 'Equipment')

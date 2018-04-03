@@ -22,7 +22,8 @@
   = f.input :notes, :label => 'NTD Notes', :placeholder => 'Notes will appear in generated NTD report.'
 
   = hidden_field_tag :asset_object_key, asset.try(:object_key)
-
+  = hidden_field_tag :fta_asset_category_id, @category.id
+  
   = f.button :submit, :class => "btn btn-primary"
   = link_to "Cancel", :back, :class => "btn btn-warning cancel-action", :role => 'button'
 

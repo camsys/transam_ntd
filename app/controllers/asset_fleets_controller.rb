@@ -168,9 +168,9 @@ class AssetFleetsController < OrganizationAwareController
 
   # GET /asset_fleets/1
   def show
-    category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
-    add_breadcrumb (category.name == "Equipment") ? "Support Vehicles" : category.to_s,
-                   asset_fleets_path(fta_asset_category_id: category) if category
+    @category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
+    add_breadcrumb (@category.name == "Equipment") ? "Support Vehicles" : @category.to_s,
+                   asset_fleets_path(fta_asset_category_id: @category) if @category
     
     add_breadcrumb @asset_fleet
 
@@ -188,6 +188,9 @@ class AssetFleetsController < OrganizationAwareController
 
   # GET /asset_fleets/1/edit
   def edit
+    @category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
+    add_breadcrumb (@category.name == "Equipment") ? "Support Vehicles" : @category.to_s,
+                   asset_fleets_path(fta_asset_category_id: @category) if @category
     add_breadcrumb @asset_fleet, asset_fleet_path(@asset_fleet)
     add_breadcrumb 'Update'
 
@@ -211,8 +214,9 @@ class AssetFleetsController < OrganizationAwareController
   # PATCH/PUT /asset_fleets/1
   def update
     if @asset_fleet.update(asset_fleet_params)
-      redirect_to @asset_fleet, notice: 'Asset fleet was successfully updated.'
+      redirect_to asset_fleet_path(@asset_fleet, fta_asset_category_id: params[:fta_asset_category_id]), notice: 'Asset fleet was successfully updated.'
     else
+      @category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
       render :edit
     end
   end

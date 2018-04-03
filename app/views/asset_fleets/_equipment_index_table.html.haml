@@ -69,13 +69,6 @@
     });
   });
 
-  var path = '#{asset_fleet_path("x")}';
-  function row_style(row, index) {
-    return {
-      classes: 'action-path'
-    };
-  };
-
   $(window).resize(function() {
     $('##{table_dom_id}').bootstrapTable('resetView');
   });
