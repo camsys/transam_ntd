@@ -12,8 +12,8 @@ gemspec
 
 # To use debugger
 # gem 'debugger'
-gem 'transam_core', :github => 'camsys/transam_core', branch: 'master'
-gem 'transam_transit', :github => 'camsys/transam_transit', branch: 'master'
+gem 'transam_core', :github => 'camsys/transam_core', branch: :quarter1
+gem 'transam_transit', :github => 'camsys/transam_transit', branch: :quarter1
 gem 'mysql2', '~> 0.3.20' # lock gem for dummy app
 gem "capybara", '2.6.2' # lock gem for old capybara behavior on hidden element xpath
 
