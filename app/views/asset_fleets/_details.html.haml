@@ -35,14 +35,13 @@
 
   - if @asset_fleet.asset_fleet_type.class_name == 'SupportVehicle'
     .tab-pane.fade#finance
-      - if false
-        .tab-content
-          = format_field('Estimated Cost', format_as_currency(@asset_fleet.estimated_cost))
-          = format_field('Year Dollars of Estimated Cost', @asset_fleet.year_estimated_cost)
+      .tab-content
+        = format_field('Estimated Cost', format_as_currency(@asset_fleet.estimated_cost))
+        = format_field('Year Dollars of Estimated Cost', @asset_fleet.year_estimated_cost)
   - else
     .tab-pane.fade#mileage
       .tab-content
-        = render :partial => 'asset_fleets/asset_mileages_datatable'
+        #mileages_table= render :partial => 'asset_fleets/asset_mileages_datatable'
 
   .tab-pane.fade#assets
     .tab-content

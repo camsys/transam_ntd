@@ -1,1 +1,2 @@
-= @asset_event.current_mileage
+- @asset_fleet = @asset_event.asset.asset_fleets.first
+= render 'asset_fleets/asset_mileages_datatable'
