@@ -306,12 +306,14 @@ class AssetFleetsController < OrganizationAwareController
   def new_fleet
     asset = Asset.find(params[:asset_id])
 
-    asset_fleet = AssetFleet.new(organization_id: asset.organization_id, asset_fleet_type: AssetFleetType.find_by(class_name: asset.asset_type.class_name))
-    asset_fleet.assets << asset
-    asset_fleet.creator = current_user
-    asset_fleet.save
-    
-    redirect_to :back
+    @asset_fleet = AssetFleet.new(organization_id: asset.organization_id, asset_fleet_type: AssetFleetType.find_by(class_name: asset.asset_type.class_name))
+    @asset_fleet.assets << asset
+    @asset_fleet.creator = current_user
+    @asset_fleet.save
+
+    redirect_to asset_fleet_path(@asset_fleet,
+                                 fta_asset_category_id: FtaAssetCategory.asset_types([asset.asset_type]).first.id),
+                notice: 'Asset fleet was successfully created.'
   end
   
   def new_asset
