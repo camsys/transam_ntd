@@ -31,7 +31,7 @@
         %th.center Action
 
     %tbody
-      - (@available_assets + assets).each do |a|
+      - (assets + @available_assets).each do |a|
         %tr{:id => a.object_key}
           %td.left
             = link_to a.asset_tag, inventory_path(a), target: :blank
