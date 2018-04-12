@@ -116,13 +116,10 @@ class AssetFleet < ActiveRecord::Base
   end
 
   def ntd_id_label
-    asset_klass = asset_fleet_type.try(:class_name)
-    if asset_klass == 'Vehicle'
-      'RVI ID'
-    elsif asset_klass == 'SupportVehicle'
+    if asset_fleet_type.class_name == 'SupportVehicle'
       'SV ID'
-    elsif asset_klass.include? 'Facility'
-      'Facility ID'
+    else
+      'RVI ID'
     end
   end
 

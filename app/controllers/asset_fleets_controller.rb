@@ -210,7 +210,7 @@ class AssetFleetsController < OrganizationAwareController
 
   # GET /asset_fleets/1
   def show
-    @category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
+    @category = FtaAssetCategory.asset_types(AssetType.where(class_name:@asset_fleet.asset_fleet_type.class_name)).first
     add_breadcrumb (@category.name == "Equipment") ? "Support Vehicles" : @category.to_s,
                    asset_fleets_path(fta_asset_category_id: @category) if @category
     
@@ -230,7 +230,7 @@ class AssetFleetsController < OrganizationAwareController
 
   # GET /asset_fleets/1/edit
   def edit
-    @category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
+    @category = FtaAssetCategory.asset_types(AssetType.where(class_name:@asset_fleet.asset_fleet_type.class_name)).first
     add_breadcrumb (@category.name == "Equipment") ? "Support Vehicles" : @category.to_s,
                    asset_fleets_path(fta_asset_category_id: @category) if @category
     add_breadcrumb @asset_fleet, asset_fleet_path(@asset_fleet)
@@ -256,9 +256,9 @@ class AssetFleetsController < OrganizationAwareController
   # PATCH/PUT /asset_fleets/1
   def update
     if @asset_fleet.update(asset_fleet_params)
-      redirect_to asset_fleet_path(@asset_fleet, fta_asset_category_id: params[:fta_asset_category_id]), notice: 'Asset fleet was successfully updated.'
+      redirect_to asset_fleet_path(@asset_fleet), notice: 'Asset fleet was successfully updated.'
     else
-      @category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
+      @category = FtaAssetCategory.asset_types(AssetType.where(class_name:@asset_fleet.asset_fleet_type.class_name)).first
       render :edit
     end
   end
@@ -293,7 +293,7 @@ class AssetFleetsController < OrganizationAwareController
     fta_asset_category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
 
     if fta_asset_category.present?
-      Delayed::Job.enqueue AssetFleetBuilderJob.new(TransitOperator.where(id: @organization_list), AssetFleetType.where(class_name: fta_asset_category.asset_types.pluck(:class_name)), FleetBuilderProxy::RESET_ALL_ACTION,current_user), :priority => 0
+      Delayed::Job.enqueue AssetFleetBuilderJob.new(@organization_list, AssetFleetType.where(class_name: fta_asset_category.asset_types.pluck(:class_name)), FleetBuilderProxy::RESET_ALL_ACTION,current_user), :priority => 0
 
       # Let the user know the results
       msg = "Fleet Builder is running. You will be notified when the process is complete."
@@ -311,8 +311,7 @@ class AssetFleetsController < OrganizationAwareController
     @asset_fleet.creator = current_user
     @asset_fleet.save
 
-    redirect_to asset_fleet_path(@asset_fleet,
-                                 fta_asset_category_id: FtaAssetCategory.asset_types([asset.asset_type]).first.id),
+    redirect_to asset_fleet_path(@asset_fleet),
                 notice: 'Asset fleet was successfully created.'
   end
   
