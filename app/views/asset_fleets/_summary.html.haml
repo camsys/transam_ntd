@@ -3,3 +3,8 @@
 = format_field('Agency Fleet ID', @asset_fleet.agency_fleet_id)
 - if @asset_fleet.asset_fleet_type.class_name == 'SupportVehicle'
   = format_field('Fleet Name', @asset_fleet.fleet_name)
+
+:javascript
+  $(document).ready(function() {
+    alert("You're here!");
+  });
