@@ -16,3 +16,4 @@ script:
 - bundle exec $TEST_SUITE
 before_install:
 - mysql -e "create database IF NOT EXISTS transam_ntd_testing;" -uroot
+bundler_args: --without not_travis
