@@ -1,22 +1,17 @@
 %ul.nav.nav-tabs
   %li
     %a{:href => "#maint", :data =>{:toggle => 'tab'}}
-      = "A-10 Maint and Admin"
-  %li
-    %a{:href => "#passenger", :data =>{:toggle => 'tab'}}
-      = "A-20 Passenger and Parking"
-  %li
-    %a{:href => "#rail", :data =>{:toggle => 'tab'}}
-      = "A-50 Rail Fixed Guideway"
-  %li
-    %a{:href => "#track", :data =>{:toggle => 'tab'}}
-      = "A-55 Track"
-  %li
-    %a{:href => "#service", :data =>{:toggle => 'tab'}}
-      = "A-60 Service Vehicle"
+      = "A-15 Facilities"
+  -#%li
+  -#  %a{:href => "#passenger", :data =>{:toggle => 'tab'}}
+  -#    = "A-20 Passenger and Parking"
   %li
     %a{:href => "#revenue", :data =>{:toggle => 'tab'}}
-      = "A-70 Rev Vehicle"
+      = "A-30 Revenue Vehicles"
+  %li
+    %a{:href => "#service", :data =>{:toggle => 'tab'}}
+      = "A-35 Service Vehicles"
+
   %li
     %a{:href => "#hist", :data =>{:toggle => 'tab'}}
       = "History"
@@ -34,22 +29,15 @@
   .tab-pane.fade#maint
     .tab-content
       = render 'ntd_forms/steps/admin_and_maint_facility'
-  .tab-pane.fade#passenger
-    .tab-content
-      = render 'ntd_forms/steps/passenger_and_parking_facility'
-  .tab-pane.fade#rail
-    .tab-content
-      = render 'report'
-  .tab-pane.fade#track
-    .tab-content
-      = render 'report'
-  .tab-pane.fade#service
-    .tab-content
-      = render 'ntd_forms/steps/service_vehicle_fleet'
+  -#.tab-pane.fade#passenger
+  -#  .tab-content
+  -#    = render 'ntd_forms/steps/passenger_and_parking_facility'
   .tab-pane.fade#revenue
     .tab-content
       = render 'ntd_forms/steps/revenue_vehicle'
-
+  .tab-pane.fade#service
+    .tab-content
+      = render 'ntd_forms/steps/service_vehicle_fleet'
   .tab-pane.fade#hist
     .tab-content
       = render 'history_table'

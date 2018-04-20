@@ -40,8 +40,8 @@ class NtdForm < ActiveRecord::Base
   accepts_nested_attributes_for :ntd_admin_and_maintenance_facilities, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
 
   # Passenger and parking facilties
-  has_many    :ntd_passenger_and_parking_facilities, :dependent => :destroy
-  accepts_nested_attributes_for :ntd_passenger_and_parking_facilities, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
+  #has_many    :ntd_passenger_and_parking_facilities, :dependent => :destroy
+  #accepts_nested_attributes_for :ntd_passenger_and_parking_facilities, :allow_destroy => true, :reject_if => lambda { |a| a[:name].blank? }
 
   # Service vehicle fleets
   has_many    :ntd_service_vehicle_fleets, :dependent => :destroy
@@ -56,9 +56,7 @@ class NtdForm < ActiveRecord::Base
   #------------------------------------------------------------------------------
   validates :organization,        :presence => true
   validates :form,                :presence => true
-  validates :start_date,          :presence => true
-  validates :end_date,                :presence => true
-  #validates :fy_year,             :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 2012}
+  validates :fy_year,             :presence => true, :numericality => {:only_integer => true, :greater_than_or_equal_to => 2012}
 
   # Agency Information -- This is cached in case the organization's personel
   # changes and we retain the original reporting name
@@ -81,8 +79,7 @@ class NtdForm < ActiveRecord::Base
   # List of hash parameters allowed by the controller
   FORM_PARAMS = [
     :organization_id,
-    :start_date,
-    :end_date,
+    :fy_year,
     :reporter_name,
     :reporter_title,
     :reporter_department,
@@ -187,7 +184,7 @@ class NtdForm < ActiveRecord::Base
     self.state ||= "unsubmitted"
     # Set the fiscal year to the current fiscal year which can be different from
     # the calendar year
-    self.fy_year ||= current_fiscal_year_year
+    self.fy_year ||= current_fiscal_year_year - 1
   end
 
 end

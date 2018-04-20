@@ -12,9 +12,7 @@ class NtdFormsController < FormAwareController
 
   def index
 
-    add_breadcrumb @form_type.name.pluralize(2), form_path(@form_type)
-    add_breadcrumb "All"
-
+    add_breadcrumb @form_type.name, form_path(@form_type)
     @fiscal_years = get_fiscal_years
 
      # Start to set up the query
@@ -55,7 +53,7 @@ class NtdFormsController < FormAwareController
 
   def show
 
-    add_breadcrumb @form_type.name.pluralize(2), form_path(@form_type)
+    add_breadcrumb @form_type.name, form_path(@form_type)
     add_breadcrumb @form
 
     # get the @prev_record_path and @next_record_path view vars
@@ -113,7 +111,7 @@ class NtdFormsController < FormAwareController
 
   def generate
 
-    add_breadcrumb @form_type.name.pluralize(2), form_path(@form_type)
+    add_breadcrumb @form_type.name, form_path(@form_type)
     add_breadcrumb @form, form_ntd_form_path(@form_type, @form)
     add_breadcrumb 'Generate', generate_form_ntd_form_path(@form_type, @form)
 
