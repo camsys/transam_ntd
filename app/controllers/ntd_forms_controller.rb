@@ -6,7 +6,7 @@ class NtdFormsController < FormAwareController
   # Include the fiscal year mixin
   include FiscalYear
 
-  before_filter :get_form,  :except =>  [:index, :create, :new, :download_file]
+  before_action :get_form,  :except =>  [:index, :create, :new, :download_file]
 
   INDEX_KEY_LIST_VAR          = "ntd_forms_key_list_cache_var"
 
