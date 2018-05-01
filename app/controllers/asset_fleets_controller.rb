@@ -16,7 +16,7 @@ class AssetFleetsController < OrganizationAwareController
     @fta_asset_category = (FtaAssetCategory.find_by(id: params[:fta_asset_category_id]) || FtaAssetCategory.first)
     @asset_fleet_types = AssetFleetType.where(class_name: @fta_asset_category.asset_types.pluck(:class_name))
     # Go ahead and join with assets since almost every query requires it
-    @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: @asset_fleet_types.pluck(:id)).uniq.joins(:assets)
+    @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: @asset_fleet_types.pluck(:id)).distinct.joins(:assets)
 
     case @fta_asset_category.name
     when "Equipment"
