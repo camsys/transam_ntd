@@ -300,7 +300,7 @@ class AssetFleetsController < OrganizationAwareController
       notify_user(:notice, msg)
     end
 
-    redirect_to :back
+    redirect_back(fallback_location: root_path)
   end
 
   def new_fleet
@@ -335,7 +335,7 @@ class AssetFleetsController < OrganizationAwareController
 
     @asset_fleet.assets << @asset
 
-    redirect_to :back
+    redirect_back(fallback_location: root_path)
   end
 
   def remove_asset
@@ -345,7 +345,7 @@ class AssetFleetsController < OrganizationAwareController
       @asset_fleet.assets.delete @asset
     end
 
-    redirect_to :back
+    redirect_back(fallback_location: root_path)
   end
 
   private
