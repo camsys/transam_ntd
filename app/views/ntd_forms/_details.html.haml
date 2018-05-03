@@ -19,11 +19,7 @@
     %a{:href => "#log", :data =>{:toggle => 'tab'}}
       = "Process Log"
 
-  %li
-    %a{:href => "#comments", :data =>{:toggle => 'tab'}}
-      %span{:style => 'white-space: nowrap !important;'}
-        = "Comments"
-        %span.badge= @form.comments.count
+  = nav_tab_count_tag("#comments", "Comments", @form.comments.count)
 
 .tab-content
   .tab-pane.fade#maint
