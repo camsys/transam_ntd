@@ -85,7 +85,7 @@
           = render 'builder_notes'
           .row
             - @fta_asset_categories.each do |asset_category|
-              .col-sm-12.text-center{style: 'padding-top: 25px;'}
+              .col-sm-12.text-center.content-spacer
                 = link_to runner_asset_fleets_path(fta_asset_category_id: asset_category[:id]), :class => "btn btn-primary btn-sm", :onclick => "$('#processing').show();" do
                   = "Build #{asset_category[:label]} Fleets"
 
