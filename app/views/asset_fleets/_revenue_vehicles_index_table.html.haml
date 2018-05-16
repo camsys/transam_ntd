@@ -122,21 +122,6 @@
     return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
   }
 
-  //TODO Delete this once I know this removed duplication is not necessary
-  // function boolean_formatter(value) {
-  //   if (value) {
-  //     // add hidden div for exporting
-  //     return '<i class="fa fa-check"></i><div style = "visibility: hidden;">Yes</div>';
-  //   } else {
-  //     return '<div style = "visibility: hidden;">No</div>';
-  //   }
-  // }
-
-  //TODO Delete this once I know this removed duplication is not necessary
-  // function currency_formatter(value) {
-  //   return "$" + formatMoney(value);
-  // }
-
   function action_formatter(value, data) {
     return "<a class='btn btn-primary btn-sm' href='#{asset_fleets_path}/"+data.object_key+"'>View</a>";
   }

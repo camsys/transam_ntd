@@ -58,6 +58,7 @@
           %td.left= format_as_percentage(f.pcnt_capital_responsibility)
           %td.left= f.notes
 
+= render 'shared/table_formatters'
 
 :javascript
 
@@ -68,14 +69,6 @@
 
     $('.transam-tooltip').tooltip();
   });
-
-  function pcnt_formatter(value) {
-    if (value == "") {
-      return value;
-    } else {
-      return format("##0.000", value) + "%";
-    }
-  };
 
   $('#' + '#{table_dom_id}').on('click', 'td', function () {
     var path = "#{inventory_path('xxx')}";
