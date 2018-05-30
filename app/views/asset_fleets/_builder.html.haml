@@ -85,9 +85,12 @@
           = render 'builder_notes'
           .row
             - @fta_asset_categories.each do |asset_category|
-              .col-sm-12.text-center{style: 'padding-top: 25px;'}
+              .col-sm-12.text-center.content-spacer
                 = link_to runner_asset_fleets_path(fta_asset_category_id: asset_category[:id]), :class => "btn btn-primary btn-sm", :onclick => "$('#processing').show();" do
                   = "Build #{asset_category[:label]} Fleets"
+
+= render 'shared/table_formatters'
+
 
 :javascript
 
@@ -102,12 +105,3 @@
   function action_formatter(value, data) {
     return '<a class="btn btn-primary btn-sm" title="Add to Fleet" data-remote="true" href="'+value+'"><i class="fa fa-plus"></i> Add to Fleet</a>';
   }
-
-  function boolean_formatter(value) {
-    if (parseInt(value)) {
-      // hidden div for exporting
-      return '<i class="fa fa-check"></i><div style = "visibility: hidden;">Yes</div>';
-    } else {
-      return '<div style = "visibility: hidden;">No</div>';
-    }
-  };

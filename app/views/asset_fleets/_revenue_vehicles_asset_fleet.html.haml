@@ -4,7 +4,7 @@
 %br
 = format_field('Total Vehicles', format_as_integer(@asset_fleet.total_count))
 = format_field('Active Vehicles', format_as_integer(@asset_fleet.active_count))
-= format_field('Ada Accessible Vehicles', format_as_integer(@asset_fleet.ada_accessible_count))
+= format_field('ADA Accessible Vehicles', format_as_integer(@asset_fleet.ada_accessible_count))
 = format_field('Emergency Contingency Vehicles', format_as_integer(@asset_fleet.fta_emergency_contingency_count))
 %br
 = format_field('Secondary Mode', @asset_fleet.get_secondary_fta_mode_type)

@@ -13,12 +13,10 @@ class AssetFleetsController < OrganizationAwareController
   def index
     params[:sort] ||= 'ntd_id'
 
-    params[:sort] = 'organizations.short_name' if params[:sort] == 'organization'
-
     @fta_asset_category = (FtaAssetCategory.find_by(id: params[:fta_asset_category_id]) || FtaAssetCategory.first)
     @asset_fleet_types = AssetFleetType.where(class_name: @fta_asset_category.asset_types.pluck(:class_name))
     # Go ahead and join with assets since almost every query requires it
-    @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: @asset_fleet_types.pluck(:id)).uniq.joins(:assets)
+    @asset_fleets = AssetFleet.where(organization_id: @organization_list, asset_fleet_type_id: @asset_fleet_types.pluck(:id)).distinct.joins(:assets)
 
     case @fta_asset_category.name
     when "Equipment"
@@ -27,6 +25,13 @@ class AssetFleetsController < OrganizationAwareController
       include_fleet_name = true
       @vehicle_types = FtaSupportVehicleType.where(id: @asset_fleets.uniq.pluck(:fta_support_vehicle_type_id))
       use_support_vehicle_types = true
+      # Disallow/map certain sort parameters
+      case params[:sort]
+      when 'primary_fta_service_type_id', 'active_count'
+        params[:sort] = 'ntd_id'
+      when 'fta_vehicle_type_id'
+        params[:sort] = 'fta_support_vehicle_type_id'
+      end
     else # Primarily Revenue vehicles for now
       crumb =  @fta_asset_category.to_s
       @text_search_prompt = 'NTD ID'
@@ -34,6 +39,35 @@ class AssetFleetsController < OrganizationAwareController
       @service_types = FtaServiceType.active.all
       @vehicle_types = FtaVehicleType.where(id: @asset_fleets.uniq.pluck(:fta_vehicle_type_id))
       use_support_vehicle_types = false
+      # Disallow/map certain sort parameters
+      case params[:sort]
+      when 'fleet_name'
+        params[:sort] = 'ntd_id'
+      when 'fta_support_vehicle_type_id'
+        params[:sort] = 'fta_vehicle_type_id'
+      end
+    end
+    
+    case params[:sort]
+    when 'organization'
+      params[:sort] = 'organizations.short_name'
+      @asset_fleets = @asset_fleets.joins(:organization)
+    when 'ntd_id', 'agency_fleet_id', 'fleet_name'
+      # Columns of asset_fleets, do nothing
+    when 'primary_fta_mode_type_id'
+      params[:sort] = 'assets_fta_mode_types.fta_mode_type_id'
+      @asset_fleets = @asset_fleets
+                      .joins("INNER JOIN assets_fta_mode_types ON assets.id = assets_fta_mode_types.asset_id")
+                      .where(assets_fta_mode_types: {is_primary: true})
+
+    when 'primary_fta_service_type_id'
+      params[:sort] = 'assets_fta_service_types.fta_service_type_id'
+      @asset_fleets = @asset_fleets
+                      .joins("INNER JOIN assets_fta_service_types ON assets.id = assets_fta_service_types.asset_id")
+                      .where(assets_fta_service_types: {is_primary: true})
+    else
+      # Asset field
+      params[:sort] = "assets.#{params[:sort]}"
     end
     
     add_breadcrumb crumb
@@ -51,6 +85,14 @@ class AssetFleetsController < OrganizationAwareController
                       .joins("INNER JOIN assets_fta_mode_types ON assets.id = assets_fta_mode_types.asset_id")
                       .where(assets_fta_mode_types: {fta_mode_type_id: @primary_fta_mode_type_id,
                                                      is_primary: true})
+    end
+
+    # As is Primary FTA Service Type
+    set_var_and_yield_if_present :primary_fta_service_type_id do
+      @asset_fleets = @asset_fleets
+                      .joins("INNER JOIN assets_fta_service_types ON assets.id = assets_fta_service_types.asset_id")
+                      .where(assets_fta_service_types: {fta_service_type_id: @primary_fta_service_type_id,
+                                                        is_primary: true})
     end
 
     # Drop into arel for OR of LIKE queries for text_search
@@ -168,7 +210,7 @@ class AssetFleetsController < OrganizationAwareController
 
   # GET /asset_fleets/1
   def show
-    @category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
+    @category = FtaAssetCategory.asset_types(AssetType.where(class_name:@asset_fleet.asset_fleet_type.class_name)).first
     add_breadcrumb (@category.name == "Equipment") ? "Support Vehicles" : @category.to_s,
                    asset_fleets_path(fta_asset_category_id: @category) if @category
     
@@ -188,7 +230,7 @@ class AssetFleetsController < OrganizationAwareController
 
   # GET /asset_fleets/1/edit
   def edit
-    @category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
+    @category = FtaAssetCategory.asset_types(AssetType.where(class_name:@asset_fleet.asset_fleet_type.class_name)).first
     add_breadcrumb (@category.name == "Equipment") ? "Support Vehicles" : @category.to_s,
                    asset_fleets_path(fta_asset_category_id: @category) if @category
     add_breadcrumb @asset_fleet, asset_fleet_path(@asset_fleet)
@@ -214,9 +256,9 @@ class AssetFleetsController < OrganizationAwareController
   # PATCH/PUT /asset_fleets/1
   def update
     if @asset_fleet.update(asset_fleet_params)
-      redirect_to asset_fleet_path(@asset_fleet, fta_asset_category_id: params[:fta_asset_category_id]), notice: 'Asset fleet was successfully updated.'
+      redirect_to asset_fleet_path(@asset_fleet), notice: 'Asset fleet was successfully updated.'
     else
-      @category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
+      @category = FtaAssetCategory.asset_types(AssetType.where(class_name:@asset_fleet.asset_fleet_type.class_name)).first
       render :edit
     end
   end
@@ -251,25 +293,26 @@ class AssetFleetsController < OrganizationAwareController
     fta_asset_category = FtaAssetCategory.find_by(id: params[:fta_asset_category_id])
 
     if fta_asset_category.present?
-      Delayed::Job.enqueue AssetFleetBuilderJob.new(TransitOperator.where(id: @organization_list), AssetFleetType.where(class_name: fta_asset_category.asset_types.pluck(:class_name)), FleetBuilderProxy::RESET_ALL_ACTION,current_user), :priority => 0
+      Delayed::Job.enqueue AssetFleetBuilderJob.new(@organization_list, AssetFleetType.where(class_name: fta_asset_category.asset_types.pluck(:class_name)), FleetBuilderProxy::RESET_ALL_ACTION,current_user), :priority => 0
 
       # Let the user know the results
       msg = "Fleet Builder is running. You will be notified when the process is complete."
       notify_user(:notice, msg)
     end
 
-    redirect_to :back
+    redirect_back(fallback_location: root_path)
   end
 
   def new_fleet
     asset = Asset.find(params[:asset_id])
 
-    asset_fleet = AssetFleet.new(organization_id: asset.organization_id, asset_fleet_type: AssetFleetType.find_by(class_name: asset.asset_type.class_name))
-    asset_fleet.assets << asset
-    asset_fleet.creator = current_user
-    asset_fleet.save
-    
-    redirect_to :back
+    @asset_fleet = AssetFleet.new(organization_id: asset.organization_id, asset_fleet_type: AssetFleetType.find_by(class_name: asset.asset_type.class_name))
+    @asset_fleet.assets << asset
+    @asset_fleet.creator = current_user
+    @asset_fleet.save
+
+    redirect_to asset_fleet_path(@asset_fleet),
+                notice: 'Asset fleet was successfully created.'
   end
   
   def new_asset
@@ -292,7 +335,7 @@ class AssetFleetsController < OrganizationAwareController
 
     @asset_fleet.assets << @asset
 
-    redirect_to :back
+    redirect_back(fallback_location: root_path)
   end
 
   def remove_asset
@@ -302,7 +345,7 @@ class AssetFleetsController < OrganizationAwareController
       @asset_fleet.assets.delete @asset
     end
 
-    redirect_to :back
+    redirect_back(fallback_location: root_path)
   end
 
   private

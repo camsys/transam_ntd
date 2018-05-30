@@ -1,11 +1,6 @@
 :ruby
   table_dom_id = SecureRandom.hex
   
-:css
-  .th-inner {
-    white-space: normal !important;
-  }
-
 #table_actions.btn-toolbar
   = render partial: 'asset_fleets/index_filter'
   
@@ -14,7 +9,7 @@
     :data => {:toggle => 'table',
     :url => asset_fleets_path(:fta_asset_category_id => @fta_asset_category.id,
                               :primary_fta_mode_type_id => @primary_fta_mode_type_id,
-                              :fta_service_type_id => @fta_service_type_id,
+                              :primary_fta_service_type_id => @primary_fta_service_type_id,
                               :search_text => @search_text,
                               :fta_vehicle_type_id => @fta_vehicle_type_id,
                               :manufacturer_id => @manufacturer_id,
@@ -53,17 +48,20 @@
         %th.left{:data => {:field => 'agency_fleet_id', :sortable => 'true'}} Agency Fleet ID
         %th.left{:data => {:field => 'primary_fta_mode_type_id', :sortable => 'true'}} Primary Mode
         %th.left{:data => {:field => 'primary_fta_service_type_id', :sortable => 'true'}} Type of Service
-        %th.right{:data => {:field => 'total_count', :sortable => 'true'}} Total Vehicles
-        %th.right{:data => {:field => 'active_count', :sortable => 'true'}} Active Vehicles
+        %th.right{:data => {:field => 'total_count', :sortable => 'false'}} Total Vehicles
+        %th.right{:data => {:field => 'active_count', :sortable => 'false'}} Active Vehicles
         %th.left{:data => {:field => 'fta_vehicle_type_id', :sortable => 'true'}} FTA Vehicle Type
 
         %th.left{:data => {:field => 'manufacturer_id', :sortable => 'true'}} Manufacturer
         %th.left{:data => {:field => 'manufacturer_model', :sortable => 'true'}} Model
         %th.left{:data => {:field => 'manufacture_year', :sortable => 'true'}} Year Manufactured
 
-        %th.right{:data => {:field => 'useful_life_benchmark', :sortable => 'true'}} Useful Life Benchmark
-        %th.right{:data => {:field => 'useful_life_remaining', :sortable => 'true'}} Useful Life Remaining
+        %th.right{:data => {:field => 'useful_life_benchmark', :sortable => 'false'}} Useful Life Benchmark
+        %th.right{:data => {:field => 'useful_life_remaining', :sortable => 'false'}} Useful Life Remaining
         %th.center{:data => {:field => 'action', :formatter => 'action_formatter'}} Action
+
+= render 'shared/table_formatters'
+
 
 :javascript
   $(document).ready(function() {
@@ -108,6 +106,7 @@
   //   return params;
   // }
 
+  //TODO this could be moved into the _table_formatter lets double check that assumption
   var formatMoney = function(n, c, d, t) {
     var c = isNaN(c = Math.abs(c)) ? 0 : c,
     d = d == undefined ? "." : d,
@@ -118,21 +117,8 @@
     return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
   }
 
-  function boolean_formatter(value) {
-    if (value) {
-      // add hidden div for exporting
-      return '<i class="fa fa-check"></i><div style = "visibility: hidden;">Yes</div>';
-    } else {
-      return '<div style = "visibility: hidden;">No</div>';
-    }
-  }
-
-  function currency_formatter(value) {
-    return "$" + formatMoney(value);
-  }
-
   function action_formatter(value, data) {
-    return "<a class='btn btn-primary btn-sm' href='#{asset_fleets_path}/"+data.object_key+"?fta_asset_category_id=#{@fta_asset_category.id}'>View</a>";
+    return "<a class='btn btn-primary btn-sm' href='#{asset_fleets_path}/"+data.object_key+"'>View</a>";
   }
 
 

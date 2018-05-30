@@ -3,7 +3,7 @@
     = hidden_field_tag(:fta_asset_category_id, @fta_asset_category.id)
     = select_tag(:primary_fta_mode_type_id, options_from_collection_for_select(@primary_modes, "id", "to_s",  @primary_fta_mode_type_id), :class => "form-control", :style => "width: 150px;", :prompt => "Any Mode...")
     - if @service_types
-      = select_tag(:fta_service_type_id, options_from_collection_for_select(@service_types, "id", "to_s",  @fta_service_type_id), :class => "form-control", :style => "width: 150px;", :prompt => "Any Service Type...")
+      = select_tag(:primary_fta_service_type_id, options_from_collection_for_select(@service_types, "id", "to_s",  @primary_fta_service_type_id), :class => "form-control", :style => "width: 150px;", :prompt => "Any Service Type...")
 
     = text_field_tag(:text_search, @text_search, class: 'form-control', placeholder: @text_search_prompt)
     

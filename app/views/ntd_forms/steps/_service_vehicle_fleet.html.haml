@@ -51,6 +51,8 @@
           %td.left= f.secondary_fta_mode_types
           %td.left= f.notes
 
+= render 'shared/table_formatters'
+
 :javascript
 
   $('#' + '#{table_dom_id}').on('post-body.bs.table', function () {
@@ -60,14 +62,6 @@
 
     $('.transam-tooltip').tooltip();
   });
-
-  function pcnt_formatter(value) {
-    if (value == "") {
-      return value;
-    } else {
-      return format("##0.000", value) + "%";
-    }
-  };
 
   $('#' + '#{table_dom_id}').on('click', 'td', function () {
     var path = "#{asset_fleet_path('xxx')}";

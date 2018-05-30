@@ -160,8 +160,8 @@ class AssetFleet < ActiveRecord::Base
 
     total_mileage = 0
     assets.where(fta_emergency_contingency_fleet: false).where('disposition_date IS NULL OR disposition_date > ?', date).each do |asset|
-      if MileageUpdateEvent.where(asset: asset, event_date: [start_date, end_date]).group(:event_date).count == 2
-        total_mileage += asset.mileage_updates.where(event_date: end_date).last.current_mileage
+      if MileageUpdateEvent.unscoped.where(asset: asset, event_date: [start_date, end_date]).group(:event_date).count.length == 2
+        total_mileage += MileageUpdateEvent.where(asset: asset, event_date: end_date).last.current_mileage
       else
         return nil
       end

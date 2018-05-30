@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171201172759) do
+ActiveRecord::Schema.define(version: 20180402155245) do
 
   create_table "activities", force: :cascade do |t|
     t.string   "object_key",           limit: 12
@@ -43,6 +43,13 @@ ActiveRecord::Schema.define(version: 20171201172759) do
 
   add_index "activity_logs", ["organization_id", "activity_time"], name: "activity_logs_idx1", using: :btree
   add_index "activity_logs", ["user_id", "activity_time"], name: "activity_logs_idx2", using: :btree
+
+  create_table "archived_fiscal_years", id: false, force: :cascade do |t|
+    t.integer "organization_id", limit: 4
+    t.integer "fy_year",         limit: 4
+  end
+
+  add_index "archived_fiscal_years", ["organization_id"], name: "index_archived_fiscal_years_on_organization_id", using: :btree
 
   create_table "asset_event_asset_subsystems", force: :cascade do |t|
     t.integer "asset_event_id",     limit: 4
@@ -124,6 +131,32 @@ ActiveRecord::Schema.define(version: 20171201172759) do
 
   add_index "asset_events_vehicle_usage_codes", ["asset_event_id", "vehicle_usage_code_id"], name: "asset_events_vehicle_usage_codes_idx1", using: :btree
 
+  create_table "asset_fleet_types", force: :cascade do |t|
+    t.string  "class_name",    limit: 255
+    t.text    "groups",        limit: 65535
+    t.text    "custom_groups", limit: 65535
+    t.string  "label_groups",  limit: 255
+    t.boolean "active"
+  end
+
+  create_table "asset_fleets", force: :cascade do |t|
+    t.string   "object_key",          limit: 255
+    t.integer  "organization_id",     limit: 4
+    t.integer  "asset_fleet_type_id", limit: 4
+    t.string   "agency_fleet_id",     limit: 255
+    t.string   "fleet_name",          limit: 255
+    t.integer  "ntd_id",              limit: 4
+    t.integer  "estimated_cost",      limit: 4
+    t.integer  "year_estimated_cost", limit: 4
+    t.text     "notes",               limit: 65535
+    t.integer  "created_by_user_id",  limit: 4
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "asset_fleets", ["object_key"], name: "index_asset_fleets_on_object_key", using: :btree
+  add_index "asset_fleets", ["organization_id"], name: "index_asset_fleets_on_organization_id", using: :btree
+
   create_table "asset_groups", force: :cascade do |t|
     t.string   "object_key",      limit: 12,  null: false
     t.integer  "organization_id", limit: 4,   null: false
@@ -201,6 +234,7 @@ ActiveRecord::Schema.define(version: 20171201172759) do
     t.integer  "parent_id",                          limit: 4
     t.integer  "superseded_by_id",                   limit: 4
     t.integer  "manufacturer_id",                    limit: 4
+    t.string   "other_manufacturer",                 limit: 255
     t.string   "manufacturer_model",                 limit: 128
     t.integer  "manufacture_year",                   limit: 4
     t.integer  "pcnt_capital_responsibility",        limit: 4
@@ -259,12 +293,15 @@ ActiveRecord::Schema.define(version: 20171201172759) do
     t.integer  "standing_capacity",                  limit: 4
     t.integer  "wheelchair_capacity",                limit: 4
     t.integer  "fta_ownership_type_id",              limit: 4
+    t.string   "other_fta_ownership_type",           limit: 255
     t.integer  "fta_vehicle_type_id",                limit: 4
+    t.integer  "fta_support_vehicle_type_id",        limit: 4
     t.integer  "fta_funding_type_id",                limit: 4
     t.integer  "fta_bus_mode_type_id",               limit: 4
     t.boolean  "ada_accessible_lift"
     t.boolean  "ada_accessible_ramp"
     t.boolean  "fta_emergency_contingency_fleet"
+    t.boolean  "dedicated"
     t.string   "description",                        limit: 128
     t.string   "address1",                           limit: 128
     t.string   "address2",                           limit: 128
@@ -288,6 +325,7 @@ ActiveRecord::Schema.define(version: 20171201172759) do
     t.integer  "building_ownership_organization_id", limit: 4
     t.integer  "facility_capacity_type_id",          limit: 4
     t.integer  "fta_facility_type_id",               limit: 4
+    t.integer  "fta_private_mode_type_id",           limit: 4
     t.integer  "leed_certification_type_id",         limit: 4
     t.integer  "quantity",                           limit: 4
     t.string   "quantity_units",                     limit: 16
@@ -298,6 +336,8 @@ ActiveRecord::Schema.define(version: 20171201172759) do
     t.datetime "updated_at",                                                                null: false
     t.integer  "upload_id",                          limit: 4
     t.integer  "location_id",                        limit: 4
+    t.integer  "dual_fuel_type_id",                  limit: 4
+    t.string   "other_fuel_type",                    limit: 255
   end
 
   add_index "assets", ["asset_subtype_id"], name: "assets_idx4", using: :btree
@@ -314,6 +354,15 @@ ActiveRecord::Schema.define(version: 20171201172759) do
   add_index "assets", ["reported_condition_type_id"], name: "assets_idx6", using: :btree
   add_index "assets", ["superseded_by_id"], name: "assets_idx13", using: :btree
 
+  create_table "assets_asset_fleets", force: :cascade do |t|
+    t.integer "asset_id",       limit: 4
+    t.integer "asset_fleet_id", limit: 4
+    t.boolean "active"
+  end
+
+  add_index "assets_asset_fleets", ["asset_fleet_id"], name: "index_assets_asset_fleets_on_asset_fleet_id", using: :btree
+  add_index "assets_asset_fleets", ["asset_id"], name: "index_assets_asset_fleets_on_asset_id", using: :btree
+
   create_table "assets_districts", id: false, force: :cascade do |t|
     t.integer "asset_id",    limit: 4
     t.integer "district_id", limit: 4
@@ -328,16 +377,18 @@ ActiveRecord::Schema.define(version: 20171201172759) do
 
   add_index "assets_facility_features", ["asset_id", "facility_feature_id"], name: "assets_facility_features_idx1", using: :btree
 
-  create_table "assets_fta_mode_types", id: false, force: :cascade do |t|
+  create_table "assets_fta_mode_types", force: :cascade do |t|
     t.integer "asset_id",         limit: 4
     t.integer "fta_mode_type_id", limit: 4
+    t.boolean "is_primary"
   end
 
   add_index "assets_fta_mode_types", ["asset_id", "fta_mode_type_id"], name: "assets_fta_mode_types_idx1", using: :btree
 
-  create_table "assets_fta_service_types", id: false, force: :cascade do |t|
+  create_table "assets_fta_service_types", force: :cascade do |t|
     t.integer "asset_id",            limit: 4
     t.integer "fta_service_type_id", limit: 4
+    t.boolean "is_primary"
   end
 
   add_index "assets_fta_service_types", ["asset_id", "fta_service_type_id"], name: "assets_fta_service_types_idx1", using: :btree
@@ -483,6 +534,15 @@ ActiveRecord::Schema.define(version: 20171201172759) do
   add_index "documents", ["documentable_id", "documentable_type"], name: "documents_idx2", using: :btree
   add_index "documents", ["object_key"], name: "documents_idx1", using: :btree
 
+  create_table "dual_fuel_types", force: :cascade do |t|
+    t.integer "primary_fuel_type_id",   limit: 4
+    t.integer "secondary_fuel_type_id", limit: 4
+    t.boolean "active"
+  end
+
+  add_index "dual_fuel_types", ["primary_fuel_type_id"], name: "index_dual_fuel_types_on_primary_fuel_type_id", using: :btree
+  add_index "dual_fuel_types", ["secondary_fuel_type_id"], name: "index_dual_fuel_types_on_secondary_fuel_type_id", using: :btree
+
   create_table "facility_capacity_types", force: :cascade do |t|
     t.string  "name",        limit: 64,  null: false
     t.string  "description", limit: 254, null: false
@@ -540,6 +600,11 @@ ActiveRecord::Schema.define(version: 20171201172759) do
     t.boolean "active",                  null: false
   end
 
+  create_table "fta_asset_categories", force: :cascade do |t|
+    t.string  "name",   limit: 255
+    t.boolean "active"
+  end
+
   create_table "fta_bus_mode_types", force: :cascade do |t|
     t.string  "code",        limit: 4,   null: false
     t.string  "name",        limit: 64,  null: false
@@ -550,6 +615,7 @@ ActiveRecord::Schema.define(version: 20171201172759) do
   create_table "fta_facility_types", force: :cascade do |t|
     t.string  "name",        limit: 64,  null: false
     t.string  "description", limit: 254, null: false
+    t.string  "class_name",  limit: 255
     t.boolean "active",                  null: false
   end
 
@@ -581,6 +647,12 @@ ActiveRecord::Schema.define(version: 20171201172759) do
     t.boolean "active",                  null: false
   end
 
+  create_table "fta_private_mode_types", force: :cascade do |t|
+    t.string  "name",        limit: 255, null: false
+    t.string  "description", limit: 255, null: false
+    t.boolean "active",                  null: false
+  end
+
   create_table "fta_service_area_types", force: :cascade do |t|
     t.string  "name",        limit: 64,  null: false
     t.string  "description", limit: 254, null: false
@@ -594,11 +666,21 @@ ActiveRecord::Schema.define(version: 20171201172759) do
     t.boolean "active",                  null: false
   end
 
+  create_table "fta_support_vehicle_types", force: :cascade do |t|
+    t.string  "name",                          limit: 255, null: false
+    t.string  "description",                   limit: 255, null: false
+    t.integer "default_useful_life_benchmark", limit: 4
+    t.string  "useful_life_benchmark_unit",    limit: 255
+    t.boolean "active",                                    null: false
+  end
+
   create_table "fta_vehicle_types", force: :cascade do |t|
-    t.string  "name",        limit: 64,  null: false
-    t.string  "code",        limit: 2,   null: false
-    t.string  "description", limit: 254, null: false
-    t.boolean "active",                  null: false
+    t.string  "name",                          limit: 64,  null: false
+    t.string  "code",                          limit: 2,   null: false
+    t.string  "description",                   limit: 254, null: false
+    t.integer "default_useful_life_benchmark", limit: 4
+    t.string  "useful_life_benchmark_unit",    limit: 255
+    t.boolean "active",                                    null: false
   end
 
   create_table "fuel_types", force: :cascade do |t|
@@ -779,6 +861,7 @@ ActiveRecord::Schema.define(version: 20171201172759) do
 
   create_table "ntd_admin_and_maintenance_facilities", force: :cascade do |t|
     t.integer  "ntd_form_id",                 limit: 4
+    t.string   "facility_id",                 limit: 255
     t.string   "name",                        limit: 128
     t.boolean  "part_of_larger_facility"
     t.string   "address",                     limit: 128
@@ -788,13 +871,13 @@ ActiveRecord::Schema.define(version: 20171201172759) do
     t.float    "latitude",                    limit: 24
     t.float    "longitude",                   limit: 24
     t.string   "primary_mode",                limit: 32
+    t.string   "secondary_mode",              limit: 255
+    t.string   "private_mode",                limit: 255
     t.string   "facility_type",               limit: 255
     t.integer  "year_built",                  limit: 4
     t.integer  "size",                        limit: 4
     t.string   "size_type",                   limit: 32
     t.integer  "pcnt_capital_responsibility", limit: 4
-    t.integer  "estimated_cost",              limit: 4
-    t.integer  "estimated_cost_year",         limit: 4
     t.string   "notes",                       limit: 254
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -821,8 +904,6 @@ ActiveRecord::Schema.define(version: 20171201172759) do
     t.integer  "updated_by_id",       limit: 4
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.date     "start_date"
-    t.date     "end_date"
     t.text     "processing_log",      limit: 65535
   end
 
@@ -860,51 +941,62 @@ ActiveRecord::Schema.define(version: 20171201172759) do
   add_index "ntd_passenger_and_parking_facilities", ["ntd_form_id"], name: "ntd_passenger_and_parking_facilities_idx1", using: :btree
 
   create_table "ntd_revenue_vehicle_fleets", force: :cascade do |t|
-    t.integer  "ntd_form_id",                  limit: 4
-    t.string   "rvi_id",                       limit: 4
-    t.integer  "size",                         limit: 4
-    t.integer  "num_active",                   limit: 4
-    t.integer  "num_ada_accessible",           limit: 4
-    t.integer  "num_emergency_contingency",    limit: 4
-    t.string   "vehicle_type",                 limit: 32
-    t.string   "funding_source",               limit: 255
-    t.string   "manufacture_code",             limit: 255
-    t.string   "model_number",                 limit: 255
-    t.integer  "renewal_year",                 limit: 4
-    t.string   "renewal_type",                 limit: 32
-    t.integer  "renewal_cost",                 limit: 4
-    t.integer  "renewal_cost_year",            limit: 4
-    t.integer  "replacement_cost",             limit: 4
-    t.integer  "replacement_cost_year",        limit: 4
-    t.boolean  "replacement_cost_parts",                   null: false
-    t.boolean  "replacement_cost_warranty",                null: false
-    t.string   "fuel_type",                    limit: 32
-    t.integer  "vehicle_length",               limit: 4
-    t.integer  "seating_capacity",             limit: 4
-    t.integer  "standing_capacity",            limit: 4
-    t.integer  "total_active_miles_in_period", limit: 4
-    t.integer  "avg_lifetime_active_miles",    limit: 4
-    t.string   "notes",                        limit: 254
+    t.integer  "ntd_form_id",                   limit: 4
+    t.string   "vehicle_object_key",            limit: 255
+    t.string   "rvi_id",                        limit: 4
+    t.string   "fta_mode",                      limit: 255
+    t.string   "fta_service_type",              limit: 255
+    t.string   "agency_fleet_id",               limit: 255
+    t.string   "dedicated",                     limit: 255
+    t.string   "direct_capital_responsibility", limit: 255
+    t.integer  "size",                          limit: 4
+    t.integer  "num_active",                    limit: 4
+    t.integer  "num_ada_accessible",            limit: 4
+    t.integer  "num_emergency_contingency",     limit: 4
+    t.string   "vehicle_type",                  limit: 32
+    t.string   "manufacture_code",              limit: 255
+    t.string   "rebuilt_year",                  limit: 255
+    t.string   "model_number",                  limit: 255
+    t.string   "other_manufacturer",            limit: 255
+    t.string   "fuel_type",                     limit: 32
+    t.string   "dual_fuel_type",                limit: 255
+    t.integer  "vehicle_length",                limit: 4
+    t.integer  "seating_capacity",              limit: 4
+    t.integer  "standing_capacity",             limit: 4
+    t.integer  "total_active_miles_in_period",  limit: 4
+    t.integer  "avg_lifetime_active_miles",     limit: 4
+    t.string   "ownership_type",                limit: 255
+    t.string   "funding_type",                  limit: 255
+    t.string   "notes",                         limit: 254
+    t.string   "status",                        limit: 255
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "avg_expected_service_years",   limit: 4,   null: false
-    t.integer  "useful_life_remaining",        limit: 4,   null: false
-    t.integer  "manufacture_year",             limit: 4,   null: false
-    t.integer  "additional_fta_mode",          limit: 4
+    t.integer  "useful_life_remaining",         limit: 4,   null: false
+    t.string   "useful_life_benchmark",         limit: 255
+    t.integer  "manufacture_year",              limit: 4,   null: false
+    t.integer  "additional_fta_mode",           limit: 4
+    t.string   "additional_fta_service_type",   limit: 255
   end
 
   add_index "ntd_revenue_vehicle_fleets", ["ntd_form_id"], name: "ntd_revenue_vehicle_fleets_idx1", using: :btree
 
   create_table "ntd_service_vehicle_fleets", force: :cascade do |t|
     t.integer  "ntd_form_id",                 limit: 4
+    t.string   "vehicle_object_key",          limit: 255
+    t.string   "sv_id",                       limit: 255
+    t.string   "fleet_name",                  limit: 255
+    t.string   "agency_fleet_id",             limit: 255
     t.string   "name",                        limit: 64
     t.integer  "size",                        limit: 4
     t.string   "vehicle_type",                limit: 32
+    t.string   "primary_fta_mode_type",       limit: 255
+    t.string   "secondary_fta_mode_types",    limit: 255
     t.integer  "manufacture_year",            limit: 4
-    t.integer  "avg_expected_years",          limit: 4
     t.integer  "pcnt_capital_responsibility", limit: 4
     t.integer  "estimated_cost",              limit: 4
     t.integer  "estimated_cost_year",         limit: 4
+    t.string   "useful_life_benchmark",       limit: 255
+    t.string   "useful_life_remaining",       limit: 255
     t.string   "notes",                       limit: 254
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -952,7 +1044,7 @@ ActiveRecord::Schema.define(version: 20171201172759) do
     t.integer  "fta_agency_type_id",       limit: 4
     t.boolean  "indian_tribe"
     t.string   "subrecipient_number",      limit: 9
-    t.string   "ntd_id_number",            limit: 4
+    t.string   "ntd_id_number",            limit: 255
     t.integer  "fta_service_area_type_id", limit: 4
     t.string   "governing_body",           limit: 128
     t.integer  "governing_body_type_id",   limit: 4
@@ -1047,6 +1139,9 @@ ActiveRecord::Schema.define(version: 20171201172759) do
     t.string   "rehabilitation_code",                   limit: 8, null: false
     t.string   "engineering_design_code",               limit: 8
     t.string   "construction_code",                     limit: 8
+    t.integer  "fta_useful_life_benchmark",             limit: 4
+    t.integer  "fta_vehicle_type_id",                   limit: 4
+    t.integer  "fta_facility_type_id",                  limit: 4
     t.boolean  "default_rule"
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -1103,7 +1198,7 @@ ActiveRecord::Schema.define(version: 20171201172759) do
     t.integer  "report_type_id",    limit: 4,     null: false
     t.string   "name",              limit: 64,    null: false
     t.string   "description",       limit: 254,   null: false
-    t.string   "class_name",        limit: 32,    null: false
+    t.string   "class_name",        limit: 255,   null: false
     t.string   "view_name",         limit: 32,    null: false
     t.string   "roles",             limit: 128
     t.text     "custom_sql",        limit: 65535
@@ -1119,18 +1214,28 @@ ActiveRecord::Schema.define(version: 20171201172759) do
   add_index "reports", ["report_type_id"], name: "reports_idx1", using: :btree
 
   create_table "roles", force: :cascade do |t|
-    t.string   "name",          limit: 64,                  null: false
-    t.integer  "weight",        limit: 4
-    t.integer  "resource_id",   limit: 4
-    t.string   "resource_type", limit: 255
-    t.datetime "created_at",                                null: false
-    t.datetime "updated_at",                                null: false
-    t.boolean  "privilege",                 default: false, null: false
-    t.string   "label",         limit: 255
+    t.string   "name",              limit: 64,                  null: false
+    t.integer  "weight",            limit: 4
+    t.integer  "resource_id",       limit: 4
+    t.string   "resource_type",     limit: 255
+    t.integer  "role_parent_id",    limit: 4
+    t.boolean  "show_in_user_mgmt"
+    t.datetime "created_at",                                    null: false
+    t.datetime "updated_at",                                    null: false
+    t.boolean  "privilege",                     default: false, null: false
+    t.string   "label",             limit: 255
   end
 
   add_index "roles", ["name"], name: "roles_idx1", using: :btree
   add_index "roles", ["resource_id"], name: "roles_idx2", using: :btree
+
+  create_table "rule_sets", force: :cascade do |t|
+    t.string  "object_key",     limit: 255
+    t.string  "name",           limit: 255
+    t.string  "class_name",     limit: 255
+    t.boolean "rule_set_aware"
+    t.boolean "active"
+  end
 
   create_table "saved_searches", force: :cascade do |t|
     t.string   "object_key",     limit: 12,    null: false
@@ -1194,6 +1299,57 @@ ActiveRecord::Schema.define(version: 20171201172759) do
     t.string   "data_file_path",        limit: 64
     t.datetime "created_at"
     t.datetime "updated_at"
+  end
+
+  create_table "tam_groups", force: :cascade do |t|
+    t.string   "object_key",      limit: 255
+    t.integer  "organization_id", limit: 4
+    t.integer  "tam_policy_id",   limit: 4
+    t.string   "name",            limit: 255
+    t.integer  "leader_id",       limit: 4
+    t.integer  "parent_id",       limit: 4
+    t.string   "state",           limit: 255
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
+  end
+
+  add_index "tam_groups", ["organization_id"], name: "index_tam_groups_on_organization_id", using: :btree
+  add_index "tam_groups", ["tam_policy_id"], name: "index_tam_groups_on_tam_policy_id", using: :btree
+
+  create_table "tam_groups_fta_asset_categories", id: false, force: :cascade do |t|
+    t.integer "tam_group_id",          limit: 4
+    t.integer "fta_asset_category_id", limit: 4
+  end
+
+  create_table "tam_groups_organizations", id: false, force: :cascade do |t|
+    t.integer "tam_group_id",    limit: 4
+    t.integer "organization_id", limit: 4
+  end
+
+  create_table "tam_performance_metrics", force: :cascade do |t|
+    t.string   "object_key",                   limit: 255
+    t.integer  "tam_group_id",                 limit: 4
+    t.integer  "fta_asset_category_id",        limit: 4
+    t.string   "asset_level_type",             limit: 255
+    t.integer  "asset_level_id",               limit: 4
+    t.integer  "parent_id",                    limit: 4
+    t.integer  "useful_life_benchmark",        limit: 4
+    t.string   "useful_life_benchmark_unit",   limit: 255
+    t.boolean  "useful_life_benchmark_locked"
+    t.integer  "pcnt_goal",                    limit: 4
+    t.boolean  "pcnt_goal_locked"
+    t.datetime "created_at",                               null: false
+    t.datetime "updated_at",                               null: false
+  end
+
+  add_index "tam_performance_metrics", ["tam_group_id"], name: "index_tam_performance_metrics_on_tam_group_id", using: :btree
+
+  create_table "tam_policies", force: :cascade do |t|
+    t.string   "object_key", limit: 255
+    t.integer  "fy_year",    limit: 4
+    t.boolean  "copied"
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
   end
 
   create_table "tasks", force: :cascade do |t|
@@ -1365,6 +1521,11 @@ ActiveRecord::Schema.define(version: 20171201172759) do
 
   add_index "users_user_organization_filters", ["user_id"], name: "users_user_organization_filters_idx1", using: :btree
   add_index "users_user_organization_filters", ["user_organization_filter_id"], name: "users_user_organization_filters_idx2", using: :btree
+
+  create_table "users_viewable_organizations", force: :cascade do |t|
+    t.integer "user_id",         limit: 4
+    t.integer "organization_id", limit: 4
+  end
 
   create_table "vehicle_features", force: :cascade do |t|
     t.string  "name",        limit: 64,  null: false

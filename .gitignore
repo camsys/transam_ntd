@@ -12,3 +12,7 @@ spec/dummy/tmp
 Gemfile.lock
 
 *.haml~
+
+*.bak
+
+shadowed_views.log

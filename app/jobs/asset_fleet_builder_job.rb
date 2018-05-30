@@ -7,7 +7,7 @@
 #------------------------------------------------------------------------------
 class AssetFleetBuilderJob < Job
 
-  attr_accessor :organizations
+  attr_accessor :organization_id_list
   attr_accessor :asset_fleet_types
   attr_accessor :builder_action
   attr_accessor :creator
@@ -18,7 +18,7 @@ class AssetFleetBuilderJob < Job
     options = {}
     options[:action] = builder_action
 
-    organizations.each do |organization|
+    TransitOperator.where(id: organization_id_list).each do |organization|
       asset_fleet_types.each do |fleet_type|
         builder = AssetFleetBuilder.new(fleet_type, organization)
         builder.build(options)
@@ -39,14 +39,14 @@ class AssetFleetBuilderJob < Job
   end
 
   def check
-    raise ArgumentError, "organizations can't be blank " if organizations.nil?
+    raise ArgumentError, "organization_id_list can't be blank " if organization_id_list.nil?
     raise ArgumentError, "asset_fleet_types can't be blank " if asset_fleet_types.nil?
     raise ArgumentError, "creator can't be blank " if creator.nil?
   end
 
-  def initialize(organizations, asset_fleet_types, builder_action, creator)
+  def initialize(organization_id_list, asset_fleet_types, builder_action, creator)
     super
-    self.organizations = organizations
+    self.organization_id_list = organization_id_list
     self.asset_fleet_types = asset_fleet_types
     self.builder_action = builder_action
     self.creator = creator
