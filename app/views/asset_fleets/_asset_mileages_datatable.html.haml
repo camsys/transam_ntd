@@ -2,17 +2,12 @@
   table_dom_id = SecureRandom.hex
   mileage_event_type = AssetEventType.find_by(class_name: "MileageUpdateEvent")
 
-:css
-  .th-inner {
-    white-space: normal !important;
-  }
-
 = format_field("FY Year", format_as_fiscal_year(current_fiscal_year_year))
 - has_miles = @asset_fleet.miles_this_year.present?
 = format_field('Miles This Year', "#{format_as_integer(@asset_fleet.miles_this_year)} #{has_miles ? 'miles': ''}")
 = format_field('Avg Lifetime Miles per Active Vehicle', "#{format_as_integer(@asset_fleet.avg_active_lifetime_miles)} #{has_miles ? 'miles': ''}")
 
-.row{style: 'padding-top: 25px;'}
+.row.content-spacer
   .col-xs-12
     %table.table.table-hover{:id => table_dom_id, :data => {:toggle => 'table',
       :card_view => "false",

@@ -14,3 +14,5 @@ Gemfile.lock
 *.haml~
 
 *.bak
+
+shadowed_views.log
